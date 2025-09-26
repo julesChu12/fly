@@ -3,7 +3,7 @@ package entity
 import (
 	"testing"
 
-	"github.com/julesChu12/custos/pkg/types"
+	"github.com/julesChu12/fly/custos/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

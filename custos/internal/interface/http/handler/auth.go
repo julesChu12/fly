@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/julesChu12/custos/internal/application/dto"
-	"github.com/julesChu12/custos/internal/application/usecase/auth"
-	"github.com/julesChu12/custos/internal/interface/http/middleware"
-	"github.com/julesChu12/custos/pkg/errors"
+	"github.com/julesChu12/fly/custos/internal/application/dto"
+	"github.com/julesChu12/fly/custos/internal/application/usecase/auth"
+	"github.com/julesChu12/fly/custos/internal/interface/http/middleware"
+	"github.com/julesChu12/fly/custos/pkg/errors"
 )
 
 type AuthHandler struct {

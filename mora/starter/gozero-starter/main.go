@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/julesChu12/mora/adapters/gozero"
-	"github.com/julesChu12/mora/starter/gozero-starter/internal/config"
-	"github.com/julesChu12/mora/starter/gozero-starter/internal/handler"
-	"github.com/julesChu12/mora/starter/gozero-starter/internal/svc"
+	"github.com/julesChu12/fly/mora/adapters/gozero"
+	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/config"
+	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/handler"
+	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/svc"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
 )

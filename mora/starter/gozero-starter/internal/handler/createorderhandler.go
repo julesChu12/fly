@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	gozeroauth "github.com/julesChu12/mora/adapters/gozero"
+	gozeroauth "github.com/julesChu12/fly/mora/adapters/gozero"
 
-	"github.com/julesChu12/mora/starter/gozero-starter/internal/svc"
+	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/svc"
 
-	"github.com/julesChu12/mora/starter/gozero-starter/internal/types"
+	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 

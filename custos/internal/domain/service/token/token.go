@@ -9,9 +9,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/julesChu12/custos/pkg/constants"
-	"github.com/julesChu12/custos/pkg/errors"
-	"github.com/julesChu12/custos/pkg/types"
+	"github.com/julesChu12/fly/custos/pkg/constants"
+	"github.com/julesChu12/fly/custos/pkg/errors"
+	"github.com/julesChu12/fly/custos/pkg/types"
 )
 
 type TokenService struct {

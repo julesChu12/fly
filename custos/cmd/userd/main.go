@@ -9,21 +9,18 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/julesChu12/custos/internal/application/usecase/auth"
-	"github.com/julesChu12/custos/internal/config"
-	authService "github.com/julesChu12/custos/internal/domain/service/auth"
-	"github.com/julesChu12/custos/internal/domain/service/token"
-	"github.com/julesChu12/custos/internal/infrastructure/persistence/mysql"
-	"github.com/julesChu12/custos/internal/interface/http/handler"
-	"github.com/julesChu12/custos/internal/interface/http/middleware"
-	"github.com/julesChu12/custos/internal/interface/http/router"
+	"github.com/julesChu12/fly/custos/internal/application/usecase/auth"
+	"github.com/julesChu12/fly/custos/internal/config"
+	authService "github.com/julesChu12/fly/custos/internal/domain/service/auth"
+	"github.com/julesChu12/fly/custos/internal/domain/service/token"
+	"github.com/julesChu12/fly/custos/internal/infrastructure/persistence/mysql"
+	"github.com/julesChu12/fly/custos/internal/interface/http/handler"
+	"github.com/julesChu12/fly/custos/internal/interface/http/middleware"
+	"github.com/julesChu12/fly/custos/internal/interface/http/router"
 )
 
 func main() {
-	cfg, err := config.Load()
-	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
+	cfg := config.MustLoad()
 
 	db, err := mysql.NewDatabase(cfg.Database.DSN(), cfg.App.Env == "development")
 	if err != nil {
@@ -49,10 +46,12 @@ func main() {
 
 	authHandler := handler.NewAuthHandler(registerUC, loginUC, refreshUC, logoutUC, logoutAllUC)
 	userHandler := handler.NewUserHandler()
+	oauthHandler := handler.NewOAuthHandler(nil, tokenService) // TODO: Initialize OAuth service
+	adminHandler := handler.NewAdminHandler(userRepo, nil)     // TODO: Initialize RBAC service
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 
-	routerHandler := router.NewRouter(authHandler, userHandler, healthHandler, authMW)
+	routerHandler := router.NewRouter(authHandler, userHandler, oauthHandler, adminHandler, healthHandler, authMW)
 	ginEngine := routerHandler.SetupRoutes()
 
 	srv := &http.Server{

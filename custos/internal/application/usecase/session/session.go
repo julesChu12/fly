@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/julesChu12/custos/internal/domain/repository"
-	"github.com/julesChu12/custos/internal/domain/service/token"
-	"github.com/julesChu12/custos/pkg/errors"
+	"github.com/julesChu12/fly/custos/internal/domain/repository"
+	"github.com/julesChu12/fly/custos/internal/domain/service/token"
+	"github.com/julesChu12/fly/custos/pkg/errors"
 )
 
 type SessionUseCase struct {
@@ -72,12 +72,20 @@ func (uc *SessionUseCase) ValidateSession(ctx context.Context, tokenString strin
 
 	// TODO: Check session in repository
 	// For now, create a session from token claims
+	var expiresAt, createdAt time.Time
+	if claims.ExpiresAt != nil {
+		expiresAt = claims.ExpiresAt.Time
+	}
+	if claims.IssuedAt != nil {
+		createdAt = claims.IssuedAt.Time
+	}
+	
 	session := &Session{
 		ID:        uc.tokenService.GenerateSessionID(),
 		UserID:    claims.UserID,
 		Token:     tokenString,
-		ExpiresAt: claims.ExpiresAt.Time,
-		CreatedAt: claims.IssuedAt.Time,
+		ExpiresAt: expiresAt,
+		CreatedAt: createdAt,
 		UpdatedAt: time.Now(),
 		IsActive:  true,
 	}

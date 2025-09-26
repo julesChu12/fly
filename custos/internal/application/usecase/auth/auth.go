@@ -3,9 +3,9 @@ package auth
 import (
 	"context"
 
-	"github.com/julesChu12/custos/internal/application/dto"
-	"github.com/julesChu12/custos/internal/domain/entity"
-	"github.com/julesChu12/custos/internal/domain/service/auth"
+	"github.com/julesChu12/fly/custos/internal/application/dto"
+	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/internal/domain/service/auth"
 )
 
 type RegisterUseCase struct {

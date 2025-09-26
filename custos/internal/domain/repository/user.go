@@ -2,7 +2,13 @@ package repository
 
 import (
 	"context"
-	"github.com/julesChu12/custos/internal/domain/entity"
+	"errors"
+
+	"github.com/julesChu12/fly/custos/internal/domain/entity"
+)
+
+var (
+	ErrUserNotFound = errors.New("user not found")
 )
 
 type UserRepository interface {

@@ -3,12 +3,11 @@ package middleware
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/julesChu12/custos/internal/domain/repository"
-	"github.com/julesChu12/custos/internal/domain/service/token"
-	"github.com/julesChu12/custos/pkg/errors"
+	"github.com/julesChu12/fly/custos/internal/domain/repository"
+	"github.com/julesChu12/fly/custos/internal/domain/service/token"
+	"github.com/julesChu12/fly/custos/pkg/errors"
 )
 
 const (
@@ -98,7 +97,7 @@ func (m *AuthMiddleware) ensureSessionActive(c *gin.Context, claims *token.Token
 		})
 		return err
 	}
-	if !session.IsActive(time.Now()) {
+	if !session.IsValid() {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"code":    "SESSION_REVOKED",
 			"message": "Session is no longer valid",

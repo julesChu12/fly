@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/julesChu12/mora/pkg/auth"
+	"github.com/julesChu12/fly/mora/pkg/auth"
 )
 
 const (

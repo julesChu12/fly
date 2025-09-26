@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/julesChu12/mora/pkg/auth"
+	"github.com/julesChu12/fly/mora/pkg/auth"
 
-	ginauth "github.com/julesChu12/mora/adapters/gin"
-	_ "github.com/julesChu12/mora/starter/gin-starter/docs"
+	ginauth "github.com/julesChu12/fly/mora/adapters/gin"
+	_ "github.com/julesChu12/fly/mora/starter/gin-starter/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )

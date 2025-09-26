@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/julesChu12/custos/internal/domain/entity"
-	"github.com/julesChu12/custos/internal/domain/repository"
+	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/internal/domain/repository"
 	"gorm.io/gorm"
 )
 

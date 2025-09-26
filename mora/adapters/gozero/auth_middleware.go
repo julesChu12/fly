@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/julesChu12/mora/pkg/auth"
+	"github.com/julesChu12/fly/mora/pkg/auth"
 )
 
 const (

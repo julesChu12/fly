@@ -1,0 +1,67 @@
+services:
+  clotho:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - SERVER_HOST=0.0.0.0
+      - JWT_SECRET=development-secret-key-change-in-production
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
+      - CUSTOS_GRPC_ADDRESS=custos:9001
+      - ORDERS_GRPC_ADDRESS=orders:9002
+      - PAYMENTS_GRPC_ADDRESS=payments:9003
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=clotho
+      - DB_PASSWORD=password
+      - DB_NAME=clotho_db
+      - REDIS_ADDRESS=redis:6379
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: clotho_db
+      MYSQL_USER: clotho
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fly-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  fly-network:
+    external: false

@@ -1,6 +1,6 @@
 package svc
 
-import "github.com/julesChu12/mora/starter/gozero-starter/internal/config"
+import "github.com/julesChu12/fly/mora/starter/gozero-starter/internal/config"
 
 type ServiceContext struct {
 	Config config.Config

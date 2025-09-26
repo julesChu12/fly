@@ -3,8 +3,8 @@ package rbac
 import (
 	"context"
 
-	"github.com/julesChu12/custos/internal/domain/entity"
-	"github.com/julesChu12/custos/pkg/types"
+	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/pkg/types"
 )
 
 // RBACService handles role-based access control
