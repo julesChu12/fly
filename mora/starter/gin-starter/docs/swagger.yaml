@@ -1,0 +1,331 @@
+basePath: /
+definitions:
+  main.CreateOrderRequest:
+    properties:
+      amount:
+        example: 100
+        type: number
+      description:
+        example: 订单描述
+        type: string
+    required:
+    - amount
+    type: object
+  main.CreateOrderResponse:
+    properties:
+      order:
+        $ref: '#/definitions/main.Order'
+    type: object
+  main.ErrorResponse:
+    properties:
+      error:
+        example: authentication failed
+        type: string
+      message:
+        example: invalid username or password
+        type: string
+    type: object
+  main.HealthResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+      time:
+        example: "2023-12-25T15:30:45Z"
+        type: string
+    type: object
+  main.LoginRequest:
+    properties:
+      password:
+        example: password
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  main.LoginResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_in:
+        example: 600
+        type: integer
+      token_type:
+        example: Bearer
+        type: string
+      user_id:
+        example: user-123
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  main.Order:
+    properties:
+      amount:
+        example: 100
+        type: number
+      id:
+        example: order-1
+        type: string
+      status:
+        example: completed
+        type: string
+      user_id:
+        example: user-123
+        type: string
+    type: object
+  main.OrdersResponse:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/main.Order'
+        type: array
+      total:
+        example: 2
+        type: integer
+    type: object
+  main.ProfileResponse:
+    properties:
+      exp:
+        example: "2023-12-25T16:30:45Z"
+        type: string
+      iat:
+        example: "2023-12-25T15:30:45Z"
+        type: string
+      subject:
+        example: user-123
+        type: string
+      user_id:
+        example: user-123
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  main.ProtectedResponse:
+    properties:
+      message:
+        example: This is a protected endpoint
+        type: string
+      time:
+        example: "2023-12-25T15:30:45Z"
+        type: string
+      user_id:
+        example: user-123
+        type: string
+    type: object
+  main.User:
+    properties:
+      id:
+        example: user-123
+        type: string
+      role:
+        example: admin
+        type: string
+      username:
+        example: admin
+        type: string
+    type: object
+  main.UsersResponse:
+    properties:
+      request_by:
+        example: user-123
+        type: string
+      total:
+        example: 2
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/main.User'
+        type: array
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: Mora API Support
+    url: http://www.swagger.io/support
+  description: Mora能力库演示API - 提供JWT认证和业务接口示例
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Mora API
+  version: "1.0"
+paths:
+  /api/v1/orders:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户订单列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.OrdersResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Orders
+      tags:
+      - Orders
+    post:
+      consumes:
+      - application/json
+      description: 创建新订单
+      parameters:
+      - description: 创建订单请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.CreateOrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Order
+      tags:
+      - Orders
+  /api/v1/users:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户列表（管理员功能）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.UsersResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Users
+      tags:
+      - Users
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: 系统健康检查接口
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.HealthResponse'
+      summary: Health Check
+      tags:
+      - System
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录接口，返回Access Token
+      parameters:
+      - description: 登录请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: User Login
+      tags:
+      - Authentication
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的个人信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get User Profile
+      tags:
+      - User
+  /protected:
+    get:
+      consumes:
+      - application/json
+      description: 受保护的接口示例
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.ProtectedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Protected Endpoint
+      tags:
+      - Protected
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

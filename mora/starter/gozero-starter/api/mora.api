@@ -1,0 +1,111 @@
+syntax = "v1"
+
+info (
+	title:   "Mora API with go-zero"
+	desc:    "Mora能力库演示API - go-zero版本"
+	author:  "Mora Team"
+	version: "1.0"
+)
+
+// 基础响应类型
+type BaseResponse {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+// 健康检查
+type HealthResponse {
+	Status string `json:"status"`
+	Time   string `json:"time"`
+}
+
+// 登录相关
+type LoginRequest {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+	UserID      string `json:"user_id"`
+	Username    string `json:"username"`
+}
+
+// 用户资料
+type ProfileResponse {
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	Subject  string `json:"subject"`
+	Exp      string `json:"exp"`
+	Iat      string `json:"iat"`
+}
+
+// 受保护端点
+type ProtectedResponse {
+	Message string `json:"message"`
+	UserID  string `json:"user_id"`
+	Time    string `json:"time"`
+}
+
+// 订单相关
+type Order {
+	ID     string  `json:"id"`
+	UserID string  `json:"user_id"`
+	Amount float64 `json:"amount"`
+	Status string  `json:"status"`
+}
+
+type OrdersResponse {
+	Orders []Order `json:"orders"`
+	Total  int     `json:"total"`
+}
+
+type CreateOrderRequest {
+	Amount      float64 `json:"amount"`
+	Description string  `json:"description"`
+}
+
+type CreateOrderResponse {
+	Order Order `json:"order"`
+}
+
+// 用户列表
+type User {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
+}
+
+type UsersResponse {
+	Users     []User `json:"users"`
+	Total     int    `json:"total"`
+	RequestBy string `json:"request_by"`
+}
+
+service mora-api {
+	// 公共端点（无需认证）
+	@handler HealthHandler
+	get /health returns (HealthResponse)
+
+	@handler LoginHandler
+	post /login (LoginRequest) returns (LoginResponse)
+
+	// 受保护端点（需要JWT认证）
+	@handler ProfileHandler
+	get /profile returns (ProfileResponse)
+
+	@handler ProtectedHandler
+	get /protected returns (ProtectedResponse)
+
+	// 业务API端点
+	@handler GetOrdersHandler
+	get /api/v1/orders returns (OrdersResponse)
+
+	@handler CreateOrderHandler
+	post /api/v1/orders (CreateOrderRequest) returns (CreateOrderResponse)
+
+	@handler GetUsersHandler
+	get /api/v1/users returns (UsersResponse)
+}

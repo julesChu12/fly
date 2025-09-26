@@ -1,0 +1,6 @@
+Name: mora-api
+Host: 0.0.0.0
+Port: 8081
+JWT:
+  Secret: "your-super-secret-key-change-in-production"
+  TTL: 600  # 10 minutes in seconds
