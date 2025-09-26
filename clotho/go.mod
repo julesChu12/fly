@@ -4,7 +4,6 @@ go 1.25.1
 
 require (
 	github.com/gin-gonic/gin v1.11.0
-	github.com/julesChu12/fly/mora v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.65.0
@@ -60,5 +59,3 @@ require (
 	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
-
-replace github.com/julesChu12/fly/mora => ../mora

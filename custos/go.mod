@@ -12,7 +12,6 @@ require (
 	golang.org/x/crypto v0.42.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.0
-	github.com/julesChu12/fly/mora v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -100,4 +99,3 @@ require (
 	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
