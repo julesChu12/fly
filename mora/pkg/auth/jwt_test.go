@@ -77,10 +77,10 @@ func TestValidateToken(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		token     string
-		secret    string
-		wantErr   error
+		name       string
+		token      string
+		secret     string
+		wantErr    error
 		wantClaims bool
 	}{
 		{
@@ -159,8 +159,8 @@ func TestValidateToken(t *testing.T) {
 
 func TestClaimsIsExpired(t *testing.T) {
 	tests := []struct {
-		name       string
-		claims     *Claims
+		name        string
+		claims      *Claims
 		wantExpired bool
 	}{
 		{

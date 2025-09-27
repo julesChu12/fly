@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/mora/pkg/auth"
+	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/julesChu12/fly/mora/pkg/observability"
 
 	ginauth "github.com/julesChu12/fly/mora/adapters/gin"
 	_ "github.com/julesChu12/fly/mora/starter/gin-starter/docs"
@@ -41,7 +43,24 @@ const (
 // @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
+	// Initialize observability
+	cfg := observability.Config{
+		ServiceName:  "gin-starter",
+		ExporterURL:  "http://localhost:4317", // OTLP endpoint
+		SampleRatio:  1.0,
+		Environment:  "development",
+		ExporterType: "stdout", // Use stdout for demo
+	}
+	cleanup, err := observability.Init(cfg)
+	if err != nil {
+		logger.Fatalf("failed to initialize observability: %v", err)
+	}
+	defer cleanup()
+
 	r := gin.Default()
+
+	// Add observability middleware
+	r.Use(ginauth.ObservabilityMiddleware("gin-starter"))
 
 	// Configure auth middleware
 	authConfig := ginauth.AuthMiddlewareConfig{
@@ -71,6 +90,7 @@ func main() {
 		api.GET("/users", getUsersHandler)
 	}
 
+	logger.Infof("Starting Gin server with observability on :8080")
 	r.Run(":8080")
 }
 
@@ -126,9 +146,13 @@ type ErrorResponse struct {
 // @Failure 401 {object} ErrorResponse
 // @Router /login [post]
 func loginHandler(c *gin.Context) {
+	// Example of using logger with trace context
+	logger.WithCtx(c.Request.Context()).Info("user login attempt")
+
 	var req LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.WithCtx(c.Request.Context()).Error("invalid login request", "error", err.Error())
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid request",
 			Message: err.Error(),
@@ -141,6 +165,7 @@ func loginHandler(c *gin.Context) {
 		// Generate access token
 		token, err := auth.GenerateToken("user-123", req.Username, JWTSecret, TokenTTL)
 		if err != nil {
+			logger.WithCtx(c.Request.Context()).Error("token generation failed", "error", err.Error())
 			c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error:   "token generation failed",
 				Message: err.Error(),
@@ -148,6 +173,7 @@ func loginHandler(c *gin.Context) {
 			return
 		}
 
+		logger.WithCtx(c.Request.Context()).Info("user login success", "user_id", "user-123", "username", req.Username)
 		c.JSON(http.StatusOK, LoginResponse{
 			AccessToken: token,
 			TokenType:   "Bearer",
@@ -158,6 +184,7 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
+	logger.WithCtx(c.Request.Context()).Warn("authentication failed", "username", req.Username)
 	c.JSON(http.StatusUnauthorized, ErrorResponse{
 		Error:   "authentication failed",
 		Message: "invalid username or password",

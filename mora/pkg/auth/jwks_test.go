@@ -140,11 +140,11 @@ func TestValidateTokenWithPublicKey(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		tokenSetup  func() string
+		name         string
+		tokenSetup   func() string
 		publicKeyPEM string
-		wantErr     bool
-		errType     error
+		wantErr      bool
+		errType      error
 	}{
 		{
 			name: "valid token with public key",
@@ -155,7 +155,7 @@ func TestValidateTokenWithPublicKey(t *testing.T) {
 				return tokenString
 			},
 			publicKeyPEM: publicKeyPEM,
-			wantErr:     false,
+			wantErr:      false,
 		},
 		{
 			name: "invalid public key",
@@ -166,7 +166,7 @@ func TestValidateTokenWithPublicKey(t *testing.T) {
 				return tokenString
 			},
 			publicKeyPEM: "invalid-pem",
-			wantErr:     true,
+			wantErr:      true,
 		},
 		{
 			name: "empty token",
@@ -174,8 +174,8 @@ func TestValidateTokenWithPublicKey(t *testing.T) {
 				return ""
 			},
 			publicKeyPEM: publicKeyPEM,
-			wantErr:     true,
-			errType:     ErrInvalidToken,
+			wantErr:      true,
+			errType:      ErrInvalidToken,
 		},
 	}
 

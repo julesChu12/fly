@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	"github.com/julesChu12/fly/mora/adapters/gozero"
+	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/julesChu12/fly/mora/pkg/observability"
 	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/config"
 	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/handler"
 	"github.com/julesChu12/fly/mora/starter/gozero-starter/internal/svc"
@@ -16,6 +17,20 @@ var configFile = flag.String("f", "etc/mora-api.yaml", "the config file")
 
 func main() {
 	flag.Parse()
+
+	// Initialize observability
+	cfg := observability.Config{
+		ServiceName:  "gozero-starter",
+		ExporterURL:  "http://localhost:4317", // OTLP endpoint
+		SampleRatio:  1.0,
+		Environment:  "development",
+		ExporterType: "stdout", // Use stdout for demo
+	}
+	cleanup, err := observability.Init(cfg)
+	if err != nil {
+		logger.Fatalf("failed to initialize observability: %v", err)
+	}
+	defer cleanup()
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
@@ -79,6 +94,6 @@ func main() {
 		Handler: authMiddleware(handler.GetUsersHandler(ctx)),
 	})
 
-	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	logger.Infof("Starting Go-Zero server with observability at %s:%d", c.Host, c.Port)
 	server.Start()
 }

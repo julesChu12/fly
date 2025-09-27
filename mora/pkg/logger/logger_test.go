@@ -386,7 +386,7 @@ func TestLoggerOutput(t *testing.T) {
 		}
 
 		testCases := []struct {
-			logFunc      func(...interface{})
+			logFunc       func(...interface{})
 			expectedLevel string
 		}{
 			{logger.Debug, "debug"},

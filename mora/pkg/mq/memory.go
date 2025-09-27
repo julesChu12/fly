@@ -96,8 +96,8 @@ func (mq *MemoryMQ) Subscribe(ctx context.Context, topic string, handler Message
 	// Apply options
 	options := &ConsumeOptions{
 		ConcurrentWorkers: 1,
-		MaxRetry:         3,
-		RetryDelay:       time.Second,
+		MaxRetry:          3,
+		RetryDelay:        time.Second,
 	}
 	for _, opt := range opts {
 		opt(options)

@@ -209,7 +209,7 @@ func isConnectionError(err error) bool {
 	// Check for common Redis connection errors
 	errStr := err.Error()
 	return redis.HasErrorPrefix(err, "dial") ||
-		   redis.HasErrorPrefix(err, "connection") ||
-		   errStr == "redis: connection pool timeout" ||
-		   errStr == "redis: client is closed"
+		redis.HasErrorPrefix(err, "connection") ||
+		errStr == "redis: connection pool timeout" ||
+		errStr == "redis: client is closed"
 }

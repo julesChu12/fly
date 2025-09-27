@@ -8,14 +8,14 @@ import (
 
 // Message represents a message in the queue
 type Message struct {
-	ID      string                 `json:"id"`
-	Topic   string                 `json:"topic"`
-	Payload []byte                 `json:"payload"`
-	Headers map[string]interface{} `json:"headers,omitempty"`
-	Retry   int                    `json:"retry"`
-	MaxRetry int                   `json:"max_retry"`
-	CreatedAt time.Time            `json:"created_at"`
-	DelayUntil *time.Time          `json:"delay_until,omitempty"`
+	ID         string                 `json:"id"`
+	Topic      string                 `json:"topic"`
+	Payload    []byte                 `json:"payload"`
+	Headers    map[string]interface{} `json:"headers,omitempty"`
+	Retry      int                    `json:"retry"`
+	MaxRetry   int                    `json:"max_retry"`
+	CreatedAt  time.Time              `json:"created_at"`
+	DelayUntil *time.Time             `json:"delay_until,omitempty"`
 }
 
 // Publisher defines the interface for message publishers
@@ -55,9 +55,9 @@ type PublishOptions struct {
 // ConsumeOptions holds options for consuming
 type ConsumeOptions struct {
 	ConcurrentWorkers int
-	MaxRetry         int
-	RetryDelay       time.Duration
-	DeadLetterQueue  string
+	MaxRetry          int
+	RetryDelay        time.Duration
+	DeadLetterQueue   string
 }
 
 // WithHeaders sets headers for publishing
@@ -111,9 +111,9 @@ func WithDeadLetterQueue(dlq string) ConsumeOption {
 
 // Config holds the configuration for message queue
 type Config struct {
-	Driver   string            `json:"driver" yaml:"driver"`     // memory, redis
-	DSN      string            `json:"dsn" yaml:"dsn"`           // connection string
-	Options  map[string]string `json:"options" yaml:"options"`   // additional options
+	Driver  string            `json:"driver" yaml:"driver"`   // memory, redis
+	DSN     string            `json:"dsn" yaml:"dsn"`         // connection string
+	Options map[string]string `json:"options" yaml:"options"` // additional options
 }
 
 // DefaultConfig returns default MQ configuration

@@ -126,9 +126,9 @@ func TestIsExpired(t *testing.T) {
 
 func TestMinutes(t *testing.T) {
 	tests := []struct {
-		name   string
-		input  int
-		want   time.Duration
+		name  string
+		input int
+		want  time.Duration
 	}{
 		{"zero minutes", 0, 0},
 		{"positive minutes", 5, 5 * time.Minute},
@@ -146,9 +146,9 @@ func TestMinutes(t *testing.T) {
 
 func TestHours(t *testing.T) {
 	tests := []struct {
-		name   string
-		input  int
-		want   time.Duration
+		name  string
+		input int
+		want  time.Duration
 	}{
 		{"zero hours", 0, 0},
 		{"positive hours", 2, 2 * time.Hour},
@@ -166,9 +166,9 @@ func TestHours(t *testing.T) {
 
 func TestDays(t *testing.T) {
 	tests := []struct {
-		name   string
-		input  int
-		want   time.Duration
+		name  string
+		input int
+		want  time.Duration
 	}{
 		{"zero days", 0, 0},
 		{"positive days", 3, 3 * 24 * time.Hour},

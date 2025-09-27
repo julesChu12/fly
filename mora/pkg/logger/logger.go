@@ -81,12 +81,27 @@ func (l *Logger) WithTraceID(traceID string) *Logger {
 	}
 }
 
-// WithContext extracts trace ID from context and adds it to logger
+// WithContext extracts trace ID and span ID from context and adds them to logger
 func (l *Logger) WithContext(ctx context.Context) *Logger {
-	if traceID := GetTraceIDFromContext(ctx); traceID != "" {
-		return l.WithTraceID(traceID)
+	if ctx == nil {
+		return l
 	}
-	return l
+
+	logger := l
+	if traceID := GetTraceIDFromContext(ctx); traceID != "" {
+		logger = logger.WithTraceID(traceID)
+	}
+	if spanID := GetSpanIDFromContext(ctx); spanID != "" {
+		logger = &Logger{
+			SugaredLogger: logger.SugaredLogger.With("span_id", spanID),
+		}
+	}
+	return logger
+}
+
+// WithCtx is an alias for WithContext for convenience
+func (l *Logger) WithCtx(ctx context.Context) *Logger {
+	return l.WithContext(ctx)
 }
 
 // WithFields adds structured fields to the logger
@@ -101,6 +116,11 @@ func (l *Logger) WithFields(fields map[string]interface{}) *Logger {
 }
 
 // Global logger functions using default logger
+
+// WithCtx creates a logger with trace context from the default logger
+func WithCtx(ctx context.Context) *Logger {
+	return NewDefault().WithCtx(ctx)
+}
 
 // Debug logs a debug message
 func Debug(args ...interface{}) {
