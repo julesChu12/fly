@@ -1,0 +1,14 @@
+development:
+  dialect: mysql
+  datasource: custos:custospassword@tcp(localhost:3306)/custos?charset=utf8mb4&parseTime=True&loc=Local
+  dir: "configs/migrations/sql-migrate"
+
+test:
+  dialect: mysql
+  datasource: custos:custospassword@tcp(localhost:3306)/custos_test?charset=utf8mb4&parseTime=True&loc=Local
+  dir: "configs/migrations/sql-migrate"
+
+production:
+  dialect: mysql
+  datasource: ${DB_DSN}
+  dir: "configs/migrations/sql-migrate"

@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrUserNotFound = errors.New("user not found")
+	ErrUserOAuthNotFound = errors.New("user oauth binding not found")
 )
 
 type UserRepository interface {

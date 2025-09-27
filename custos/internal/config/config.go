@@ -109,17 +109,23 @@ func setDefaults(v *viper.Viper) {
 
 func bindEnv(v *viper.Viper) error {
 	bindings := map[string][]string{
-		"app.port":            {"CUSTOS_APP_PORT", "CUSTOS_PORT", "PORT"},
-		"app.env":             {"CUSTOS_APP_ENV", "APP_ENV"},
-		"database.host":       {"CUSTOS_DB_HOST", "DB_HOST"},
-		"database.port":       {"CUSTOS_DB_PORT", "DB_PORT"},
-		"database.user":       {"CUSTOS_DB_USER", "DB_USER"},
-		"database.password":   {"CUSTOS_DB_PASSWORD", "DB_PASSWORD"},
-		"database.database":   {"CUSTOS_DB_DATABASE", "DB_DATABASE"},
-		"database.charset":    {"CUSTOS_DB_CHARSET", "DB_CHARSET"},
-		"jwt.secretKey":       {"CUSTOS_JWT_SECRET_KEY", "JWT_SECRET"},
-		"jwt.accessTokenTTL":  {"CUSTOS_JWT_ACCESS_TOKEN_TTL", "JWT_ACCESS_TTL"},
-		"jwt.refreshTokenTTL": {"CUSTOS_JWT_REFRESH_TOKEN_TTL", "JWT_REFRESH_TTL"},
+		"app.port":                     {"CUSTOS_APP_PORT", "CUSTOS_PORT", "PORT"},
+		"app.env":                      {"CUSTOS_APP_ENV", "APP_ENV"},
+		"database.host":                {"CUSTOS_DB_HOST", "DB_HOST"},
+		"database.port":                {"CUSTOS_DB_PORT", "DB_PORT"},
+		"database.user":                {"CUSTOS_DB_USER", "DB_USER"},
+		"database.password":            {"CUSTOS_DB_PASSWORD", "DB_PASSWORD"},
+		"database.database":            {"CUSTOS_DB_DATABASE", "DB_DATABASE"},
+		"database.charset":             {"CUSTOS_DB_CHARSET", "DB_CHARSET"},
+		"jwt.secretKey":                {"CUSTOS_JWT_SECRET_KEY", "JWT_SECRET"},
+		"jwt.accessTokenTTL":           {"CUSTOS_JWT_ACCESS_TOKEN_TTL", "JWT_ACCESS_TTL"},
+		"jwt.refreshTokenTTL":          {"CUSTOS_JWT_REFRESH_TOKEN_TTL", "JWT_REFRESH_TTL"},
+		"oauth.stateKey":               {"CUSTOS_OAUTH_STATE_KEY", "OAUTH_STATE_KEY"},
+		"oauth.stateTTL":               {"CUSTOS_OAUTH_STATE_TTL", "OAUTH_STATE_TTL"},
+		"oauth.google.clientID":        {"CUSTOS_GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_ID"},
+		"oauth.google.clientSecret":    {"CUSTOS_GOOGLE_CLIENT_SECRET", "GOOGLE_CLIENT_SECRET"},
+		"oauth.github.clientID":        {"CUSTOS_GITHUB_CLIENT_ID", "GITHUB_CLIENT_ID"},
+		"oauth.github.clientSecret":    {"CUSTOS_GITHUB_CLIENT_SECRET", "GITHUB_CLIENT_SECRET"},
 	}
 
 	for key, envs := range bindings {

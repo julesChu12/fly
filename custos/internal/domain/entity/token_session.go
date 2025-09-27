@@ -2,7 +2,7 @@ package entity
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/base64"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,7 +30,7 @@ func NewRefreshToken(userID uint, token string, expiresAt time.Time) *RefreshTok
 	hash := sha256.Sum256([]byte(token))
 	return &RefreshToken{
 		UserID:    userID,
-		TokenHash: hex.EncodeToString(hash[:]),
+		TokenHash: base64.RawURLEncoding.EncodeToString(hash[:]),
 		ExpiresAt: expiresAt,
 	}
 }

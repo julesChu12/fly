@@ -14,16 +14,18 @@ import (
 )
 
 type AuthService struct {
-	userRepo     repository.UserRepository
-	sessionRepo  repository.SessionRepository
-	tokenService *token.TokenService
+	userRepo         repository.UserRepository
+	sessionRepo      repository.SessionRepository
+	refreshTokenRepo repository.RefreshTokenRepository
+	tokenService     *token.TokenService
 }
 
-func NewAuthService(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, tokenService *token.TokenService) *AuthService {
+func NewAuthService(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, refreshTokenRepo repository.RefreshTokenRepository, tokenService *token.TokenService) *AuthService {
 	return &AuthService{
-		userRepo:     userRepo,
-		sessionRepo:  sessionRepo,
-		tokenService: tokenService,
+		userRepo:         userRepo,
+		sessionRepo:      sessionRepo,
+		refreshTokenRepo: refreshTokenRepo,
+		tokenService:     tokenService,
 	}
 }
 
@@ -88,8 +90,15 @@ func (s *AuthService) Login(ctx context.Context, username, password string, meta
 		return nil, nil, errors.NewInvalidCredentialsError()
 	}
 
-	sessionID := s.tokenService.GenerateSessionID()
-	tokenPair, err := s.tokenService.GenerateAccessToken(sessionID, user.ID, user.Username, user.Role)
+	// Create session entity first to get the session ID
+	session := entity.NewSession(user.ID, "", "")
+	if meta != nil {
+		session.UserAgent = meta.UserAgent
+		session.IP = meta.IPAddress
+	}
+
+	// Generate tokens using the session ID from the entity
+	tokenPair, err := s.tokenService.GenerateAccessToken(session.SessionID, user.ID, user.Username, user.Role)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -99,14 +108,19 @@ func (s *AuthService) Login(ctx context.Context, username, password string, meta
 		return nil, nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
-	session := entity.NewSession(user.ID, "", "")
-	if meta != nil {
-		session.UserAgent = meta.UserAgent
-		session.IP = meta.IPAddress
+	// Create refresh token entity first
+	refreshTokenEntity := entity.NewRefreshToken(user.ID, refreshToken.Token, refreshToken.ExpiresAt)
+	if err := s.refreshTokenRepo.Create(ctx, refreshTokenEntity); err != nil {
+		return nil, nil, fmt.Errorf("failed to create refresh token: %w", err)
 	}
 
+	// Associate refresh token with session
+	session.RefreshTokenID = &refreshTokenEntity.ID
+
 	if err := s.sessionRepo.Create(ctx, session); err != nil {
-		return nil, nil, fmt.Errorf("failed to persist session: %w", err)
+		// If session creation fails, clean up the refresh token
+		_ = s.refreshTokenRepo.Delete(ctx, refreshTokenEntity.ID)
+		return nil, nil, fmt.Errorf("failed to create session: %w", err)
 	}
 
 	tokenPair.RefreshToken = refreshToken.Token
@@ -117,9 +131,19 @@ func (s *AuthService) Login(ctx context.Context, username, password string, meta
 }
 
 func (s *AuthService) Refresh(ctx context.Context, sessionID, refreshToken string) (*token.TokenPair, *entity.User, error) {
-	session, err := s.sessionRepo.GetByID(ctx, sessionID)
+	// Validate refresh token by getting session associated with it
+	hashedRefreshToken := s.tokenService.HashRefreshToken(refreshToken)
+	session, err := s.sessionRepo.GetByRefreshTokenHash(ctx, hashedRefreshToken)
 	if err != nil {
-		return nil, nil, errors.NewSessionNotFoundError()
+		return nil, nil, fmt.Errorf("failed to validate refresh token: %w", err)
+	}
+	if session == nil {
+		return nil, nil, errors.NewTokenInvalidError()
+	}
+
+	// Verify the session ID matches
+	if session.SessionID != sessionID {
+		return nil, nil, errors.NewTokenInvalidError()
 	}
 
 	now := time.Now()
@@ -127,10 +151,6 @@ func (s *AuthService) Refresh(ctx context.Context, sessionID, refreshToken strin
 		_ = s.sessionRepo.Revoke(ctx, sessionID, now)
 		return nil, nil, errors.NewTokenExpiredError()
 	}
-
-	// TODO: Need to implement refresh token validation with separate RefreshToken entity
-	// For now, skip refresh token validation
-	_ = refreshToken
 
 	user, err := s.userRepo.GetByID(ctx, session.UserID)
 	if err != nil {
@@ -141,16 +161,19 @@ func (s *AuthService) Refresh(ctx context.Context, sessionID, refreshToken strin
 		return nil, nil, errors.NewInvalidCredentialsError()
 	}
 
+	// Generate new access token
 	tokenPair, err := s.tokenService.GenerateAccessToken(session.SessionID, user.ID, user.Username, user.Role)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
+	// Generate new refresh token for rotation
 	newRefresh, err := s.tokenService.GenerateRefreshToken()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
+	// Update session with new refresh token (this will mark old token as used)
 	if err := s.sessionRepo.UpdateRefreshToken(ctx, session.SessionID, s.tokenService.HashRefreshToken(newRefresh.Token), newRefresh.ExpiresAt, now); err != nil {
 		return nil, nil, fmt.Errorf("failed to rotate refresh token: %w", err)
 	}

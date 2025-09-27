@@ -30,11 +30,100 @@ func newFakeUserRepo() *fakeUserRepo {
 }
 
 type fakeSessionRepo struct {
-	sessions map[string]*entity.Session
+	sessions         map[string]*entity.Session
+	refreshTokenRepo *fakeRefreshTokenRepo
 }
 
-func newFakeSessionRepo() *fakeSessionRepo {
-	return &fakeSessionRepo{sessions: make(map[string]*entity.Session)}
+func newFakeSessionRepo(refreshTokenRepo *fakeRefreshTokenRepo) *fakeSessionRepo {
+	return &fakeSessionRepo{
+		sessions:         make(map[string]*entity.Session),
+		refreshTokenRepo: refreshTokenRepo,
+	}
+}
+
+type fakeRefreshTokenRepo struct {
+	tokens map[uint]*entity.RefreshToken
+	byHash map[string]*entity.RefreshToken
+	nextID uint
+}
+
+func newFakeRefreshTokenRepo() *fakeRefreshTokenRepo {
+	return &fakeRefreshTokenRepo{
+		tokens: make(map[uint]*entity.RefreshToken),
+		byHash: make(map[string]*entity.RefreshToken),
+		nextID: 1,
+	}
+}
+
+func (r *fakeRefreshTokenRepo) Create(_ context.Context, token *entity.RefreshToken) error {
+	token.ID = r.nextID
+	r.nextID++
+	clone := *token
+	r.tokens[token.ID] = &clone
+	r.byHash[token.TokenHash] = &clone
+	return nil
+}
+
+func (r *fakeRefreshTokenRepo) GetByTokenHash(_ context.Context, tokenHash string) (*entity.RefreshToken, error) {
+	token, ok := r.byHash[tokenHash]
+	if !ok || token.IsUsed || token.IsExpired() {
+		return nil, nil
+	}
+	clone := *token
+	return &clone, nil
+}
+
+func (r *fakeRefreshTokenRepo) GetByUserID(_ context.Context, userID uint) ([]*entity.RefreshToken, error) {
+	var result []*entity.RefreshToken
+	for _, token := range r.tokens {
+		if token.UserID == userID {
+			clone := *token
+			result = append(result, &clone)
+		}
+	}
+	return result, nil
+}
+
+func (r *fakeRefreshTokenRepo) Update(_ context.Context, token *entity.RefreshToken) error {
+	_, ok := r.tokens[token.ID]
+	if !ok {
+		return stdErrors.New("token not found")
+	}
+	clone := *token
+	r.tokens[token.ID] = &clone
+	r.byHash[token.TokenHash] = &clone
+	return nil
+}
+
+func (r *fakeRefreshTokenRepo) Delete(_ context.Context, id uint) error {
+	token, ok := r.tokens[id]
+	if !ok {
+		return stdErrors.New("token not found")
+	}
+	delete(r.tokens, id)
+	delete(r.byHash, token.TokenHash)
+	return nil
+}
+
+func (r *fakeRefreshTokenRepo) DeleteExpired(_ context.Context) (int64, error) {
+	var count int64
+	for id, token := range r.tokens {
+		if token.IsExpired() || token.IsUsed {
+			delete(r.tokens, id)
+			delete(r.byHash, token.TokenHash)
+			count++
+		}
+	}
+	return count, nil
+}
+
+func (r *fakeRefreshTokenRepo) RevokeByUserID(_ context.Context, userID uint) error {
+	for _, token := range r.tokens {
+		if token.UserID == userID {
+			token.MarkAsUsed()
+		}
+	}
+	return nil
 }
 
 func (r *fakeSessionRepo) Create(_ context.Context, session *entity.Session) error {
@@ -53,8 +142,23 @@ func (r *fakeSessionRepo) GetByID(_ context.Context, id string) (*entity.Session
 }
 
 func (r *fakeSessionRepo) GetByRefreshTokenHash(_ context.Context, hash string) (*entity.Session, error) {
-	// TODO: Implement when RefreshToken entity is properly integrated
-	return nil, stdErrors.New("not implemented")
+	// Get the refresh token by hash first
+	refreshToken, err := r.refreshTokenRepo.GetByTokenHash(context.Background(), hash)
+	if err != nil {
+		return nil, err
+	}
+	if refreshToken == nil {
+		return nil, nil
+	}
+
+	// Find the session associated with this refresh token
+	for _, session := range r.sessions {
+		if session.RefreshTokenID != nil && *session.RefreshTokenID == refreshToken.ID && session.IsValid() {
+			clone := *session
+			return &clone, nil
+		}
+	}
+	return nil, nil
 }
 
 func (r *fakeSessionRepo) UpdateRefreshToken(_ context.Context, id, newHash string, expiresAt time.Time, lastUsed time.Time) error {
@@ -62,9 +166,30 @@ func (r *fakeSessionRepo) UpdateRefreshToken(_ context.Context, id, newHash stri
 	if !ok {
 		return stdErrors.New("session not found")
 	}
-	// TODO: Implement when RefreshToken entity is properly integrated
-	// For now, just update the session's last seen time
+
+	// Mark old refresh token as used if it exists
+	if s.RefreshTokenID != nil {
+		oldToken, _ := r.refreshTokenRepo.tokens[*s.RefreshTokenID]
+		if oldToken != nil {
+			oldToken.MarkAsUsed()
+		}
+	}
+
+	// Create new refresh token
+	newToken := &entity.RefreshToken{
+		ID:        r.refreshTokenRepo.nextID,
+		UserID:    s.UserID,
+		TokenHash: newHash,
+		ExpiresAt: expiresAt,
+	}
+	r.refreshTokenRepo.nextID++
+	r.refreshTokenRepo.tokens[newToken.ID] = newToken
+	r.refreshTokenRepo.byHash[newHash] = newToken
+
+	// Update session with new refresh token ID
+	s.RefreshTokenID = &newToken.ID
 	s.UpdateLastSeen()
+
 	return nil
 }
 
@@ -95,6 +220,15 @@ func (r *fakeSessionRepo) ListActiveByUser(_ context.Context, userID uint, now t
 		}
 	}
 	return result, nil
+}
+
+func (r *fakeSessionRepo) UpdateLastSeen(_ context.Context, sessionID string, lastSeenAt time.Time) error {
+	s, ok := r.sessions[sessionID]
+	if !ok {
+		return stdErrors.New("session not found")
+	}
+	s.UpdateLastSeen()
+	return nil
 }
 
 func (r *fakeSessionRepo) CleanupExpired(_ context.Context, olderThan time.Time) error {
@@ -167,9 +301,10 @@ func (r *fakeUserRepo) ExistsByEmail(_ context.Context, email string) (bool, err
 
 func TestRegister(t *testing.T) {
 	repo := newFakeUserRepo()
-	sessionRepo := newFakeSessionRepo()
+	refreshTokenRepo := newFakeRefreshTokenRepo()
+	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, 2*time.Hour)
-	svc := NewAuthService(repo, sessionRepo, tokenService)
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
 
 	user, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
 	require.NoError(t, err)
@@ -191,9 +326,10 @@ func TestRegister(t *testing.T) {
 
 func TestRegisterPasswordPolicy(t *testing.T) {
 	repo := newFakeUserRepo()
-	sessionRepo := newFakeSessionRepo()
+	refreshTokenRepo := newFakeRefreshTokenRepo()
+	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, 2*time.Hour)
-	svc := NewAuthService(repo, sessionRepo, tokenService)
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
 
 	_, err := svc.Register(context.Background(), "jd", "short@example.com", "short")
 	require.Error(t, err)
@@ -204,9 +340,10 @@ func TestRegisterPasswordPolicy(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	repo := newFakeUserRepo()
-	sessionRepo := newFakeSessionRepo()
+	refreshTokenRepo := newFakeRefreshTokenRepo()
+	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, 2*time.Hour)
-	svc := NewAuthService(repo, sessionRepo, tokenService)
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
 
 	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
 	require.NoError(t, err)
@@ -228,9 +365,10 @@ func TestLogin(t *testing.T) {
 
 func TestRefresh(t *testing.T) {
 	repo := newFakeUserRepo()
-	sessionRepo := newFakeSessionRepo()
+	refreshTokenRepo := newFakeRefreshTokenRepo()
+	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, time.Hour)
-	svc := NewAuthService(repo, sessionRepo, tokenService)
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
 
 	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
 	require.NoError(t, err)
@@ -243,19 +381,20 @@ func TestRefresh(t *testing.T) {
 	require.NotEqual(t, loginPair.RefreshToken, refreshed.RefreshToken)
 	require.Equal(t, loginPair.SessionID, refreshed.SessionID)
 
-	// TODO: Re-enable this test when refresh token validation is properly implemented
-	// _, _, err = svc.Refresh(context.Background(), loginPair.SessionID, loginPair.RefreshToken)
-	// require.Error(t, err)
-	// domainErr, ok := err.(*errors.DomainError)
-	// require.True(t, ok)
-	// require.Equal(t, errors.CodeTokenInvalid, domainErr.Code)
+	// Test that the old refresh token is now invalid
+	_, _, err = svc.Refresh(context.Background(), loginPair.SessionID, loginPair.RefreshToken)
+	require.Error(t, err)
+	domainErr, ok := err.(*errors.DomainError)
+	require.True(t, ok)
+	require.Equal(t, errors.CodeTokenInvalid, domainErr.Code)
 }
 
 func TestLogout(t *testing.T) {
 	repo := newFakeUserRepo()
-	sessionRepo := newFakeSessionRepo()
+	refreshTokenRepo := newFakeRefreshTokenRepo()
+	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, time.Hour)
-	svc := NewAuthService(repo, sessionRepo, tokenService)
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
 
 	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
 	require.NoError(t, err)
@@ -272,9 +411,10 @@ func TestLogout(t *testing.T) {
 
 func TestLogoutAll(t *testing.T) {
 	repo := newFakeUserRepo()
-	sessionRepo := newFakeSessionRepo()
+	refreshTokenRepo := newFakeRefreshTokenRepo()
+	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, time.Hour)
-	svc := NewAuthService(repo, sessionRepo, tokenService)
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
 
 	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
 	require.NoError(t, err)

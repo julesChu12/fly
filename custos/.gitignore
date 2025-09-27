@@ -27,6 +27,23 @@ go.work.sum
 # env file
 .env
 
+# Docker
+docker-compose.override.yml
+.dockerignore
+mysql/data/
+redis/data/
+mysql/my.cnf
+redis/redis.conf
+
+# Database data directories
+**/mysql/data/
+**/redis/data/
+**/postgres/data/
+
+# Docker volumes
+**/volumes/
+**/data/
+
 # Editor/IDE
 # .idea/
 # .vscode/

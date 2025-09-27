@@ -9,10 +9,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
+	"golang.org/x/oauth2/google"
 
 	"github.com/julesChu12/fly/custos/internal/config"
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
@@ -40,46 +43,67 @@ type Service struct {
 	userRepo      repository.UserRepository
 	userOAuthRepo repository.UserOAuthRepository
 	httpClient    *http.Client
+	oauthConfigs  map[Provider]*oauth2.Config
 }
 
 func NewService(cfg *config.Config, userRepo repository.UserRepository, userOAuthRepo repository.UserOAuthRepository) *Service {
-	return &Service{
+	s := &Service{
 		cfg:           cfg,
 		userRepo:      userRepo,
 		userOAuthRepo: userOAuthRepo,
 		httpClient:    &http.Client{Timeout: 10 * time.Second},
+		oauthConfigs:  make(map[Provider]*oauth2.Config),
+	}
+
+	// Initialize OAuth configs
+	s.initOAuthConfigs()
+	return s
+}
+
+// initOAuthConfigs initializes OAuth2 configurations for different providers
+func (s *Service) initOAuthConfigs() {
+	// Google OAuth config
+	if s.cfg.OAuth.Google.ClientID != "" {
+		s.oauthConfigs[Google] = &oauth2.Config{
+			ClientID:     s.cfg.OAuth.Google.ClientID,
+			ClientSecret: s.cfg.OAuth.Google.ClientSecret,
+			Scopes:       s.cfg.OAuth.Google.Scopes,
+			Endpoint:     google.Endpoint,
+		}
+	}
+
+	// GitHub OAuth config
+	if s.cfg.OAuth.GitHub.ClientID != "" {
+		s.oauthConfigs[GitHub] = &oauth2.Config{
+			ClientID:     s.cfg.OAuth.GitHub.ClientID,
+			ClientSecret: s.cfg.OAuth.GitHub.ClientSecret,
+			Scopes:       s.cfg.OAuth.GitHub.Scopes,
+			Endpoint:     github.Endpoint,
+		}
 	}
 }
 
 // GenerateAuthURL generates OAuth authorization URL with state
 func (s *Service) GenerateAuthURL(ctx context.Context, provider Provider, redirectURL string) (string, string, error) {
-	var providerConfig config.OAuthProvider
-	switch provider {
-	case Google:
-		providerConfig = s.cfg.OAuth.Google
-	case GitHub:
-		providerConfig = s.cfg.OAuth.GitHub
-	default:
+	oauthConfig, exists := s.oauthConfigs[provider]
+	if !exists {
 		return "", "", errors.NewInvalidProviderError(string(provider))
 	}
+
+	// Set redirect URL
+	oauthConfig.RedirectURL = redirectURL
 
 	// Generate state parameter
 	state := s.generateState()
 
-	// Build auth URL
-	params := url.Values{}
-	params.Set("client_id", providerConfig.ClientID)
-	params.Set("redirect_uri", redirectURL)
-	params.Set("scope", strings.Join(providerConfig.Scopes, " "))
-	params.Set("state", state)
-	params.Set("response_type", "code")
-
+	// Generate authorization URL
+	var authURL string
 	if provider == Google {
-		params.Set("access_type", "offline")
-		params.Set("prompt", "consent")
+		authURL = oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	} else {
+		authURL = oauthConfig.AuthCodeURL(state)
 	}
 
-	authURL := providerConfig.AuthURL + "?" + params.Encode()
 	return authURL, state, nil
 }
 
@@ -90,31 +114,29 @@ func (s *Service) HandleCallback(ctx context.Context, provider Provider, code, s
 		return nil, nil, fmt.Errorf("invalid state parameter")
 	}
 
-	var providerConfig config.OAuthProvider
-	switch provider {
-	case Google:
-		providerConfig = s.cfg.OAuth.Google
-	case GitHub:
-		providerConfig = s.cfg.OAuth.GitHub
-	default:
+	oauthConfig, exists := s.oauthConfigs[provider]
+	if !exists {
 		return nil, nil, errors.NewInvalidProviderError(string(provider))
 	}
 
+	// Set redirect URL
+	oauthConfig.RedirectURL = redirectURL
+
 	// Exchange code for token
-	token, err := s.exchangeCodeForToken(providerConfig, code, redirectURL)
+	token, err := oauthConfig.Exchange(ctx, code)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to exchange code for token: %w", err)
 	}
 
 	// Get user info from provider
-	userInfo, err := s.getUserInfo(providerConfig, token.AccessToken)
+	userInfo, err := s.getUserInfo(provider, token.AccessToken)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get user info: %w", err)
 	}
 
 	// Check if OAuth binding exists
 	userOAuth, err := s.userOAuthRepo.GetByProviderUID(ctx, string(provider), userInfo.ID)
-	if err != nil {
+	if err != nil && err != repository.ErrUserOAuthNotFound {
 		return nil, nil, fmt.Errorf("failed to check existing OAuth binding: %w", err)
 	}
 
@@ -128,7 +150,11 @@ func (s *Service) HandleCallback(ctx context.Context, provider Provider, code, s
 		}
 
 		// Update OAuth tokens
-		userOAuth.UpdateTokens(token.AccessToken, token.RefreshToken, token.ExpiresAt)
+		var expiresAt *time.Time
+		if token.Expiry != (time.Time{}) {
+			expiresAt = &token.Expiry
+		}
+		userOAuth.UpdateTokens(token.AccessToken, token.RefreshToken, expiresAt)
 		if err := s.userOAuthRepo.Update(ctx, userOAuth); err != nil {
 			return nil, nil, fmt.Errorf("failed to update OAuth binding: %w", err)
 		}
@@ -152,7 +178,11 @@ func (s *Service) HandleCallback(ctx context.Context, provider Provider, code, s
 
 		// Create OAuth binding
 		userOAuth = entity.NewUserOAuth(user.ID, string(provider), userInfo.ID)
-		userOAuth.UpdateTokens(token.AccessToken, token.RefreshToken, token.ExpiresAt)
+		var expiresAt *time.Time
+		if token.Expiry != (time.Time{}) {
+			expiresAt = &token.Expiry
+		}
+		userOAuth.UpdateTokens(token.AccessToken, token.RefreshToken, expiresAt)
 
 		if err := s.userOAuthRepo.Create(ctx, userOAuth); err != nil {
 			return nil, nil, fmt.Errorf("failed to create OAuth binding: %w", err)
@@ -172,56 +202,19 @@ func (s *Service) GetUserBindings(ctx context.Context, userID uint) ([]*entity.U
 	return s.userOAuthRepo.GetByUserID(ctx, userID)
 }
 
-type TokenResponse struct {
-	AccessToken  string     `json:"access_token"`
-	RefreshToken string     `json:"refresh_token"`
-	TokenType    string     `json:"token_type"`
-	ExpiresIn    int        `json:"expires_in"`
-	ExpiresAt    *time.Time `json:"-"`
-}
+func (s *Service) getUserInfo(provider Provider, accessToken string) (*UserInfo, error) {
+	var userInfoURL string
 
-func (s *Service) exchangeCodeForToken(providerConfig config.OAuthProvider, code, redirectURL string) (*TokenResponse, error) {
-	data := url.Values{}
-	data.Set("client_id", providerConfig.ClientID)
-	data.Set("client_secret", providerConfig.ClientSecret)
-	data.Set("code", code)
-	data.Set("redirect_uri", redirectURL)
-	data.Set("grant_type", "authorization_code")
-
-	req, err := http.NewRequest("POST", providerConfig.TokenURL, strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, err
+	switch provider {
+	case Google:
+		userInfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
+	case GitHub:
+		userInfoURL = "https://api.github.com/user"
+	default:
+		return nil, fmt.Errorf("unsupported provider: %s", provider)
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := s.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("token exchange failed with status: %d", resp.StatusCode)
-	}
-
-	var token TokenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		return nil, err
-	}
-
-	// Calculate expiration time
-	if token.ExpiresIn > 0 {
-		expiresAt := time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
-		token.ExpiresAt = &expiresAt
-	}
-
-	return &token, nil
-}
-
-func (s *Service) getUserInfo(providerConfig config.OAuthProvider, accessToken string) (*UserInfo, error) {
-	req, err := http.NewRequest("GET", providerConfig.UserInfoURL, nil)
+	req, err := http.NewRequest("GET", userInfoURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +236,65 @@ func (s *Service) getUserInfo(providerConfig config.OAuthProvider, accessToken s
 		return nil, err
 	}
 
+	// Normalize response for different providers
+	if provider == GitHub {
+		// GitHub uses "login" for username and doesn't have email_verified
+		if userInfo.Name == "" {
+			userInfo.Name = userInfo.ID // GitHub login name
+		}
+		userInfo.Verified = true // Assume GitHub emails are verified
+
+		// GitHub might not include email in the response, need separate call
+		if userInfo.Email == "" {
+			email, err := s.getGitHubUserEmail(accessToken)
+			if err == nil {
+				userInfo.Email = email
+			}
+		}
+	}
+
 	return &userInfo, nil
+}
+
+// getGitHubUserEmail gets the primary email from GitHub API
+func (s *Service) getGitHubUserEmail(accessToken string) (string, error) {
+	req, err := http.NewRequest("GET", "https://api.github.com/user/emails", nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("email request failed with status: %d", resp.StatusCode)
+	}
+
+	var emails []struct {
+		Email   string `json:"email"`
+		Primary bool   `json:"primary"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&emails); err != nil {
+		return "", err
+	}
+
+	for _, email := range emails {
+		if email.Primary {
+			return email.Email, nil
+		}
+	}
+
+	if len(emails) > 0 {
+		return emails[0].Email, nil
+	}
+
+	return "", fmt.Errorf("no email found")
 }
 
 func (s *Service) generateState() string {

@@ -12,15 +12,29 @@ import (
 	"github.com/julesChu12/fly/custos/internal/application/usecase/auth"
 	"github.com/julesChu12/fly/custos/internal/config"
 	authService "github.com/julesChu12/fly/custos/internal/domain/service/auth"
+	"github.com/julesChu12/fly/custos/internal/domain/service/oauth"
+	"github.com/julesChu12/fly/custos/internal/domain/service/rbac"
 	"github.com/julesChu12/fly/custos/internal/domain/service/token"
+	"github.com/julesChu12/fly/custos/internal/infrastructure/migrate"
 	"github.com/julesChu12/fly/custos/internal/infrastructure/persistence/mysql"
 	"github.com/julesChu12/fly/custos/internal/interface/http/handler"
 	"github.com/julesChu12/fly/custos/internal/interface/http/middleware"
 	"github.com/julesChu12/fly/custos/internal/interface/http/router"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 )
 
 func main() {
 	cfg := config.MustLoad()
+
+	// Initialize logger
+	loggerConfig := logger.Config{
+		Level:  "info",
+		Format: "json",
+	}
+	l, err := logger.New(loggerConfig)
+	if err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
 
 	db, err := mysql.NewDatabase(cfg.Database.DSN(), cfg.App.Env == "development")
 	if err != nil {
@@ -28,15 +42,33 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := db.AutoMigrate(); err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
+	// Get raw SQL DB connection for migrations
+	sqlDB, err := db.DB().DB()
+	if err != nil {
+		log.Fatalf("Failed to get raw database connection: %v", err)
+	}
+
+	// Run migrations using sql-migrate
+	migrationManager := migrate.NewMigrationManager(sqlDB, *l)
+	if err := migrationManager.Up(); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	userRepo := mysql.NewUserRepository(db.DB())
 	sessionRepo := mysql.NewSessionRepository(db.DB())
+	refreshTokenRepo := mysql.NewRefreshTokenRepository(db.DB())
+	userOAuthRepo := mysql.NewUserOAuthRepository(db.DB())
 
 	tokenService := token.NewTokenService(cfg.JWT.SecretKey, cfg.JWT.AccessTokenTTL, cfg.JWT.RefreshTokenTTL)
-	authSvc := authService.NewAuthService(userRepo, sessionRepo, tokenService)
+	authSvc := authService.NewAuthService(userRepo, sessionRepo, refreshTokenRepo, tokenService)
+	oauthSvc := oauth.NewService(cfg, userRepo, userOAuthRepo)
+
+	// Initialize RBAC service
+	rbacModelPath := "configs/rbac_model.conf"
+	rbacSvc, err := rbac.NewRBACService(db.DB(), rbacModelPath)
+	if err != nil {
+		log.Fatalf("Failed to initialize RBAC service: %v", err)
+	}
 
 	registerUC := auth.NewRegisterUseCase(authSvc)
 	loginUC := auth.NewLoginUseCase(authSvc)
@@ -46,8 +78,8 @@ func main() {
 
 	authHandler := handler.NewAuthHandler(registerUC, loginUC, refreshUC, logoutUC, logoutAllUC)
 	userHandler := handler.NewUserHandler()
-	oauthHandler := handler.NewOAuthHandler(nil, tokenService) // TODO: Initialize OAuth service
-	adminHandler := handler.NewAdminHandler(userRepo, nil)     // TODO: Initialize RBAC service
+	oauthHandler := handler.NewOAuthHandler(oauthSvc, tokenService)
+	adminHandler := handler.NewAdminHandler(userRepo, rbacSvc)
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 
