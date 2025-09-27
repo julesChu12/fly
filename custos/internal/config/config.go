@@ -39,27 +39,49 @@ type JWTConfig struct {
 	RefreshTokenTTL time.Duration
 }
 
+// Load 加载应用配置，按照以下优先级顺序：
+// 1. 默认值 (最低优先级) - 通过 setDefaults() 设置
+// 2. YAML 配置文件 - configs/custos.yaml
+// 3. .env 文件 - 项目根目录下的 .env 文件
+// 4. 环境变量 (最高优先级) - 通过 bindEnv() 绑定
+//
+// 配置加载流程：
+// 1. 创建 Viper 实例并加载基础配置源 (YAML + .env + 环境变量前缀)
+// 2. 设置默认值作为兜底配置
+// 3. 绑定环境变量到配置键，支持多种环境变量命名格式
+// 4. 将配置反序列化到 Config 结构体
+// 5. 验证配置的完整性和有效性
+//
+// 环境变量绑定规则：
+// - 支持 CUSTOS_ 前缀的环境变量 (如 CUSTOS_APP_PORT)
+// - 支持无前缀的环境变量 (如 PORT, DB_HOST)
+// - 每个配置项可绑定多个环境变量名，按顺序尝试
 func Load() (*Config, error) {
+	// 步骤1: 加载基础配置源 (YAML + .env + 环境变量前缀)
 	v, err := moracfg.New().
-		WithDotenv(".env").
-		WithYAML("configs/custos.yaml").
-		WithEnvPrefix("CUSTOS").
+		WithDotenv(".env").              // 加载 .env 文件
+		WithYAML("configs/custos.yaml"). // 加载 YAML 配置文件
+		WithEnvPrefix("CUSTOS").         // 设置环境变量前缀
 		Load()
 	if err != nil {
 		return nil, fmt.Errorf("load base config failed: %w", err)
 	}
 
+	// 步骤2: 设置默认值 (最低优先级)
 	setDefaults(v)
 
+	// 步骤3: 绑定环境变量 (最高优先级)
 	if err := bindEnv(v); err != nil {
 		return nil, err
 	}
 
+	// 步骤4: 反序列化到 Config 结构体
 	var cfg Config
 	if err := v.Unmarshal(&cfg, viper.DecodeHook(durationDecodeHook())); err != nil {
 		return nil, fmt.Errorf("unmarshal to Config failed: %w", err)
 	}
 
+	// 步骤5: 验证配置
 	if err := validate(&cfg); err != nil {
 		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
@@ -109,23 +131,23 @@ func setDefaults(v *viper.Viper) {
 
 func bindEnv(v *viper.Viper) error {
 	bindings := map[string][]string{
-		"app.port":                     {"CUSTOS_APP_PORT", "CUSTOS_PORT", "PORT"},
-		"app.env":                      {"CUSTOS_APP_ENV", "APP_ENV"},
-		"database.host":                {"CUSTOS_DB_HOST", "DB_HOST"},
-		"database.port":                {"CUSTOS_DB_PORT", "DB_PORT"},
-		"database.user":                {"CUSTOS_DB_USER", "DB_USER"},
-		"database.password":            {"CUSTOS_DB_PASSWORD", "DB_PASSWORD"},
-		"database.database":            {"CUSTOS_DB_DATABASE", "DB_DATABASE"},
-		"database.charset":             {"CUSTOS_DB_CHARSET", "DB_CHARSET"},
-		"jwt.secretKey":                {"CUSTOS_JWT_SECRET_KEY", "JWT_SECRET"},
-		"jwt.accessTokenTTL":           {"CUSTOS_JWT_ACCESS_TOKEN_TTL", "JWT_ACCESS_TTL"},
-		"jwt.refreshTokenTTL":          {"CUSTOS_JWT_REFRESH_TOKEN_TTL", "JWT_REFRESH_TTL"},
-		"oauth.stateKey":               {"CUSTOS_OAUTH_STATE_KEY", "OAUTH_STATE_KEY"},
-		"oauth.stateTTL":               {"CUSTOS_OAUTH_STATE_TTL", "OAUTH_STATE_TTL"},
-		"oauth.google.clientID":        {"CUSTOS_GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_ID"},
-		"oauth.google.clientSecret":    {"CUSTOS_GOOGLE_CLIENT_SECRET", "GOOGLE_CLIENT_SECRET"},
-		"oauth.github.clientID":        {"CUSTOS_GITHUB_CLIENT_ID", "GITHUB_CLIENT_ID"},
-		"oauth.github.clientSecret":    {"CUSTOS_GITHUB_CLIENT_SECRET", "GITHUB_CLIENT_SECRET"},
+		"app.port":                  {"CUSTOS_APP_PORT", "CUSTOS_PORT", "PORT"},
+		"app.env":                   {"CUSTOS_APP_ENV", "APP_ENV"},
+		"database.host":             {"CUSTOS_DB_HOST", "DB_HOST"},
+		"database.port":             {"CUSTOS_DB_PORT", "DB_PORT"},
+		"database.user":             {"CUSTOS_DB_USER", "DB_USER"},
+		"database.password":         {"CUSTOS_DB_PASSWORD", "DB_PASSWORD"},
+		"database.database":         {"CUSTOS_DB_DATABASE", "DB_DATABASE"},
+		"database.charset":          {"CUSTOS_DB_CHARSET", "DB_CHARSET"},
+		"jwt.secretKey":             {"CUSTOS_JWT_SECRET_KEY", "JWT_SECRET"},
+		"jwt.accessTokenTTL":        {"CUSTOS_JWT_ACCESS_TOKEN_TTL", "JWT_ACCESS_TTL"},
+		"jwt.refreshTokenTTL":       {"CUSTOS_JWT_REFRESH_TOKEN_TTL", "JWT_REFRESH_TTL"},
+		"oauth.stateKey":            {"CUSTOS_OAUTH_STATE_KEY", "OAUTH_STATE_KEY"},
+		"oauth.stateTTL":            {"CUSTOS_OAUTH_STATE_TTL", "OAUTH_STATE_TTL"},
+		"oauth.google.clientID":     {"CUSTOS_GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_ID"},
+		"oauth.google.clientSecret": {"CUSTOS_GOOGLE_CLIENT_SECRET", "GOOGLE_CLIENT_SECRET"},
+		"oauth.github.clientID":     {"CUSTOS_GITHUB_CLIENT_ID", "GITHUB_CLIENT_ID"},
+		"oauth.github.clientSecret": {"CUSTOS_GITHUB_CLIENT_SECRET", "GITHUB_CLIENT_SECRET"},
 	}
 
 	for key, envs := range bindings {

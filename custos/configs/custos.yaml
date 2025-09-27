@@ -5,8 +5,8 @@ app:
 database:
   host: "localhost"
   port: "3306"
-  user: "root"
-  password: ""
+  user: "custos"
+  password: "custospassword"
   database: "custos"
   charset: "utf8mb4"
 
@@ -14,3 +14,25 @@ jwt:
   secretKey: "dev-secret-change-me"
   accessTokenTTL: "15m"
   refreshTokenTTL: "168h"
+
+oauth:
+  state_key: "dev-oauth-state-key-change-me"
+  state_ttl: 600  # 10 minutes in seconds
+  
+  google:
+    client_id: ""
+    client_secret: ""
+    redirect_url: ""
+    scopes: ["openid", "email", "profile"]
+    auth_url: "https://accounts.google.com/o/oauth2/auth"
+    token_url: "https://oauth2.googleapis.com/token"
+    user_info_url: "https://www.googleapis.com/oauth2/v2/userinfo"
+  
+  github:
+    client_id: ""
+    client_secret: ""
+    redirect_url: ""
+    scopes: ["user:email"]
+    auth_url: "https://github.com/login/oauth/authorize"
+    token_url: "https://github.com/login/oauth/access_token"
+    user_info_url: "https://api.github.com/user"
