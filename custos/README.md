@@ -224,6 +224,215 @@ When generating code or architecture:
 
 ---
 
+## 🐳 Docker 部署说明
+
+### 快速启动
+
+使用 Docker Compose 一键启动完整的 Custos 服务栈：
+
+```bash
+# 克隆项目并进入目录
+git clone <repository-url>
+cd custos
+
+# 启动所有服务（MySQL + Redis + Custos）
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f custos
+```
+
+### 服务组件
+
+| 服务 | 端口 | 描述 |
+|------|------|------|
+| **custos** | 8081 | Custos 用户域服务 |
+| **mysql** | 3306 | MySQL 8.0 数据库 |
+| **redis** | 6379 | Redis 缓存服务 |
+
+### 环境配置
+
+#### 1. 数据库配置
+```yaml
+# docker-compose.yaml 中的 MySQL 配置
+mysql:
+  environment:
+    MYSQL_ROOT_PASSWORD: rootpassword
+    MYSQL_DATABASE: custos
+    MYSQL_USER: custos
+    MYSQL_PASSWORD: custospassword
+```
+
+#### 2. 应用配置
+```yaml
+# custos 服务配置
+custos:
+  environment:
+    CONFIG_PATH: /app/configs/custos.yaml
+  volumes:
+    - ./configs:/app/configs  # 挂载配置文件
+```
+
+### 数据库初始化
+
+首次启动时，Custos 会自动执行数据库迁移：
+
+```bash
+# 查看迁移日志
+docker-compose logs custos | grep -i migration
+
+# 手动执行迁移（如果需要）
+docker-compose exec custos /app/userd migrate
+```
+
+### 健康检查
+
+```bash
+# 检查服务健康状态
+curl http://localhost:8081/health
+
+# 检查数据库连接
+curl http://localhost:8081/health/db
+
+# 检查 Redis 连接
+curl http://localhost:8081/health/redis
+```
+
+### 开发环境配置
+
+#### 1. 使用本地配置文件
+```bash
+# 复制环境配置模板
+cp configs/local.env.example .env
+
+# 编辑配置文件
+vim configs/custos.yaml
+vim .env
+```
+
+#### 2. 热重载开发
+```bash
+# 使用 make dev 命令（推荐）
+make dev
+
+# 或手动启动开发环境
+docker-compose -f docker-compose.dev.yaml up
+```
+
+### 生产环境部署
+
+#### 1. 环境变量配置
+```bash
+# 设置生产环境变量
+export CUSTOS_APP_ENV=production
+export CUSTOS_JWT_SECRET_KEY=your-production-secret-key
+export CUSTOS_DB_PASSWORD=your-production-db-password
+export CUSTOS_OAUTH_GOOGLE_CLIENT_ID=your-google-client-id
+export CUSTOS_OAUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+#### 2. 安全配置
+```yaml
+# 生产环境 docker-compose.prod.yaml
+version: '3.8'
+services:
+  custos:
+    build: .
+    environment:
+      - CUSTOS_APP_ENV=production
+      - CUSTOS_JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - CUSTOS_DB_PASSWORD=${DB_PASSWORD}
+    # 不暴露内部端口到宿主机
+    expose:
+      - "8081"
+    # 使用外部网络
+    networks:
+      - custos-network
+```
+
+### 故障排查
+
+#### 1. 服务启动失败
+```bash
+# 查看详细错误日志
+docker-compose logs custos
+
+# 检查端口占用
+netstat -tlnp | grep :8081
+netstat -tlnp | grep :3306
+netstat -tlnp | grep :6379
+```
+
+#### 2. 数据库连接问题
+```bash
+# 检查 MySQL 容器状态
+docker-compose exec mysql mysql -u root -p
+
+# 检查数据库表
+docker-compose exec mysql mysql -u custos -p custos -e "SHOW TABLES;"
+```
+
+#### 3. 配置问题
+```bash
+# 验证配置文件语法
+docker-compose exec custos /app/userd config-validate
+
+# 查看当前配置
+docker-compose exec custos /app/userd config-show
+```
+
+### 数据持久化
+
+数据目录映射：
+- **MySQL 数据**: `./mysql/data` → `/var/lib/mysql`
+- **Redis 数据**: `./redis/data` → `/data`
+- **配置文件**: `./configs` → `/app/configs`
+
+### 性能优化
+
+#### 1. 资源限制
+```yaml
+# 在 docker-compose.yaml 中添加资源限制
+services:
+  custos:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+```
+
+#### 2. 数据库优化
+```yaml
+# MySQL 配置优化
+mysql:
+  command: >
+    --innodb-buffer-pool-size=256M
+    --max-connections=200
+    --query-cache-size=32M
+```
+
+### 监控和日志
+
+```bash
+# 查看实时日志
+docker-compose logs -f --tail=100 custos
+
+# 查看特定时间段的日志
+docker-compose logs --since="2024-01-01T00:00:00" custos
+
+# 导出日志到文件
+docker-compose logs custos > custos.log
+```
+
+---
+
 ## 🚀 Current Project Progress (2025-09-27)
 
 ### ✅ Completed Features (90%+)

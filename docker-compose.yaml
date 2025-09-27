@@ -1,0 +1,74 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: fly-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: custos
+      MYSQL_USER: custos
+      MYSQL_PASSWORD: custospassword
+    volumes:
+      - ./custos/mysql/data:/var/lib/mysql
+      - ./custos/mysql/my.cnf:/etc/mysql/my.cnf
+
+  redis:
+    image: redis:6-alpine
+    container_name: fly-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./custos/redis/data:/data
+      - ./custos/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+  custos:
+    build: 
+      context: ./custos
+      dockerfile: Dockerfile
+    container_name: custos-app
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./custos/configs:/app/configs
+    environment:
+      CONFIG_PATH: /app/configs/custos.yaml
+
+  clotho:
+    build: 
+      context: ./clotho
+      dockerfile: Dockerfile
+    container_name: clotho-app
+    depends_on:
+      - custos
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./clotho/configs:/app/configs
+    environment:
+      CONFIG_PATH: /app/configs/clotho.yaml
+
+  # observability stack (optional, enable later if needed)
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: fly-jaeger
+    restart: always
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+
+  prometheus:
+    image: prom/prometheus:v2.50.0
+    container_name: fly-prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
