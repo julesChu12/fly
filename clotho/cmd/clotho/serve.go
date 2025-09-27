@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/julesChu12/fly/clotho/internal/infrastructure/http/handler"
-	"github.com/julesChu12/fly/clotho/internal/middleware"
+	httpRouter "github.com/julesChu12/fly/clotho/internal/infrastructure/http"
 	"github.com/julesChu12/fly/mora/pkg/config"
 	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/julesChu12/fly/mora/pkg/observability"
 	"github.com/spf13/cobra"
 )
 
@@ -44,8 +44,8 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	// Initialize logger
 	loggerConfig := logger.Config{
-		Level:  cfg.GetString("logger.level"),
-		Format: cfg.GetString("logger.format"),
+		Level:  cfg.GetString("logging.level"),
+		Format: cfg.GetString("logging.format"),
 	}
 	logger, err := logger.New(loggerConfig)
 	if err != nil {
@@ -53,34 +53,53 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 	defer logger.Sync()
 
+	// Initialize OpenTelemetry observability
+	observabilityConfig := observability.Config{
+		ServiceName:  cfg.GetString("observability.service_name"),
+		ExporterURL:  cfg.GetString("observability.exporter_url"),
+		SampleRatio:  cfg.GetFloat64("observability.sample_ratio"),
+		Environment:  cfg.GetString("observability.environment"),
+		ExporterType: cfg.GetString("observability.exporter_type"),
+	}
+
+	// Set defaults if not configured
+	if observabilityConfig.ServiceName == "" {
+		observabilityConfig.ServiceName = "clotho"
+	}
+	if observabilityConfig.ExporterURL == "" {
+		observabilityConfig.ExporterURL = "http://localhost:4317"
+	}
+	if observabilityConfig.SampleRatio == 0 {
+		observabilityConfig.SampleRatio = 1.0
+	}
+	if observabilityConfig.Environment == "" {
+		observabilityConfig.Environment = "development"
+	}
+	if observabilityConfig.ExporterType == "" {
+		observabilityConfig.ExporterType = "stdout"
+	}
+
+	cleanup, err := observability.Init(observabilityConfig)
+	if err != nil {
+		logger.Fatal(fmt.Sprintf("Failed to initialize observability: %v", err))
+	}
+	defer cleanup()
+
+	logger.Info("OpenTelemetry observability initialized")
+
 	// Set Gin mode
 	gin.SetMode(gin.ReleaseMode)
 
-	// Create router
-	router := gin.New()
+	// Create router using the router package
+	router := httpRouter.SetupRouter(cfg)
 
-	// Add middleware
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
-
-	// Add Mora Auth middleware for protected routes
-	authMiddleware := middleware.NewAuthMiddleware(cfg.GetString("jwt.secret"))
-
-	// Health check endpoint (no auth required)
-	router.GET("/health", handler.HealthCheck)
-
-	// API v1 routes (auth required)
-	v1 := router.Group("/api/v1")
-	v1.Use(authMiddleware.ValidateToken())
-	{
-		// User routes will be added here
-		v1.GET("/users/me", handler.GetCurrentUser)
-	}
-
-	// Get port
+	// Get port from command line or config
 	port, _ := cmd.Flags().GetString("port")
-	if cfg.GetString("server.port") != "" {
+	if port == "" {
 		port = cfg.GetString("server.port")
+	}
+	if port == "" {
+		port = "8080" // default
 	}
 
 	// Create HTTP server

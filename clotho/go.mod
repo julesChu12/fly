@@ -4,6 +4,8 @@ go 1.25.1
 
 require (
 	github.com/gin-gonic/gin v1.11.0
+	github.com/google/uuid v1.6.0
+	github.com/julesChu12/fly/mora v0.0.0-20250926103020-629c0e4ec338
 	github.com/spf13/cobra v1.8.1
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.65.0

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 )
 
 type HealthResponse struct {
@@ -19,6 +20,10 @@ var startTime = time.Now()
 
 func HealthCheck(c *gin.Context) {
 	uptime := time.Since(startTime).String()
+
+	// Log health check with trace context
+	log := logger.NewDefault().WithContext(c.Request.Context())
+	log.Info("Health check requested")
 
 	response := HealthResponse{
 		Status:    "healthy",

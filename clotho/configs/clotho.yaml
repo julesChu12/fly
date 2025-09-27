@@ -5,6 +5,9 @@ server:
   write_timeout: 30s
   idle_timeout: 60s
 
+app:
+  mode: "development"
+
 jwt:
   secret: "your-jwt-secret-key-change-in-production"
   access_token_ttl: 15m
@@ -14,6 +17,14 @@ logging:
   level: "info"
   format: "json"
   output: "stdout"
+
+# OpenTelemetry observability configuration
+observability:
+  service_name: "clotho"
+  exporter_url: "http://localhost:4317"
+  sample_ratio: 1.0
+  environment: "development"
+  exporter_type: "stdout"
 
 # gRPC client configurations
 services:
