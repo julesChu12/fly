@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus 自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Custos 服务监控
+  - job_name: 'custos'
+    static_configs:
+      - targets: ['custos:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Clotho 服务监控
+  - job_name: 'clotho'
+    static_configs:
+      - targets: ['clotho:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # MySQL 监控（如果启用了 mysqld_exporter）
+  # - job_name: 'mysql'
+  #   static_configs:
+  #     - targets: ['mysqld_exporter:9104']
+
+  # Redis 监控（如果启用了 redis_exporter）
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis_exporter:9121']
+
+  # Jaeger 监控
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: '/metrics'
+    scrape_interval: 30s

@@ -53,8 +53,6 @@ services:
       - ./clotho/configs:/app/configs
     environment:
       CONFIG_PATH: /app/configs/clotho.yaml
-
-  # observability stack (optional, enable later if needed)
   jaeger:
     image: jaegertracing/all-in-one:1.53
     container_name: fly-jaeger
