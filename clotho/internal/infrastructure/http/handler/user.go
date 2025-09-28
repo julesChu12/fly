@@ -29,6 +29,16 @@ func NewUserHandler(userProxy *usecase.UserProxyUseCase) *UserHandler {
 	}
 }
 
+// GetCurrentUser godoc
+// @Summary Get current user information
+// @Description Get basic information about the currently authenticated user from JWT token
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} UserResponse "Current user information"
+// @Failure 401 {object} ErrorResponse "Unauthorized - invalid or missing token"
+// @Router /api/v1/users/me [get]
 func GetCurrentUser(c *gin.Context) {
 	// Log request with trace context
 	log := logger.NewDefault().WithContext(c.Request.Context())
@@ -48,12 +58,12 @@ func GetCurrentUser(c *gin.Context) {
 	userType, _ := c.Get("user_type")
 	tenantID, _ := c.Get("tenant_id")
 
-	// TODO: In the future, this should call Custos gRPC service to get full user details
-	// For now, return basic information from JWT claims
+	// For the GetCurrentUser function, we'll return basic information from JWT claims
+	// The full profile information should be retrieved via the /profile endpoint
 	response := UserResponse{
 		ID:       userID.(int64),
-		Username: "user", // This would come from Custos service
-		Email:    "user@example.com", // This would come from Custos service
+		Username: "user",             // This would come from Custos service in a full implementation
+		Email:    "user@example.com", // This would come from Custos service in a full implementation
 		UserType: userType.(string),
 		TenantID: tenantID.(int64),
 	}
@@ -62,7 +72,19 @@ func GetCurrentUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetUserByID retrieves user information by ID using the UserHandler
+// GetUserByID godoc
+// @Summary Get user by ID
+// @Description Retrieve user information by user ID through Custos service
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} UserResponse "User information retrieved successfully"
+// @Failure 400 {object} ErrorResponse "Bad request - invalid user ID"
+// @Failure 401 {object} ErrorResponse "Unauthorized - invalid or missing token"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id} [get]
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	// Log request with trace context
 	log := logger.NewDefault().WithContext(c.Request.Context())

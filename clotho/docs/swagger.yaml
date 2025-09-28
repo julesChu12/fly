@@ -1,0 +1,306 @@
+definitions:
+  handler.ErrorResponse:
+    properties:
+      error:
+        example: invalid_request
+        type: string
+      message:
+        example: The request is invalid
+        type: string
+    type: object
+  handler.HealthResponse:
+    properties:
+      service:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      uptime:
+        type: string
+      version:
+        type: string
+    type: object
+  handler.ProfileRequest:
+    properties:
+      avatar:
+        type: string
+      bio:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      location:
+        type: string
+      phone:
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        type: object
+      username:
+        type: string
+      website:
+        type: string
+    type: object
+  handler.ProfileResponse:
+    properties:
+      avatar:
+        type: string
+      bio:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      location:
+        type: string
+      phone:
+        type: string
+      preferences:
+        additionalProperties:
+          type: string
+        type: object
+      statistics:
+        additionalProperties:
+          type: integer
+        type: object
+      status:
+        type: string
+      tenant_id:
+        type: integer
+      updated_at:
+        type: string
+      user_type:
+        type: string
+      username:
+        type: string
+      website:
+        type: string
+    type: object
+  handler.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      tenant_id:
+        type: integer
+      user_type:
+        type: string
+      username:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/profile:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the complete profile information for the authenticated
+        user, including preferences and statistics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          schema:
+            $ref: '#/definitions/handler.ProfileResponse'
+        "401":
+          description: Unauthorized - invalid or missing token
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user's complete profile
+      tags:
+      - profile
+    put:
+      consumes:
+      - application/json
+      description: Update the profile information for the authenticated user
+      parameters:
+      - description: Profile update request
+        in: body
+        name: profile
+        required: true
+        schema:
+          $ref: '#/definitions/handler.ProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/handler.ProfileResponse'
+        "400":
+          description: Bad request - invalid payload
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized - invalid or missing token
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update current user's profile
+      tags:
+      - profile
+  /api/v1/profile/preferences:
+    put:
+      consumes:
+      - application/json
+      description: Update the preferences for the authenticated user
+      parameters:
+      - description: User preferences as key-value pairs
+        in: body
+        name: preferences
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preferences updated successfully
+          schema:
+            type: object
+        "400":
+          description: Bad request - invalid preferences payload
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized - invalid or missing token
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user preferences
+      tags:
+      - profile
+  /api/v1/profile/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve public profile information for a specific user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          schema:
+            $ref: '#/definitions/handler.ProfileResponse'
+        "400":
+          description: Bad request - invalid user ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized - invalid or missing token
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get public profile of a user
+      tags:
+      - profile
+  /api/v1/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve user information by user ID through Custos service
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User information retrieved successfully
+          schema:
+            $ref: '#/definitions/handler.UserResponse'
+        "400":
+          description: Bad request - invalid user ID
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "401":
+          description: Unauthorized - invalid or missing token
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+  /api/v1/users/me:
+    get:
+      consumes:
+      - application/json
+      description: Get basic information about the currently authenticated user from
+        JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current user information
+          schema:
+            $ref: '#/definitions/handler.UserResponse'
+        "401":
+          description: Unauthorized - invalid or missing token
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user information
+      tags:
+      - users
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health status of the Clotho service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            $ref: '#/definitions/handler.HealthResponse'
+      summary: Health check endpoint
+      tags:
+      - health
+swagger: "2.0"

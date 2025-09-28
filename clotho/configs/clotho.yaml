@@ -26,6 +26,46 @@ observability:
   environment: "development"
   exporter_type: "stdout"
 
+  # Metrics configuration
+  metrics:
+    enabled: true
+    prometheus:
+      enabled: true
+      endpoint: "/metrics"
+      port: "9090"
+
+  # Tracing configuration
+  tracing:
+    enabled: true
+    jaeger:
+      enabled: true
+      endpoint: "http://localhost:14268/api/traces"
+
+  # Resource attributes
+  resource:
+    service_version: "0.1.0"
+    deployment_environment: "development"
+
+# Rate limiter configuration
+rate_limiter:
+  global_rps: 1000.0
+  global_burst: 2000
+  per_ip_rps: 10.0
+  per_ip_burst: 20
+  per_user_rps: 100.0
+  per_user_burst: 200
+  cleanup_interval: "5m"
+  max_idle_time: "10m"
+
+# Circuit breaker configuration
+circuit_breaker:
+  max_requests: 5
+  interval: "60s"
+  timeout: "30s"
+  failure_threshold: 5
+  failure_ratio: 0.6
+  min_requests: 10
+
 # gRPC client configurations
 services:
   custos:

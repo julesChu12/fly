@@ -18,6 +18,14 @@ type HealthResponse struct {
 
 var startTime = time.Now()
 
+// HealthCheck godoc
+// @Summary Health check endpoint
+// @Description Check the health status of the Clotho service
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} HealthResponse "Service is healthy"
+// @Router /health [get]
 func HealthCheck(c *gin.Context) {
 	uptime := time.Since(startTime).String()
 
