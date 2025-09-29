@@ -4,7 +4,8 @@
 As a Golang capability library, Mora carries the meaning of "allocation and order":  
 It provides common foundational capability modules for all services, allowing projects to set sail quickly under rules and clear boundaries.
 
-Mora is not a specific gateway or framework, but rather a **capability source**:  
+Mora is not a specific gateway or framework, but rather a **capability source**:
+
 - Accumulates common modules in `pkg/` (auth/logger/config/...)  
 - Provides framework adaptation layer in `adapters/`  
 - Demonstrates how the API layer orchestrates capabilities and domain services in `starter/`
@@ -12,7 +13,8 @@ Mora is not a specific gateway or framework, but rather a **capability source**:
 ---
 
 ## Project Structure
-```
+
+```text
 mora/
   ├── go.mod
   ├── pkg/                    # Core capability packages (framework-agnostic) ✅
@@ -68,6 +70,7 @@ mora/
 ## Module Description
 
 ### pkg/
+
 - **auth/**  
   Provides JWT/JWK generation and validation utility methods:  
   - `GenerateToken(userID, secret, ttl)`  
@@ -99,6 +102,7 @@ mora/
 ---
 
 ### adapters/
+
 - **gin/**  
   Provides gin middleware wrapper, such as:  
   - `AuthMiddleware(secret)`: calls `pkg/auth` to validate token, injects userID into gin.Context.  
@@ -112,12 +116,14 @@ mora/
 ---
 
 ### starter/
+
 - **gin-starter/**  
   Demonstrates how the API layer orchestrates User Service and Auth modules:  
   - `/login`: simulates calling User Service to validate username/password, then uses `pkg/auth` to issue token upon success.  
   - `/ping`: protected endpoint, uses `AuthMiddleware` to validate token, returns userID.  
 
 Run with:
+
 ```bash
 # Gin demo application
 cd starter/gin-starter
@@ -131,6 +137,7 @@ go run main.go -f etc/mora-api.yaml
 ```
 
 ### API Endpoints Examples
+
 - **Public endpoints**:
   - `GET /health` - Health check
   - `POST /login` - User login (returns JWT Token)
@@ -146,6 +153,7 @@ go run main.go -f etc/mora-api.yaml
 ## Implementation Status
 
 ### ✅ Completed
+
 - **Core capability packages (pkg/)**:
   - `auth/` - JWT Token generation and validation, JWKS support
   - `logger/` - Structured logging based on Zap, with trace context
@@ -170,6 +178,7 @@ go run main.go -f etc/mora-api.yaml
   - Support for multiple database and cache backends
 
 ### 📋 Development Roadmap
+
 - Extend more MQ implementations (Kafka/RabbitMQ)
 - Add more database driver support (MongoDB, ClickHouse, etc.)
 - Improve CI/CD scaffolding and automated testing
@@ -180,6 +189,7 @@ go run main.go -f etc/mora-api.yaml
 ---
 
 ## Design Principles
+
 - **Core capability packages (pkg/) are framework-agnostic**  
 - **adapters/** serves as an anti-corruption layer, responsible for integrating capability packages into gin/go-zero and other frameworks  
 - **starter/** demonstrates complete scenarios, where the API layer is an orchestrator, connecting Auth and User Service  
@@ -189,6 +199,7 @@ go run main.go -f etc/mora-api.yaml
 ---
 
 ## Next Steps
+
 - Continue improving core modules' functionality and performance optimization
 - Extend more framework adapters (Echo, Fiber, etc.)
 - Add more business scenario examples and best practices
@@ -197,5 +208,6 @@ go run main.go -f etc/mora-api.yaml
 ---
 
 ## Language Support
+
 - [中文版 README](README.md)
 - [English README](README_EN.md)

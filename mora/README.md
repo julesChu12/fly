@@ -4,7 +4,8 @@
 作为一个 Golang 能力库，Mora 承载着“分配与秩序”的寓意：  
 它为所有服务提供通用的基础能力模块，让项目在规则与清晰边界下快速启航。  
 
-Mora 并不是一个具体的网关或框架，而是一个 **能力源泉**：  
+Mora 并不是一个具体的网关或框架，而是一个 **能力源泉**：
+
 - 在 `pkg/` 中沉淀通用模块（auth/logger/config/...）  
 - 在 `adapters/` 中提供框架适配层  
 - 在 `starter/` 中演示 API 层如何 orchestrate（编排）能力与领域服务  
@@ -12,7 +13,8 @@ Mora 并不是一个具体的网关或框架，而是一个 **能力源泉**：
 ---
 
 ## 项目结构
-```
+
+```text
 mora/
   ├── go.mod
   ├── pkg/                    # 核心能力包（框架无关）✅
@@ -72,6 +74,7 @@ mora/
 ## 模块说明
 
 ### pkg/
+
 - **auth/**  
   提供 JWT/JWK 的生成与验证工具方法：  
   - `GenerateToken(userID, secret, ttl)`  
@@ -103,6 +106,7 @@ mora/
 ---
 
 ### adapters/
+
 - **gin/**  
   提供 gin 中间件包装，如：  
   - `AuthMiddleware(secret)`：调用 `pkg/auth` 校验 token，将 userID 注入 gin.Context。  
@@ -116,12 +120,14 @@ mora/
 ---
 
 ### starter/
+
 - **gin-starter/**  
   演示 API 层如何编排 User Service 与 Auth 模块：  
   - `/login`：模拟调用 User Service 验证用户名密码，成功后用 `pkg/auth` 签发 token。  
   - `/ping`：受保护接口，使用 `AuthMiddleware` 验证 token，返回 userID。  
 
 运行方式：
+
 ```bash
 # Gin 示例应用
 cd starter/gin-starter
@@ -135,6 +141,7 @@ go run main.go -f etc/mora-api.yaml
 ```
 
 ### API 接口示例
+
 - **公开接口**：
   - `GET /health` - 健康检查
   - `POST /login` - 用户登录（返回 JWT Token）
@@ -150,6 +157,7 @@ go run main.go -f etc/mora-api.yaml
 ## 实现状态
 
 ### ✅ 已完成
+
 - **核心能力包（pkg/）**：
   - `auth/` - JWT Token 生成与验证，支持 JWKS
   - `logger/` - 基于 Zap 的结构化日志，支持链路追踪
@@ -174,6 +182,7 @@ go run main.go -f etc/mora-api.yaml
   - 支持多种数据库和缓存后端
 
 ### 📋 开发计划
+
 - 扩展更多 MQ 实现（Kafka/RabbitMQ）
 - 添加更多数据库驱动支持（MongoDB、ClickHouse 等）
 - 完善 CI/CD 脚手架和自动化测试
@@ -184,6 +193,7 @@ go run main.go -f etc/mora-api.yaml
 ---
 
 ## 设计原则
+
 - **核心能力包（pkg/）框架无关**  
 - **adapters/** 作为防腐层，负责将能力包接入 gin/go-zero 等框架  
 - **starter/** 演示完整场景，API 层是 orchestrator（编排器），连接 Auth 与 User Service  
@@ -193,6 +203,7 @@ go run main.go -f etc/mora-api.yaml
 ---
 
 ## 下一步
+
 - 持续完善核心模块的功能和性能优化
 - 扩展更多框架适配器（Echo、Fiber 等）
 - 增加更多业务场景的示例和最佳实践
@@ -201,5 +212,6 @@ go run main.go -f etc/mora-api.yaml
 ---
 
 ## 语言支持
+
 - [中文版 README](README.md)
 - [English README](README_EN.md)
