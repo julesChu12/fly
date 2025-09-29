@@ -22,4 +22,12 @@ type UserRepository interface {
 	List(ctx context.Context, limit, offset int) ([]*entity.User, error)
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
+
+	// Multi-tenant methods
+	GetByIDWithTenant(ctx context.Context, id uint, tenantID uint) (*entity.User, error)
+	GetByUsernameWithTenant(ctx context.Context, username string, tenantID uint) (*entity.User, error)
+	GetByEmailWithTenant(ctx context.Context, email string, tenantID uint) (*entity.User, error)
+	ListByTenant(ctx context.Context, tenantID uint, limit, offset int) ([]*entity.User, error)
+	ExistsByUsernameWithTenant(ctx context.Context, username string, tenantID uint) (bool, error)
+	ExistsByEmailWithTenant(ctx context.Context, email string, tenantID uint) (bool, error)
 }

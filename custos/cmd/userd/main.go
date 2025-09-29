@@ -13,11 +13,14 @@ import (
 	"github.com/julesChu12/fly/custos/internal/config"
 	authService "github.com/julesChu12/fly/custos/internal/domain/service/auth"
 	"github.com/julesChu12/fly/custos/internal/domain/service/oauth"
+	"github.com/julesChu12/fly/custos/internal/domain/service/password"
 	"github.com/julesChu12/fly/custos/internal/domain/service/rbac"
 	"github.com/julesChu12/fly/custos/internal/domain/service/token"
 	"github.com/julesChu12/fly/custos/internal/infrastructure/migrate"
 	"github.com/julesChu12/fly/custos/internal/infrastructure/persistence/mysql"
+	grpcInterface "github.com/julesChu12/fly/custos/internal/interface/grpc"
 	"github.com/julesChu12/fly/custos/internal/interface/http/handler"
+	authHandler "github.com/julesChu12/fly/custos/internal/interface/http/handler/auth"
 	"github.com/julesChu12/fly/custos/internal/interface/http/middleware"
 	"github.com/julesChu12/fly/custos/internal/interface/http/router"
 	"github.com/julesChu12/fly/mora/pkg/logger"
@@ -59,8 +62,11 @@ func main() {
 	refreshTokenRepo := mysql.NewRefreshTokenRepository(db.DB())
 	userOAuthRepo := mysql.NewUserOAuthRepository(db.DB())
 
+	// Initialize password service
+	passwordService := password.NewPasswordService()
+
 	tokenService := token.NewTokenService(cfg.JWT.SecretKey, cfg.JWT.AccessTokenTTL, cfg.JWT.RefreshTokenTTL)
-	authSvc := authService.NewAuthService(userRepo, sessionRepo, refreshTokenRepo, tokenService)
+	authSvc := authService.NewAuthService(userRepo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 	oauthSvc := oauth.NewService(cfg, userRepo, userOAuthRepo)
 
 	// Initialize RBAC service
@@ -76,15 +82,23 @@ func main() {
 	logoutUC := auth.NewLogoutUseCase(authSvc)
 	logoutAllUC := auth.NewLogoutAllUseCase(authSvc)
 
-	authHandler := handler.NewAuthHandler(registerUC, loginUC, refreshUC, logoutUC, logoutAllUC)
+	authHandlerMain := handler.NewAuthHandler(registerUC, loginUC, refreshUC, logoutUC, logoutAllUC)
+	passwordHandler := authHandler.NewPasswordHandler(passwordService, userRepo)
 	userHandler := handler.NewUserHandler()
 	oauthHandler := handler.NewOAuthHandler(oauthSvc, tokenService)
 	adminHandler := handler.NewAdminHandler(userRepo, rbacSvc)
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 
-	routerHandler := router.NewRouter(authHandler, userHandler, oauthHandler, adminHandler, healthHandler, authMW)
+	routerHandler := router.NewRouter(authHandlerMain, userHandler, oauthHandler, adminHandler, healthHandler, authMW)
 	ginEngine := routerHandler.SetupRoutes()
+
+	// Register password routes
+	api := ginEngine.Group("/api/v1")
+	passwordHandler.RegisterPasswordRoutes(api, authMW.RequireAuth(), nil)
+
+	// Initialize gRPC server
+	grpcServer := grpcInterface.NewCustosGRPCServer(userRepo, sessionRepo, tokenService)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.App.Port,
@@ -93,24 +107,35 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 	}
 
+	// Start gRPC server in background
 	go func() {
-		log.Printf("Server starting on port %s", cfg.App.Port)
+		log.Printf("gRPC server starting on port 9001")
+		if err := grpcServer.Start("9001"); err != nil {
+			log.Fatalf("gRPC server failed to start: %v", err)
+		}
+	}()
+
+	go func() {
+		log.Printf("HTTP server starting on port %s", cfg.App.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server failed to start: %v", err)
+			log.Fatalf("HTTP server failed to start: %v", err)
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	log.Println("Shutting down servers...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	// Shutdown gRPC server
+	grpcServer.Stop()
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 
-	log.Println("Server exited")
+	log.Println("Servers exited")
 }

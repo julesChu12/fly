@@ -111,7 +111,7 @@ func WithDeadLetterQueue(dlq string) ConsumeOption {
 
 // Config holds the configuration for message queue
 type Config struct {
-	Driver  string            `json:"driver" yaml:"driver"`   // memory, redis
+	Driver  string            `json:"driver" yaml:"driver"`   // memory, redis, kafka
 	DSN     string            `json:"dsn" yaml:"dsn"`         // connection string
 	Options map[string]string `json:"options" yaml:"options"` // additional options
 }
@@ -138,6 +138,12 @@ func New(cfg Config) (Client, error) {
 		return NewMemoryMQ(), nil
 	case "redis":
 		client, err := NewRedisMQ(cfg)
+		if err != nil {
+			return nil, err
+		}
+		return client, nil
+	case "kafka":
+		client, err := NewKafkaMQ(cfg)
 		if err != nil {
 			return nil, err
 		}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/internal/domain/service/password"
 	"github.com/julesChu12/fly/custos/internal/domain/service/token"
 	"github.com/julesChu12/fly/custos/pkg/errors"
 	"github.com/julesChu12/fly/custos/pkg/types"
@@ -264,6 +265,22 @@ func (r *fakeUserRepo) GetByUsername(_ context.Context, username string) (*entit
 	return &clone, nil
 }
 
+func (r *fakeUserRepo) GetByUsernameWithTenant(_ context.Context, username string, tenantID uint) (*entity.User, error) {
+	user, ok := r.byUsername[username]
+	if !ok {
+		return nil, errors.NewUserNotFoundError()
+	}
+	if user.TenantID == nil && tenantID == 0 {
+		clone := *user
+		return &clone, nil
+	}
+	if user.TenantID != nil && *user.TenantID == tenantID {
+		clone := *user
+		return &clone, nil
+	}
+	return nil, errors.NewUserNotFoundError()
+}
+
 func (r *fakeUserRepo) GetByEmail(_ context.Context, email string) (*entity.User, error) {
 	user, ok := r.byEmail[email]
 	if !ok {
@@ -271,6 +288,22 @@ func (r *fakeUserRepo) GetByEmail(_ context.Context, email string) (*entity.User
 	}
 	clone := *user
 	return &clone, nil
+}
+
+func (r *fakeUserRepo) GetByEmailWithTenant(_ context.Context, email string, tenantID uint) (*entity.User, error) {
+	user, ok := r.byEmail[email]
+	if !ok {
+		return nil, errors.NewUserNotFoundError()
+	}
+	if user.TenantID == nil && tenantID == 0 {
+		clone := *user
+		return &clone, nil
+	}
+	if user.TenantID != nil && *user.TenantID == tenantID {
+		clone := *user
+		return &clone, nil
+	}
+	return nil, errors.NewUserNotFoundError()
 }
 
 func (r *fakeUserRepo) Update(_ context.Context, user *entity.User) error {
@@ -294,9 +327,73 @@ func (r *fakeUserRepo) ExistsByUsername(_ context.Context, username string) (boo
 	return ok, nil
 }
 
+func (r *fakeUserRepo) ExistsByUsernameWithTenant(_ context.Context, username string, tenantID uint) (bool, error) {
+	user, ok := r.byUsername[username]
+	if !ok {
+		return false, nil
+	}
+	if user.TenantID == nil && tenantID == 0 {
+		return true, nil
+	}
+	if user.TenantID != nil && *user.TenantID == tenantID {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (r *fakeUserRepo) ExistsByEmail(_ context.Context, email string) (bool, error) {
 	_, ok := r.byEmail[email]
 	return ok, nil
+}
+
+func (r *fakeUserRepo) ExistsByEmailWithTenant(_ context.Context, email string, tenantID uint) (bool, error) {
+	user, ok := r.byEmail[email]
+	if !ok {
+		return false, nil
+	}
+	if user.TenantID == nil && tenantID == 0 {
+		return true, nil
+	}
+	if user.TenantID != nil && *user.TenantID == tenantID {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (r *fakeUserRepo) GetByIDWithTenant(_ context.Context, id uint, tenantID uint) (*entity.User, error) {
+	user, ok := r.byID[id]
+	if !ok {
+		return nil, errors.NewUserNotFoundError()
+	}
+	if user.TenantID == nil && tenantID == 0 {
+		clone := *user
+		return &clone, nil
+	}
+	if user.TenantID != nil && *user.TenantID == tenantID {
+		clone := *user
+		return &clone, nil
+	}
+	return nil, errors.NewUserNotFoundError()
+}
+
+func (r *fakeUserRepo) ListByTenant(_ context.Context, tenantID uint, limit, offset int) ([]*entity.User, error) {
+	var result []*entity.User
+	count := 0
+	for _, user := range r.byID {
+		if count < offset {
+			count++
+			continue
+		}
+		if len(result) >= limit {
+			break
+		}
+		if (user.TenantID == nil && tenantID == 0) || (user.TenantID != nil && *user.TenantID == tenantID) {
+			clone := *user
+			result = append(result, &clone)
+		}
+		count++
+	}
+	return result, nil
 }
 
 func TestRegister(t *testing.T) {
@@ -304,20 +401,21 @@ func TestRegister(t *testing.T) {
 	refreshTokenRepo := newFakeRefreshTokenRepo()
 	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, 2*time.Hour)
-	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
+	passwordService := password.NewPasswordService()
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 
-	user, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
+	user, err := svc.Register(context.Background(), "johndoe", "john@example.com", "SuperSecret123!")
 	require.NoError(t, err)
 	require.Equal(t, "johndoe", user.Username)
 	require.Equal(t, types.UserRoleUser, user.Role)
 
-	_, err = svc.Register(context.Background(), "johndoe", "john+dup@example.com", "anotherpass")
+	_, err = svc.Register(context.Background(), "johndoe", "john+dup@example.com", "AnotherPass123!")
 	require.Error(t, err)
 	domainErr, ok := err.(*errors.DomainError)
 	require.True(t, ok)
 	require.Equal(t, errors.CodeUserAlreadyExists, domainErr.Code)
 
-	_, err = svc.Register(context.Background(), "janedoe", "john@example.com", "anotherpass")
+	_, err = svc.Register(context.Background(), "janedoe", "john@example.com", "AnotherPass123!")
 	require.Error(t, err)
 	domainErr, ok = err.(*errors.DomainError)
 	require.True(t, ok)
@@ -329,9 +427,10 @@ func TestRegisterPasswordPolicy(t *testing.T) {
 	refreshTokenRepo := newFakeRefreshTokenRepo()
 	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, 2*time.Hour)
-	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
+	passwordService := password.NewPasswordService()
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 
-	_, err := svc.Register(context.Background(), "jd", "short@example.com", "short")
+	_, err := svc.Register(context.Background(), "johndoe", "short@example.com", "weak")
 	require.Error(t, err)
 	domainErr, ok := err.(*errors.DomainError)
 	require.True(t, ok)
@@ -343,12 +442,13 @@ func TestLogin(t *testing.T) {
 	refreshTokenRepo := newFakeRefreshTokenRepo()
 	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, 2*time.Hour)
-	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
+	passwordService := password.NewPasswordService()
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 
-	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
+	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "SuperSecret123!")
 	require.NoError(t, err)
 
-	tokenPair, user, err := svc.Login(context.Background(), "johndoe", "supersecret", &LoginMetadata{IPAddress: "127.0.0.1", UserAgent: "test"})
+	tokenPair, user, err := svc.Login(context.Background(), "johndoe", "SuperSecret123!", &LoginMetadata{IPAddress: "127.0.0.1", UserAgent: "test"})
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenPair.AccessToken)
 	require.NotEmpty(t, tokenPair.RefreshToken)
@@ -368,12 +468,13 @@ func TestRefresh(t *testing.T) {
 	refreshTokenRepo := newFakeRefreshTokenRepo()
 	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, time.Hour)
-	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
+	passwordService := password.NewPasswordService()
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 
-	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
+	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "SuperSecret123!")
 	require.NoError(t, err)
 
-	loginPair, _, err := svc.Login(context.Background(), "johndoe", "supersecret", &LoginMetadata{})
+	loginPair, _, err := svc.Login(context.Background(), "johndoe", "SuperSecret123!", &LoginMetadata{})
 	require.NoError(t, err)
 
 	refreshed, _, err := svc.Refresh(context.Background(), loginPair.SessionID, loginPair.RefreshToken)
@@ -394,12 +495,13 @@ func TestLogout(t *testing.T) {
 	refreshTokenRepo := newFakeRefreshTokenRepo()
 	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, time.Hour)
-	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
+	passwordService := password.NewPasswordService()
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 
-	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
+	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "SuperSecret123!")
 	require.NoError(t, err)
 
-	loginPair, _, err := svc.Login(context.Background(), "johndoe", "supersecret", &LoginMetadata{})
+	loginPair, _, err := svc.Login(context.Background(), "johndoe", "SuperSecret123!", &LoginMetadata{})
 	require.NoError(t, err)
 
 	require.NoError(t, svc.Logout(context.Background(), loginPair.SessionID))
@@ -414,12 +516,13 @@ func TestLogoutAll(t *testing.T) {
 	refreshTokenRepo := newFakeRefreshTokenRepo()
 	sessionRepo := newFakeSessionRepo(refreshTokenRepo)
 	tokenService := token.NewTokenService("secret", time.Minute, time.Hour)
-	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService)
+	passwordService := password.NewPasswordService()
+	svc := NewAuthService(repo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
 
-	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "supersecret")
+	_, err := svc.Register(context.Background(), "johndoe", "john@example.com", "SuperSecret123!")
 	require.NoError(t, err)
 
-	loginPair, user, err := svc.Login(context.Background(), "johndoe", "supersecret", &LoginMetadata{})
+	loginPair, user, err := svc.Login(context.Background(), "johndoe", "SuperSecret123!", &LoginMetadata{})
 	require.NoError(t, err)
 
 	require.NoError(t, svc.LogoutAll(context.Background(), user.ID))

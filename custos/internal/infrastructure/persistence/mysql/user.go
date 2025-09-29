@@ -32,6 +32,7 @@ func NewDatabase(dsn string, debug bool) (*Database, error) {
 
 func (d *Database) AutoMigrate() error {
 	return d.db.AutoMigrate(
+		&entity.Tenant{},  // Add Tenant table
 		&entity.User{},
 		&entity.Session{},
 	)
@@ -111,5 +112,52 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) 
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("email = ?", email).Count(&count).Error
+	return count > 0, err
+}
+
+// Multi-tenant methods implementation
+
+func (r *UserRepository) GetByIDWithTenant(ctx context.Context, id uint, tenantID uint) (*entity.User, error) {
+	var user entity.User
+	err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) GetByUsernameWithTenant(ctx context.Context, username string, tenantID uint) (*entity.User, error) {
+	var user entity.User
+	err := r.db.WithContext(ctx).Where("username = ? AND tenant_id = ?", username, tenantID).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) GetByEmailWithTenant(ctx context.Context, email string, tenantID uint) (*entity.User, error) {
+	var user entity.User
+	err := r.db.WithContext(ctx).Where("email = ? AND tenant_id = ?", email, tenantID).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) ListByTenant(ctx context.Context, tenantID uint, limit, offset int) ([]*entity.User, error) {
+	var users []*entity.User
+	err := r.db.WithContext(ctx).Where("tenant_id = ?", tenantID).Limit(limit).Offset(offset).Find(&users).Error
+	return users, err
+}
+
+func (r *UserRepository) ExistsByUsernameWithTenant(ctx context.Context, username string, tenantID uint) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("username = ? AND tenant_id = ?", username, tenantID).Count(&count).Error
+	return count > 0, err
+}
+
+func (r *UserRepository) ExistsByEmailWithTenant(ctx context.Context, email string, tenantID uint) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("email = ? AND tenant_id = ?", email, tenantID).Count(&count).Error
 	return count > 0, err
 }

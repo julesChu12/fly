@@ -7,10 +7,10 @@ import (
 
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
+	"github.com/julesChu12/fly/custos/internal/domain/service/password"
 	"github.com/julesChu12/fly/custos/internal/domain/service/token"
 	"github.com/julesChu12/fly/custos/pkg/constants"
 	"github.com/julesChu12/fly/custos/pkg/errors"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
@@ -18,14 +18,16 @@ type AuthService struct {
 	sessionRepo      repository.SessionRepository
 	refreshTokenRepo repository.RefreshTokenRepository
 	tokenService     *token.TokenService
+	passwordService  *password.PasswordService
 }
 
-func NewAuthService(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, refreshTokenRepo repository.RefreshTokenRepository, tokenService *token.TokenService) *AuthService {
+func NewAuthService(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, refreshTokenRepo repository.RefreshTokenRepository, tokenService *token.TokenService, passwordService *password.PasswordService) *AuthService {
 	return &AuthService{
 		userRepo:         userRepo,
 		sessionRepo:      sessionRepo,
 		refreshTokenRepo: refreshTokenRepo,
 		tokenService:     tokenService,
+		passwordService:  passwordService,
 	}
 }
 
@@ -41,10 +43,15 @@ func (s *AuthService) Register(ctx context.Context, username, email, password st
 				constants.UsernameMinLength, constants.UsernameMaxLength))
 	}
 
-	if len(password) < constants.PasswordMinLength || len(password) > constants.PasswordMaxLength {
+	// Validate password using the password service
+	hashedPassword, validationResult, err := s.passwordService.ValidateAndHash(password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process password: %w", err)
+	}
+
+	if !validationResult.IsValid {
 		return nil, errors.NewInvalidPasswordError(
-			fmt.Sprintf("Password must be between %d and %d characters",
-				constants.PasswordMinLength, constants.PasswordMaxLength))
+			fmt.Sprintf("Password does not meet security requirements: %v", validationResult.Errors))
 	}
 
 	exists, err := s.userRepo.ExistsByUsername(ctx, username)
@@ -61,11 +68,6 @@ func (s *AuthService) Register(ctx context.Context, username, email, password st
 	}
 	if exists {
 		return nil, errors.NewUserAlreadyExistsError(email)
-	}
-
-	hashedPassword, err := s.hashPassword(password)
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	user := entity.NewUser(username, email, hashedPassword)
@@ -205,12 +207,10 @@ func (s *AuthService) LogoutAll(ctx context.Context, userID uint) error {
 	return nil
 }
 
-func (s *AuthService) hashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
-
 func (s *AuthService) checkPassword(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
+	valid, err := s.passwordService.VerifyPassword(password, hash)
+	if err != nil {
+		return false
+	}
+	return valid
 }
