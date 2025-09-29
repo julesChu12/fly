@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package hermes.v1;
+
+option go_package = "hermes/api/proto/hermes/v1;hermesv1";
+
+import "google/protobuf/timestamp.proto";
+
+// Customer service definition
+service CustomerService {
+  // 创建客户
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
+  // 获取客户信息
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse);
+  // 获取客户及联系方式
+  rpc GetCustomerWithContacts(GetCustomerRequest) returns (GetCustomerWithContactsResponse);
+  // 更新客户信息
+  rpc UpdateCustomer(UpdateCustomerRequest) returns (UpdateCustomerResponse);
+  // 删除客户
+  rpc DeleteCustomer(DeleteCustomerRequest) returns (DeleteCustomerResponse);
+  // 客户列表
+  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
+}
+
+// Contact service definition
+service ContactService {
+  // 创建联系方式
+  rpc CreateContact(CreateContactRequest) returns (CreateContactResponse);
+  // 获取联系方式
+  rpc GetContact(GetContactRequest) returns (GetContactResponse);
+  // 更新联系方式
+  rpc UpdateContact(UpdateContactRequest) returns (UpdateContactResponse);
+  // 删除联系方式
+  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse);
+  // 客户的联系方式列表
+  rpc ListContactsByCustomer(ListContactsByCustomerRequest) returns (ListContactsByCustomerResponse);
+}
+
+// Customer messages
+message Customer {
+  uint32 id = 1;
+  string name = 2;
+  string phone = 3;
+  string email = 4;
+  string tags = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  repeated Contact contacts = 8;
+}
+
+message Contact {
+  uint32 id = 1;
+  uint32 customer_id = 2;
+  string type = 3;
+  string value = 4;
+  bool is_primary = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// Request/Response messages for Customer
+message CreateCustomerRequest {
+  string name = 1;
+  string phone = 2;
+  string email = 3;
+  string tags = 4;
+}
+
+message CreateCustomerResponse {
+  Customer customer = 1;
+}
+
+message GetCustomerRequest {
+  uint32 id = 1;
+}
+
+message GetCustomerResponse {
+  Customer customer = 1;
+}
+
+message GetCustomerWithContactsResponse {
+  Customer customer = 1;
+}
+
+message UpdateCustomerRequest {
+  uint32 id = 1;
+  string name = 2;
+  string phone = 3;
+  string email = 4;
+  string tags = 5;
+}
+
+message UpdateCustomerResponse {
+  Customer customer = 1;
+}
+
+message DeleteCustomerRequest {
+  uint32 id = 1;
+}
+
+message DeleteCustomerResponse {
+  bool success = 1;
+}
+
+message ListCustomersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListCustomersResponse {
+  repeated Customer customers = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 size = 4;
+}
+
+// Request/Response messages for Contact
+message CreateContactRequest {
+  uint32 customer_id = 1;
+  string type = 2;
+  string value = 3;
+  bool is_primary = 4;
+}
+
+message CreateContactResponse {
+  Contact contact = 1;
+}
+
+message GetContactRequest {
+  uint32 id = 1;
+}
+
+message GetContactResponse {
+  Contact contact = 1;
+}
+
+message UpdateContactRequest {
+  uint32 id = 1;
+  string type = 2;
+  string value = 3;
+  bool is_primary = 4;
+}
+
+message UpdateContactResponse {
+  Contact contact = 1;
+}
+
+message DeleteContactRequest {
+  uint32 id = 1;
+}
+
+message DeleteContactResponse {
+  bool success = 1;
+}
+
+message ListContactsByCustomerRequest {
+  uint32 customer_id = 1;
+}
+
+message ListContactsByCustomerResponse {
+  repeated Contact contacts = 1;
+}
