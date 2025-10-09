@@ -2,7 +2,8 @@ package repository
 
 import (
 	"context"
-	"hermes/internal/domain/entity"
+
+	"github.com/julesChu12/fly/hermes/internal/domain/entity"
 )
 
 type CustomerRepository interface {
@@ -11,7 +12,7 @@ type CustomerRepository interface {
 	GetByEmail(ctx context.Context, email string) (*entity.Customer, error)
 	Update(ctx context.Context, customer *entity.Customer) error
 	Delete(ctx context.Context, id uint) error
-	List(ctx context.Context, offset, limit int) ([]*entity.Customer, error)
+	List(ctx context.Context, offset, limit int) ([]*entity.Customer, int64, error)
 	GetWithContacts(ctx context.Context, id uint) (*entity.Customer, error)
 }
 

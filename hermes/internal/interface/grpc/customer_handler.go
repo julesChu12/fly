@@ -3,9 +3,8 @@ package grpc
 import (
 	"context"
 
-	"hermes/internal/application/service"
-	"hermes/pkg/types"
-
+	"github.com/julesChu12/fly/hermes/internal/application/service"
+	"github.com/julesChu12/fly/hermes/pkg/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"

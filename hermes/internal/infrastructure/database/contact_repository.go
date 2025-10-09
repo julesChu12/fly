@@ -2,10 +2,10 @@ package database
 
 import (
 	"context"
-	"hermes/internal/domain/entity"
-	"hermes/internal/domain/repository"
-	"hermes/pkg/errors"
 
+	"github.com/julesChu12/fly/hermes/internal/domain/entity"
+	"github.com/julesChu12/fly/hermes/internal/domain/repository"
+	"github.com/julesChu12/fly/hermes/pkg/errors"
 	"gorm.io/gorm"
 )
 

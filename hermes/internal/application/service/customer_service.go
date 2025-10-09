@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
-	"hermes/internal/domain/entity"
-	"hermes/internal/domain/repository"
-	"hermes/pkg/constants"
-	"hermes/pkg/errors"
-	"hermes/pkg/types"
+
+	"github.com/julesChu12/fly/hermes/internal/domain/entity"
+	"github.com/julesChu12/fly/hermes/internal/domain/repository"
+	"github.com/julesChu12/fly/hermes/pkg/constants"
+	"github.com/julesChu12/fly/hermes/pkg/errors"
+	"github.com/julesChu12/fly/hermes/pkg/types"
 )
 
 type CustomerService interface {
@@ -36,8 +37,11 @@ func (s *customerService) CreateCustomer(ctx context.Context, req *types.CreateC
 		if err == nil {
 			return nil, errors.ErrDuplicateEmail
 		}
+		// 只有非 NotFoundError 的错误才需要返回
 		if err != errors.ErrCustomerNotFound {
-			return nil, err
+			if _, ok := err.(*errors.NotFoundError); !ok {
+				return nil, err
+			}
 		}
 	}
 
@@ -90,8 +94,11 @@ func (s *customerService) UpdateCustomer(ctx context.Context, id uint, req *type
 		if err == nil {
 			return nil, errors.ErrDuplicateEmail
 		}
+		// 只有非 NotFoundError 的错误才需要返回
 		if err != errors.ErrCustomerNotFound {
-			return nil, err
+			if _, ok := err.(*errors.NotFoundError); !ok {
+				return nil, err
+			}
 		}
 	}
 
@@ -136,7 +143,7 @@ func (s *customerService) ListCustomers(ctx context.Context, req *types.ListRequ
 	}
 
 	offset := (req.Page - 1) * req.PageSize
-	customers, err := s.customerRepo.List(ctx, offset, req.PageSize)
+	customers, total, err := s.customerRepo.List(ctx, offset, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -147,9 +154,10 @@ func (s *customerService) ListCustomers(ctx context.Context, req *types.ListRequ
 	}
 
 	return &types.ListResponse{
-		Data: responses,
-		Page: req.Page,
-		Size: len(responses),
+		Data:  responses,
+		Total: total,
+		Page:  req.Page,
+		Size:  len(responses),
 	}, nil
 }
 

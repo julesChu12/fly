@@ -1,0 +1,165 @@
+basePath: /api
+definitions: {}
+host: localhost:8083
+info:
+  contact:
+    email: support@fly.com
+    name: API Support
+    url: http://www.fly.com/support
+  description: 客户管理服务API文档，支持客户信息和联系方式的增删改查操作
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Hermes Customer Service API
+  version: "1.0"
+paths:
+  /api/customers:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取客户列表
+      parameters:
+      - description: 页码，默认为1
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小，默认为20
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+        "400":
+          description: 请求参数错误
+        "500":
+          description: 内部服务器错误
+      summary: 获取客户列表
+      tags:
+      - 客户管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的客户记录
+      parameters:
+      - description: 客户信息
+        in: body
+        name: customer
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 创建成功
+        "400":
+          description: 请求参数错误
+        "500":
+          description: 内部服务器错误
+      summary: 创建客户
+      tags:
+      - 客户管理
+  /api/customers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据客户ID删除客户
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+        "400":
+          description: 请求参数错误
+        "500":
+          description: 内部服务器错误
+      summary: 删除客户
+      tags:
+      - 客户管理
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取客户详细信息
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+        "400":
+          description: 请求参数错误
+        "404":
+          description: 客户不存在
+      summary: 获取客户信息
+      tags:
+      - 客户管理
+    put:
+      consumes:
+      - application/json
+      description: 根据客户ID更新客户信息
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新的客户信息
+        in: body
+        name: customer
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+        "400":
+          description: 请求参数错误
+        "500":
+          description: 内部服务器错误
+      summary: 更新客户信息
+      tags:
+      - 客户管理
+  /api/customers/{id}/contacts:
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取客户详细信息及其所有联系方式
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+        "400":
+          description: 请求参数错误
+        "404":
+          description: 客户不存在
+      summary: 获取客户及联系方式
+      tags:
+      - 客户管理
+swagger: "2.0"
+tags:
+- description: 客户信息管理相关接口
+  name: 客户管理

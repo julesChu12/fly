@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"hermes/internal/application/service"
-	"hermes/pkg/types"
-
 	"github.com/gin-gonic/gin"
+	"github.com/julesChu12/fly/hermes/internal/application/service"
+	"github.com/julesChu12/fly/hermes/pkg/types"
 )
 
 // CustomerHandler handles HTTP requests for customer operations

@@ -1,0 +1,442 @@
+basePath: /
+definitions:
+  entity.OrderStatus:
+    enum:
+    - pending
+    - paid
+    - fulfilled
+    - canceled
+    type: string
+    x-enum-varnames:
+    - OrderStatusPending
+    - OrderStatusPaid
+    - OrderStatusFulfilled
+    - OrderStatusCanceled
+  types.CreateOrderItemRequest:
+    properties:
+      product_id:
+        type: integer
+      product_name:
+        type: string
+      quantity:
+        minimum: 1
+        type: integer
+      sku:
+        type: string
+      unit_price:
+        minimum: 0
+        type: number
+    required:
+    - product_name
+    - quantity
+    - unit_price
+    type: object
+  types.CreateOrderRequest:
+    properties:
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/types.CreateOrderItemRequest'
+        minItems: 1
+        type: array
+      order_no:
+        type: string
+      remark:
+        type: string
+      total_amount:
+        minimum: 0
+        type: number
+    required:
+    - customer_id
+    - items
+    - order_no
+    - total_amount
+    type: object
+  types.ListResponse:
+    properties:
+      data: {}
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  types.OrderAuditResponse:
+    properties:
+      action:
+        type: string
+      actor:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_id:
+        type: integer
+      payload:
+        type: string
+      tenant_id:
+        type: integer
+    type: object
+  types.OrderItemResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_id:
+        type: integer
+      product_id:
+        type: integer
+      product_name:
+        type: string
+      quantity:
+        type: integer
+      sku:
+        type: string
+      tenant_id:
+        type: integer
+      total_price:
+        type: number
+      unit_price:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  types.OrderResponse:
+    properties:
+      audits:
+        items:
+          $ref: '#/definitions/types.OrderAuditResponse'
+        type: array
+      created_at:
+        type: string
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/types.OrderItemResponse'
+        type: array
+      order_no:
+        type: string
+      remark:
+        type: string
+      status:
+        $ref: '#/definitions/entity.OrderStatus'
+      status_logs:
+        items:
+          $ref: '#/definitions/types.OrderStatusLogResponse'
+        type: array
+      tenant_id:
+        type: integer
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  types.OrderStatusLogResponse:
+    properties:
+      created_at:
+        type: string
+      from_status:
+        $ref: '#/definitions/entity.OrderStatus'
+      id:
+        type: integer
+      operator_id:
+        type: integer
+      order_id:
+        type: integer
+      reason:
+        type: string
+      tenant_id:
+        type: integer
+      to_status:
+        $ref: '#/definitions/entity.OrderStatus'
+    type: object
+  types.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  types.UpdateOrderStatusRequest:
+    properties:
+      operator_id:
+        type: integer
+      reason:
+        type: string
+      status:
+        $ref: '#/definitions/entity.OrderStatus'
+    required:
+    - status
+    type: object
+host: localhost:8082
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Order service for Fly platform
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Kratos Order Service API
+  version: "1.0"
+paths:
+  /api/orders:
+    get:
+      description: List orders with pagination and filters
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Customer ID filter
+        in: query
+        name: customer_id
+        type: integer
+      - description: Order status filter
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.ListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: List orders
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order
+      parameters:
+      - description: Order data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.OrderResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Create order
+      tags:
+      - orders
+  /api/orders/{id}:
+    delete:
+      description: Delete order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Delete order
+      tags:
+      - orders
+    get:
+      description: Get order by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.OrderResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get order
+      tags:
+      - orders
+  /api/orders/{id}/items:
+    get:
+      description: Get order by ID with all items
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.OrderResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get order with items
+      tags:
+      - orders
+  /api/orders/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update order status
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status update data
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.OrderResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Update order status
+      tags:
+      - orders
+swagger: "2.0"

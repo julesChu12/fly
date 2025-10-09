@@ -6,6 +6,7 @@ import (
 
 type Customer struct {
 	ID        uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	TenantID  uint      `json:"tenant_id" gorm:"not null;index"`
 	Name      string    `json:"name" gorm:"type:varchar(255);not null"`
 	Phone     string    `json:"phone" gorm:"type:varchar(20);index"`
 	Email     string    `json:"email" gorm:"type:varchar(255);index"`
@@ -18,6 +19,7 @@ type Customer struct {
 
 type Contact struct {
 	ID         uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+	TenantID   uint      `json:"tenant_id" gorm:"not null;index"`
 	CustomerID uint      `json:"customer_id" gorm:"not null;index"`
 	Type       string    `json:"type" gorm:"type:varchar(50);not null"`
 	Value      string    `json:"value" gorm:"type:varchar(255);not null"`

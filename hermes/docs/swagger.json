@@ -1,0 +1,248 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "客户管理服务API文档，支持客户信息和联系方式的增删改查操作",
+        "title": "Hermes Customer Service API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.fly.com/support",
+            "email": "support@fly.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8083",
+    "basePath": "/api",
+    "paths": {
+        "/api/customers": {
+            "get": {
+                "description": "分页获取客户列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "获取客户列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码，默认为1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小，默认为20",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功"
+                    },
+                    "400": {
+                        "description": "请求参数错误"
+                    },
+                    "500": {
+                        "description": "内部服务器错误"
+                    }
+                }
+            },
+            "post": {
+                "description": "创建新的客户记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "创建客户",
+                "parameters": [
+                    {
+                        "description": "客户信息",
+                        "name": "customer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "创建成功"
+                    },
+                    "400": {
+                        "description": "请求参数错误"
+                    },
+                    "500": {
+                        "description": "内部服务器错误"
+                    }
+                }
+            }
+        },
+        "/api/customers/{id}": {
+            "get": {
+                "description": "根据客户ID获取客户详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "获取客户信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "客户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功"
+                    },
+                    "400": {
+                        "description": "请求参数错误"
+                    },
+                    "404": {
+                        "description": "客户不存在"
+                    }
+                }
+            },
+            "put": {
+                "description": "根据客户ID更新客户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "更新客户信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "客户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新的客户信息",
+                        "name": "customer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功"
+                    },
+                    "400": {
+                        "description": "请求参数错误"
+                    },
+                    "500": {
+                        "description": "内部服务器错误"
+                    }
+                }
+            },
+            "delete": {
+                "description": "根据客户ID删除客户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "删除客户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "客户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功"
+                    },
+                    "400": {
+                        "description": "请求参数错误"
+                    },
+                    "500": {
+                        "description": "内部服务器错误"
+                    }
+                }
+            }
+        },
+        "/api/customers/{id}/contacts": {
+            "get": {
+                "description": "根据客户ID获取客户详细信息及其所有联系方式",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "客户管理"
+                ],
+                "summary": "获取客户及联系方式",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "客户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功"
+                    },
+                    "400": {
+                        "description": "请求参数错误"
+                    },
+                    "404": {
+                        "description": "客户不存在"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "description": "客户信息管理相关接口",
+            "name": "客户管理"
+        }
+    ]
+}

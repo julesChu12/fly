@@ -2,10 +2,10 @@ package database
 
 import (
 	"context"
-	"hermes/internal/domain/entity"
-	"hermes/internal/domain/repository"
-	"hermes/pkg/errors"
 
+	"github.com/julesChu12/fly/hermes/internal/domain/entity"
+	"github.com/julesChu12/fly/hermes/internal/domain/repository"
+	"github.com/julesChu12/fly/hermes/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -56,10 +56,16 @@ func (r *customerRepository) Delete(ctx context.Context, id uint) error {
 	return r.db.WithContext(ctx).Delete(&entity.Customer{}, id).Error
 }
 
-func (r *customerRepository) List(ctx context.Context, offset, limit int) ([]*entity.Customer, error) {
+func (r *customerRepository) List(ctx context.Context, offset, limit int) ([]*entity.Customer, int64, error) {
 	var customers []*entity.Customer
+	var total int64
+
+	if err := r.db.WithContext(ctx).Model(&entity.Customer{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
 	err := r.db.WithContext(ctx).Offset(offset).Limit(limit).Find(&customers).Error
-	return customers, err
+	return customers, total, err
 }
 
 func (r *customerRepository) GetWithContacts(ctx context.Context, id uint) (*entity.Customer, error) {

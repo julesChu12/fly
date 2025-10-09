@@ -13,11 +13,11 @@ import (
 
 // HashConfig represents the configuration for password hashing
 type HashConfig struct {
-	Memory      uint32 `json:"memory"`       // Memory usage in KB
-	Iterations  uint32 `json:"iterations"`   // Number of iterations
-	Parallelism uint8  `json:"parallelism"`  // Number of threads
-	SaltLength  uint32 `json:"salt_length"`  // Salt length in bytes
-	KeyLength   uint32 `json:"key_length"`   // Key length in bytes
+	Memory      uint32 `json:"memory"`      // Memory usage in KB
+	Iterations  uint32 `json:"iterations"`  // Number of iterations
+	Parallelism uint8  `json:"parallelism"` // Number of threads
+	SaltLength  uint32 `json:"salt_length"` // Salt length in bytes
+	KeyLength   uint32 `json:"key_length"`  // Key length in bytes
 }
 
 // DefaultHashConfig returns the recommended configuration for Argon2id
@@ -231,8 +231,8 @@ type PasswordChangeRequest struct {
 
 // PasswordResetRequest represents a password reset request
 type PasswordResetRequest struct {
-	Email     string    `json:"email"`
-	Token     string    `json:"token"`
-	NewPassword string  `json:"new_password"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Email       string    `json:"email"`
+	Token       string    `json:"token"`
+	NewPassword string    `json:"new_password"`
+	ExpiresAt   time.Time `json:"expires_at"`
 }

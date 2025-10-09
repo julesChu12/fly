@@ -9,12 +9,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"hermes/internal/application/service"
-	"hermes/internal/infrastructure/database"
-	"hermes/internal/interface/grpc"
-	"hermes/internal/interface/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/julesChu12/fly/hermes/internal/application/service"
+	"github.com/julesChu12/fly/hermes/internal/infrastructure/database"
+	"github.com/julesChu12/fly/hermes/internal/interface/grpc"
+	"github.com/julesChu12/fly/hermes/internal/interface/http"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	grpcLib "google.golang.org/grpc"

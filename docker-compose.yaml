@@ -13,6 +13,7 @@ services:
     volumes:
       - ./custos/mysql/data:/var/lib/mysql
       - ./custos/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis:6-alpine
@@ -70,3 +71,44 @@ services:
       - "9090:9090"
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+  hermes:
+    build:
+      context: ./hermes
+      dockerfile: Dockerfile
+    container_name: hermes-app
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8083:8080"
+    environment:
+      DATABASE_URL: root:rootpassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
+      PORT: 8080
+
+  kratos:
+    build:
+      context: ./kratos
+      dockerfile: Dockerfile
+    container_name: kratos-app
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8084:8081"
+    environment:
+      DATABASE_URL: root:rootpassword@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local
+      PORT: 8081
+
+  plutus:
+    build:
+      context: ./plutus
+      dockerfile: Dockerfile
+    container_name: plutus-app
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8085:8082"
+    environment:
+      DATABASE_URL: root:rootpassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local
+      PORT: 8082
