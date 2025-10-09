@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/julesChu12/fly/plutus/internal/application/service"
+	"github.com/julesChu12/fly/plutus/internal/interface/http/middleware"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -22,21 +23,24 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 
-	// Middleware
+	// Global middleware
 	engine.Use(gin.Logger())
 	engine.Use(gin.Recovery())
 	engine.Use(r.corsMiddleware())
+	engine.Use(middleware.TraceIDMiddleware())
 
-	// Health check
+	// Health check (no auth required)
 	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Swagger documentation
+	// Swagger documentation (no auth required)
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// API routes
+	// API routes with authentication
 	api := engine.Group("/api")
+	api.Use(middleware.TenantMiddleware())
+	api.Use(middleware.UserIDMiddleware())
 	{
 		// Wallet routes
 		wallets := api.Group("/wallets")

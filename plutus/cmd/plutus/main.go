@@ -8,6 +8,7 @@ import (
 	"github.com/julesChu12/fly/plutus/internal/application/service"
 	"github.com/julesChu12/fly/plutus/internal/infrastructure/database"
 	httpInterface "github.com/julesChu12/fly/plutus/internal/interface/http"
+	"github.com/julesChu12/fly/plutus/pkg/observability"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -47,13 +48,29 @@ func main() {
 	channelRepo := database.NewPaymentChannelRepository(db)
 
 	// Initialize services
-	walletService := service.NewWalletService(walletRepo, transactionRepo, channelRepo)
+	walletService := service.NewWalletService(db, walletRepo, transactionRepo, channelRepo)
 
 	// Initialize HTTP router
 	router := httpInterface.NewRouter(walletService)
 	engine := router.SetupRoutes()
 
-	// Start server
+	// Start health check server in background
+	healthServer := observability.NewHealthCheckServer(db, 8081)
+	go func() {
+		if err := healthServer.Start(); err != nil {
+			log.Printf("Health check server error: %v", err)
+		}
+	}()
+
+	// Start metrics server in background
+	metricsServer := observability.NewMetricsServer(9090)
+	go func() {
+		if err := metricsServer.Start(); err != nil {
+			log.Printf("Metrics server error: %v", err)
+		}
+	}()
+
+	// Start main HTTP server
 	serverAddr := fmt.Sprintf(":%d", config.Server.HTTPPort)
 	log.Printf("Starting Plutus server on %s", serverAddr)
 

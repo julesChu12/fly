@@ -7,8 +7,10 @@ import (
 	"github.com/julesChu12/fly/plutus/internal/domain/entity"
 	"github.com/julesChu12/fly/plutus/internal/domain/repository"
 	"github.com/julesChu12/fly/plutus/pkg/constants"
+	"github.com/julesChu12/fly/plutus/pkg/database"
 	"github.com/julesChu12/fly/plutus/pkg/errors"
 	"github.com/julesChu12/fly/plutus/pkg/types"
+	"gorm.io/gorm"
 )
 
 type WalletService interface {
@@ -24,17 +26,20 @@ type WalletService interface {
 }
 
 type walletService struct {
+	db              *gorm.DB
 	walletRepo      repository.WalletRepository
 	transactionRepo repository.TransactionRepository
 	channelRepo     repository.PaymentChannelRepository
 }
 
 func NewWalletService(
+	db *gorm.DB,
 	walletRepo repository.WalletRepository,
 	transactionRepo repository.TransactionRepository,
 	channelRepo repository.PaymentChannelRepository,
 ) WalletService {
 	return &walletService{
+		db:              db,
 		walletRepo:      walletRepo,
 		transactionRepo: transactionRepo,
 		channelRepo:     channelRepo,
@@ -194,37 +199,49 @@ func (s *walletService) Recharge(ctx context.Context, req *types.RechargeRequest
 		return nil, errors.ErrWalletFrozen
 	}
 
-	// Create transaction
-	metaJson := ""
-	if req.Meta != nil {
-		metaBytes, _ := json.Marshal(req.Meta)
-		metaJson = string(metaBytes)
-	}
+	var transaction *entity.Transaction
 
-	transaction := &entity.Transaction{
-		TenantID:       tenantID,
-		WalletID:       wallet.ID,
-		Type:           entity.TransactionTypeRecharge,
-		Amount:         req.Amount,
-		Currency:       req.Currency,
-		Channel:        req.Channel,
-		Status:         entity.TransactionStatusSuccess, // For simplicity, assume recharge succeeds immediately
-		IdempotencyKey: req.IdempotencyKey,
-		ReferenceNo:    req.ReferenceNo,
-		Meta:           metaJson,
-	}
+	// Execute transaction and balance update atomically within a database transaction
+	err = database.WithTransaction(ctx, s.db, func(tx *gorm.DB) error {
+		// Create transaction record
+		metaJson := ""
+		if req.Meta != nil {
+			metaBytes, _ := json.Marshal(req.Meta)
+			metaJson = string(metaBytes)
+		}
 
-	if transaction.Currency == "" {
-		transaction.Currency = constants.DefaultCurrency
-	}
+		transaction = &entity.Transaction{
+			TenantID:       tenantID,
+			WalletID:       wallet.ID,
+			Type:           entity.TransactionTypeRecharge,
+			Amount:         req.Amount,
+			Currency:       req.Currency,
+			Channel:        req.Channel,
+			Status:         entity.TransactionStatusSuccess,
+			IdempotencyKey: req.IdempotencyKey,
+			ReferenceNo:    req.ReferenceNo,
+			Meta:           metaJson,
+		}
 
-	// Create transaction and update balance atomically
-	if err := s.transactionRepo.Create(ctx, transaction); err != nil {
-		return nil, err
-	}
+		if transaction.Currency == "" {
+			transaction.Currency = constants.DefaultCurrency
+		}
 
-	newBalance := wallet.Balance + req.Amount
-	if err := s.walletRepo.UpdateBalance(ctx, wallet.ID, newBalance); err != nil {
+		// Create transaction record
+		if err := tx.Create(transaction).Error; err != nil {
+			return err
+		}
+
+		// Update wallet balance
+		newBalance := wallet.Balance + req.Amount
+		if err := tx.Model(&entity.Wallet{}).Where("id = ?", wallet.ID).Update("balance", newBalance).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -255,57 +272,80 @@ func (s *walletService) Consume(ctx context.Context, req *types.ConsumeRequest) 
 		}
 	}
 
-	// Get wallet and lock for update
-	wallet, err := s.walletRepo.LockForUpdate(ctx, req.CustomerID)
+	// Get wallet first (not locked yet) to get wallet ID
+	wallet, err := s.walletRepo.GetByCustomerID(ctx, tenantID, req.CustomerID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check wallet status
+	// Check wallet status before locking
 	if wallet.Status != entity.WalletStatusActive {
 		return nil, errors.ErrWalletFrozen
 	}
 
-	// Check balance
-	if wallet.Balance < req.Amount {
-		return nil, &errors.InsufficientBalanceError{
-			Message:  "insufficient balance",
-			Current:  wallet.Balance,
-			Required: req.Amount,
+	var transaction *entity.Transaction
+
+	// Execute in database transaction with row lock
+	err = database.WithTransaction(ctx, s.db, func(tx *gorm.DB) error {
+		// Lock wallet row for update
+		var lockedWallet entity.Wallet
+		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&lockedWallet, wallet.ID).Error; err != nil {
+			return err
 		}
-	}
 
-	// Create transaction
-	metaJson := ""
-	if req.Meta != nil {
-		metaBytes, _ := json.Marshal(req.Meta)
-		metaJson = string(metaBytes)
-	}
+		// Re-check wallet status after lock
+		if lockedWallet.Status != entity.WalletStatusActive {
+			return errors.ErrWalletFrozen
+		}
 
-	transaction := &entity.Transaction{
-		TenantID:       tenantID,
-		WalletID:       wallet.ID,
-		OrderID:        req.OrderID,
-		Type:           entity.TransactionTypeConsume,
-		Amount:         req.Amount,
-		Currency:       req.Currency,
-		Channel:        entity.ChannelWallet,
-		Status:         entity.TransactionStatusSuccess,
-		IdempotencyKey: req.IdempotencyKey,
-		Meta:           metaJson,
-	}
+		// Check balance
+		if lockedWallet.Balance < req.Amount {
+			return &errors.InsufficientBalanceError{
+				Message:  "insufficient balance",
+				Current:  lockedWallet.Balance,
+				Required: req.Amount,
+			}
+		}
 
-	if transaction.Currency == "" {
-		transaction.Currency = constants.DefaultCurrency
-	}
+		// Create transaction record
+		metaJson := ""
+		if req.Meta != nil {
+			metaBytes, _ := json.Marshal(req.Meta)
+			metaJson = string(metaBytes)
+		}
 
-	// Create transaction and update balance atomically
-	if err := s.transactionRepo.Create(ctx, transaction); err != nil {
-		return nil, err
-	}
+		transaction = &entity.Transaction{
+			TenantID:       tenantID,
+			WalletID:       lockedWallet.ID,
+			OrderID:        req.OrderID,
+			Type:           entity.TransactionTypeConsume,
+			Amount:         req.Amount,
+			Currency:       req.Currency,
+			Channel:        entity.ChannelWallet,
+			Status:         entity.TransactionStatusSuccess,
+			IdempotencyKey: req.IdempotencyKey,
+			Meta:           metaJson,
+		}
 
-	newBalance := wallet.Balance - req.Amount
-	if err := s.walletRepo.UpdateBalance(ctx, wallet.ID, newBalance); err != nil {
+		if transaction.Currency == "" {
+			transaction.Currency = constants.DefaultCurrency
+		}
+
+		// Create transaction record
+		if err := tx.Create(transaction).Error; err != nil {
+			return err
+		}
+
+		// Update wallet balance
+		newBalance := lockedWallet.Balance - req.Amount
+		if err := tx.Model(&entity.Wallet{}).Where("id = ?", lockedWallet.ID).Update("balance", newBalance).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -347,38 +387,50 @@ func (s *walletService) Refund(ctx context.Context, req *types.RefundRequest) (*
 		return nil, errors.ErrWalletFrozen
 	}
 
-	// Create transaction
-	metaJson := ""
-	if req.Meta != nil {
-		metaBytes, _ := json.Marshal(req.Meta)
-		metaJson = string(metaBytes)
-	}
+	var transaction *entity.Transaction
 
-	transaction := &entity.Transaction{
-		TenantID:       tenantID,
-		WalletID:       wallet.ID,
-		OrderID:        req.OrderID,
-		Type:           entity.TransactionTypeRefund,
-		Amount:         req.Amount,
-		Currency:       req.Currency,
-		Channel:        entity.ChannelWallet,
-		Status:         entity.TransactionStatusSuccess,
-		IdempotencyKey: req.IdempotencyKey,
-		ReferenceNo:    req.ReferenceNo,
-		Meta:           metaJson,
-	}
+	// Execute transaction and balance update atomically within a database transaction
+	err = database.WithTransaction(ctx, s.db, func(tx *gorm.DB) error {
+		// Create transaction record
+		metaJson := ""
+		if req.Meta != nil {
+			metaBytes, _ := json.Marshal(req.Meta)
+			metaJson = string(metaBytes)
+		}
 
-	if transaction.Currency == "" {
-		transaction.Currency = constants.DefaultCurrency
-	}
+		transaction = &entity.Transaction{
+			TenantID:       tenantID,
+			WalletID:       wallet.ID,
+			OrderID:        req.OrderID,
+			Type:           entity.TransactionTypeRefund,
+			Amount:         req.Amount,
+			Currency:       req.Currency,
+			Channel:        entity.ChannelWallet,
+			Status:         entity.TransactionStatusSuccess,
+			IdempotencyKey: req.IdempotencyKey,
+			ReferenceNo:    req.ReferenceNo,
+			Meta:           metaJson,
+		}
 
-	// Create transaction and update balance atomically
-	if err := s.transactionRepo.Create(ctx, transaction); err != nil {
-		return nil, err
-	}
+		if transaction.Currency == "" {
+			transaction.Currency = constants.DefaultCurrency
+		}
 
-	newBalance := wallet.Balance + req.Amount
-	if err := s.walletRepo.UpdateBalance(ctx, wallet.ID, newBalance); err != nil {
+		// Create transaction record
+		if err := tx.Create(transaction).Error; err != nil {
+			return err
+		}
+
+		// Update wallet balance
+		newBalance := wallet.Balance + req.Amount
+		if err := tx.Model(&entity.Wallet{}).Where("id = ?", wallet.ID).Update("balance", newBalance).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
