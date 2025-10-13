@@ -83,11 +83,22 @@ func (r *Router) SetupRoutes() *gin.Engine {
 		admin.Use(r.authMW.RequireAuth())
 		admin.Use(r.authMW.RequireRole("admin"))
 		{
+			// User management
 			admin.GET("/users", r.adminHandler.ListUsers)
 			admin.GET("/users/:id", r.adminHandler.GetUser)
 			admin.PATCH("/users/:id/status", r.adminHandler.UpdateUserStatus)
-			admin.PATCH("/users/:id/role", r.adminHandler.UpdateUserRole)
 			admin.POST("/users/:id/force-logout", r.adminHandler.ForceLogoutUser)
+
+			// Role management
+			admin.POST("/users/:id/roles", r.adminHandler.AssignRole)
+			admin.GET("/users/:id/roles", r.adminHandler.GetUserRoles)
+			admin.PATCH("/users/:id/role", r.adminHandler.UpdateUserRole) // Backward compatibility
+
+			// Policy management
+			admin.POST("/policies", r.adminHandler.AddPolicy)
+			admin.DELETE("/policies", r.adminHandler.RemovePolicy)
+
+			// System stats
 			admin.GET("/stats", r.adminHandler.GetSystemStats)
 		}
 	}

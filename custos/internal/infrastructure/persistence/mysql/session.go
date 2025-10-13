@@ -166,3 +166,19 @@ func (r *sessionRepository) CleanupExpired(ctx context.Context, olderThan time.T
 		Where("revoked = true AND created_at < ?", olderThan).
 		Delete(&entity.Session{}).Error
 }
+
+// CountTotal counts total sessions
+func (r *sessionRepository) CountTotal(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&entity.Session{}).Count(&count).Error
+	return count, err
+}
+
+// CountActive counts active (non-revoked) sessions
+func (r *sessionRepository) CountActive(ctx context.Context) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&entity.Session{}).
+		Where("revoked = false").
+		Count(&count).Error
+	return count, err
+}

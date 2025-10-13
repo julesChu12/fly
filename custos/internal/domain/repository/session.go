@@ -18,4 +18,8 @@ type SessionRepository interface {
 	RevokeByUser(ctx context.Context, userID uint, revokedAt time.Time) error
 	ListActiveByUser(ctx context.Context, userID uint, now time.Time) ([]*entity.Session, error)
 	CleanupExpired(ctx context.Context, olderThan time.Time) error
+
+	// Statistics methods
+	CountTotal(ctx context.Context) (int64, error)
+	CountActive(ctx context.Context) (int64, error)
 }

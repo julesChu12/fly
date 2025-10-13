@@ -1,23 +1,30 @@
 package handler
 
 import (
+	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/julesChu12/fly/custos/internal/application/dto"
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
 	"github.com/julesChu12/fly/custos/internal/domain/service/rbac"
+	"github.com/julesChu12/fly/custos/pkg/types"
+	"gorm.io/gorm"
 )
 
 type AdminHandler struct {
-	userRepo repository.UserRepository
-	rbacSvc  *rbac.RBACService
+	userRepo    repository.UserRepository
+	sessionRepo repository.SessionRepository
+	rbacSvc     *rbac.RBACService
 }
 
-func NewAdminHandler(userRepo repository.UserRepository, rbacSvc *rbac.RBACService) *AdminHandler {
+func NewAdminHandler(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, rbacSvc *rbac.RBACService) *AdminHandler {
 	return &AdminHandler{
-		userRepo: userRepo,
-		rbacSvc:  rbacSvc,
+		userRepo:    userRepo,
+		sessionRepo: sessionRepo,
+		rbacSvc:     rbacSvc,
 	}
 }
 
@@ -151,32 +158,307 @@ func (h *AdminHandler) RemovePolicy(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "policy removed successfully"})
 }
 
-// ListUsers placeholder (admin only)
+// ListUsers lists all users with pagination and filtering (admin only)
+// GET /api/v1/admin/users
 func (h *AdminHandler) ListUsers(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "list users not implemented"})
+	var req dto.ListUsersRequest
+
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Set defaults
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 20
+	}
+
+	// Build filter
+	filter := &repository.UserListFilter{}
+	if req.Status != "" {
+		filter.Status = &req.Status
+	}
+	if req.Role != "" {
+		filter.Role = &req.Role
+	}
+	if req.UserType != "" {
+		filter.UserType = &req.UserType
+	}
+	if req.TenantID != nil {
+		filter.TenantID = req.TenantID
+	}
+	if req.Keyword != "" {
+		filter.Keyword = &req.Keyword
+	}
+
+	// Calculate offset
+	offset := (req.Page - 1) * req.PageSize
+
+	// Query users
+	users, total, err := h.userRepo.ListWithFilter(c.Request.Context(), filter, req.PageSize, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list users"})
+		return
+	}
+
+	// Convert to DTO
+	userInfos := make([]*dto.AdminUserInfo, len(users))
+	for i, user := range users {
+		userInfos[i] = &dto.AdminUserInfo{
+			ID:               user.ID,
+			Username:         user.Username,
+			Email:            user.Email,
+			Nickname:         user.Nickname,
+			Avatar:           user.Avatar,
+			Status:           string(user.Status),
+			Role:             string(user.Role),
+			UserType:         string(user.UserType),
+			TenantID:         user.TenantID,
+			TokenVersion:     user.TokenVersion,
+			MergedIntoUserID: user.MergedIntoUserID,
+			LastLoginAt:      user.LastLoginAt,
+			CreatedAt:        user.CreatedAt,
+			UpdatedAt:        user.UpdatedAt,
+		}
+	}
+
+	// Calculate total pages
+	totalPages := int(math.Ceil(float64(total) / float64(req.PageSize)))
+
+	response := dto.ListUsersResponse{
+		Users:      userInfos,
+		Total:      total,
+		Page:       req.Page,
+		PageSize:   req.PageSize,
+		TotalPages: totalPages,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-// GetUser placeholder (admin only)
+// GetUser gets a single user by ID (admin only)
+// GET /api/v1/admin/users/:id
 func (h *AdminHandler) GetUser(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "get user not implemented"})
+	userIDStr := c.Param("id")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	user, err := h.userRepo.GetByID(c.Request.Context(), uint(userID))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		return
+	}
+
+	// Get user roles
+	roles, _ := h.rbacSvc.GetUserRoles(c.Request.Context(), user.ID)
+
+	// Get active sessions
+	sessions, _ := h.sessionRepo.ListActiveByUser(c.Request.Context(), user.ID, time.Now())
+
+	userInfo := &dto.AdminUserInfo{
+		ID:               user.ID,
+		Username:         user.Username,
+		Email:            user.Email,
+		Nickname:         user.Nickname,
+		Avatar:           user.Avatar,
+		Status:           string(user.Status),
+		Role:             string(user.Role),
+		UserType:         string(user.UserType),
+		TenantID:         user.TenantID,
+		TokenVersion:     user.TokenVersion,
+		MergedIntoUserID: user.MergedIntoUserID,
+		LastLoginAt:      user.LastLoginAt,
+		CreatedAt:        user.CreatedAt,
+		UpdatedAt:        user.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"user":           userInfo,
+		"roles":          roles,
+		"active_sessions": len(sessions),
+	})
 }
 
-// UpdateUserStatus placeholder (admin only)
+// UpdateUserStatus updates user status (admin only)
+// PATCH /api/v1/admin/users/:id/status
 func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "update user status not implemented"})
+	userIDStr := c.Param("id")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	var req dto.UpdateUserStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get user
+	user, err := h.userRepo.GetByID(c.Request.Context(), uint(userID))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		return
+	}
+
+	oldStatus := string(user.Status)
+
+	// Update status
+	user.Status = types.UserStatus(req.Status)
+
+	// If status is disabled/locked/deleted, revoke all sessions
+	if req.Status == "disabled" || req.Status == "locked" || req.Status == "deleted" {
+		_ = h.sessionRepo.RevokeByUser(c.Request.Context(), user.ID, time.Now())
+		user.IncrementTokenVersion() // Invalidate all tokens
+	}
+
+	if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user status"})
+		return
+	}
+
+	response := dto.UpdateUserStatusResponse{
+		UserID:    user.ID,
+		OldStatus: oldStatus,
+		NewStatus: req.Status,
+		UpdatedAt: time.Now(),
+		Message:   "user status updated successfully",
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-// UpdateUserRole placeholder (admin only)
+// UpdateUserRole is handled by AssignRole (admin only)
+// This endpoint is kept for backward compatibility
 func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "update user role not implemented"})
+	h.AssignRole(c)
 }
 
-// ForceLogoutUser placeholder (admin only)
+// ForceLogoutUser force logout a user (admin only)
+// POST /api/v1/admin/users/:id/force-logout
 func (h *AdminHandler) ForceLogoutUser(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "force logout user not implemented"})
+	userIDStr := c.Param("id")
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user ID"})
+		return
+	}
+
+	var req dto.ForceLogoutUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		// If no body provided, logout all sessions
+		req.SessionID = ""
+	}
+
+	// Get user
+	user, err := h.userRepo.GetByID(c.Request.Context(), uint(userID))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user"})
+		return
+	}
+
+	oldTokenVersion := user.TokenVersion
+	sessionsRevoked := 0
+
+	if req.SessionID != "" {
+		// Revoke specific session
+		err = h.sessionRepo.Revoke(c.Request.Context(), req.SessionID, time.Now())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to revoke session"})
+			return
+		}
+		sessionsRevoked = 1
+	} else {
+		// Revoke all sessions and increment token version
+		sessions, _ := h.sessionRepo.ListActiveByUser(c.Request.Context(), user.ID, time.Now())
+		sessionsRevoked = len(sessions)
+
+		err = h.sessionRepo.RevokeByUser(c.Request.Context(), user.ID, time.Now())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to revoke sessions"})
+			return
+		}
+
+		// Increment token version to invalidate all tokens
+		user.IncrementTokenVersion()
+		if err := h.userRepo.Update(c.Request.Context(), user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user"})
+			return
+		}
+	}
+
+	response := dto.ForceLogoutUserResponse{
+		UserID:          user.ID,
+		SessionsRevoked: sessionsRevoked,
+		TokenVersionOld: oldTokenVersion,
+		TokenVersionNew: user.TokenVersion,
+		Message:         "user forcefully logged out",
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-// GetSystemStats placeholder (admin only)
+// GetSystemStats gets system statistics (admin only)
+// GET /api/v1/admin/stats
 func (h *AdminHandler) GetSystemStats(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "get system stats not implemented"})
+	ctx := c.Request.Context()
+
+	// Get user counts by status
+	totalUsers, _ := h.userRepo.CountTotal(ctx)
+	activeUsers, _ := h.userRepo.CountByStatus(ctx, "active")
+	inactiveUsers, _ := h.userRepo.CountByStatus(ctx, "inactive")
+	frozenUsers, _ := h.userRepo.CountByStatus(ctx, "frozen")
+	deletedUsers, _ := h.userRepo.CountByStatus(ctx, "deleted")
+
+	// Get session counts
+	totalSessions, _ := h.sessionRepo.CountTotal(ctx)
+	activeSessions, _ := h.sessionRepo.CountActive(ctx)
+
+	// Get users by role
+	usersByRole, _ := h.userRepo.CountByRole(ctx)
+
+	// Get users by type
+	usersByType, _ := h.userRepo.CountByType(ctx)
+
+	// Get new users
+	today := time.Now().Format("2006-01-02")
+	newUsersToday, _ := h.userRepo.CountNewUsers(ctx, today)
+
+	oneWeekAgo := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	newUsersThisWeek, _ := h.userRepo.CountNewUsers(ctx, oneWeekAgo)
+
+	response := dto.SystemStatsResponse{
+		TotalUsers:       totalUsers,
+		ActiveUsers:      activeUsers,
+		InactiveUsers:    inactiveUsers,
+		FrozenUsers:      frozenUsers,
+		DeletedUsers:     deletedUsers,
+		TotalSessions:    totalSessions,
+		ActiveSessions:   activeSessions,
+		UsersByRole:      usersByRole,
+		UsersByType:      usersByType,
+		NewUsersToday:    newUsersToday,
+		NewUsersThisWeek: newUsersThisWeek,
+	}
+
+	c.JSON(http.StatusOK, response)
 }

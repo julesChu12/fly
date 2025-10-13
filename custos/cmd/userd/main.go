@@ -86,7 +86,7 @@ func main() {
 	passwordHandler := authHandler.NewPasswordHandler(passwordService, userRepo)
 	userHandler := handler.NewUserHandler()
 	oauthHandler := handler.NewOAuthHandler(oauthSvc, tokenService)
-	adminHandler := handler.NewAdminHandler(userRepo, rbacSvc)
+	adminHandler := handler.NewAdminHandler(userRepo, sessionRepo, rbacSvc)
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 

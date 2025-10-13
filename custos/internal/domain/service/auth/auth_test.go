@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/internal/domain/repository"
 	"github.com/julesChu12/fly/custos/internal/domain/service/password"
 	"github.com/julesChu12/fly/custos/internal/domain/service/token"
 	"github.com/julesChu12/fly/custos/pkg/errors"
@@ -394,6 +395,46 @@ func (r *fakeUserRepo) ListByTenant(_ context.Context, tenantID uint, limit, off
 		count++
 	}
 	return result, nil
+}
+
+// Additional mock methods for new repository interfaces
+func (r *fakeUserRepo) ListWithFilter(_ context.Context, filter *repository.UserListFilter, limit, offset int) ([]*entity.User, int64, error) {
+	return nil, 0, nil
+}
+
+func (r *fakeUserRepo) CountByStatus(_ context.Context, status string) (int64, error) {
+	return 0, nil
+}
+
+func (r *fakeUserRepo) CountByRole(_ context.Context) (map[string]int64, error) {
+	return make(map[string]int64), nil
+}
+
+func (r *fakeUserRepo) CountByType(_ context.Context) (map[string]int64, error) {
+	return make(map[string]int64), nil
+}
+
+func (r *fakeUserRepo) CountNewUsers(_ context.Context, since string) (int64, error) {
+	return 0, nil
+}
+
+func (r *fakeUserRepo) CountTotal(_ context.Context) (int64, error) {
+	return int64(len(r.byID)), nil
+}
+
+// Additional mock methods for session repository
+func (r *fakeSessionRepo) CountTotal(_ context.Context) (int64, error) {
+	return int64(len(r.sessions)), nil
+}
+
+func (r *fakeSessionRepo) CountActive(_ context.Context) (int64, error) {
+	var count int64
+	for _, s := range r.sessions {
+		if s.IsValid() {
+			count++
+		}
+	}
+	return count, nil
 }
 
 func TestRegister(t *testing.T) {
