@@ -1,0 +1,578 @@
+basePath: /
+definitions:
+  github_com_julesChu12_fly_plutus_internal_domain_entity.PaymentChannel:
+    enum:
+    - wallet
+    - wechat
+    - alipay
+    - stripe
+    - paypal
+    - bank
+    - other
+    type: string
+    x-enum-varnames:
+    - ChannelWallet
+    - ChannelWechat
+    - ChannelAlipay
+    - ChannelStripe
+    - ChannelPaypal
+    - ChannelBank
+    - ChannelOther
+  github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionStatus:
+    enum:
+    - pending
+    - success
+    - failed
+    type: string
+    x-enum-varnames:
+    - TransactionStatusPending
+    - TransactionStatusSuccess
+    - TransactionStatusFailed
+  github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionType:
+    enum:
+    - recharge
+    - consume
+    - refund
+    type: string
+    x-enum-varnames:
+    - TransactionTypeRecharge
+    - TransactionTypeConsume
+    - TransactionTypeRefund
+  github_com_julesChu12_fly_plutus_internal_domain_entity.WalletStatus:
+    enum:
+    - active
+    - frozen
+    type: string
+    x-enum-varnames:
+    - WalletStatusActive
+    - WalletStatusFrozen
+  github_com_julesChu12_fly_plutus_pkg_types.ConsumeRequest:
+    properties:
+      amount:
+        minimum: 0.01
+        type: number
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        additionalProperties: true
+        type: object
+      order_id:
+        type: integer
+    required:
+    - amount
+    - customer_id
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.CreateWalletRequest:
+    properties:
+      currency:
+        type: string
+      customer_id:
+        type: integer
+    required:
+    - customer_id
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.ListResponse:
+    properties:
+      data: {}
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.RechargeRequest:
+    properties:
+      amount:
+        minimum: 0.01
+        type: number
+      channel:
+        $ref: '#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.PaymentChannel'
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        additionalProperties: true
+        type: object
+      reference_no:
+        type: string
+    required:
+    - amount
+    - channel
+    - customer_id
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.RefundRequest:
+    properties:
+      amount:
+        minimum: 0.01
+        type: number
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        additionalProperties: true
+        type: object
+      order_id:
+        type: integer
+      reference_no:
+        type: string
+    required:
+    - amount
+    - customer_id
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      channel:
+        $ref: '#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.PaymentChannel'
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        type: string
+      order_id:
+        type: integer
+      reference_no:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionStatus'
+      tenant_id:
+        type: integer
+      type:
+        $ref: '#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionType'
+      updated_at:
+        type: string
+      wallet_id:
+        type: integer
+    type: object
+  github_com_julesChu12_fly_plutus_pkg_types.WalletResponse:
+    properties:
+      balance:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      id:
+        type: integer
+      status:
+        $ref: '#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.WalletStatus'
+      tenant_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+host: localhost:8085
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Payment and wallet service for Fly platform
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Plutus Payment & Wallet Service API
+  version: "1.0"
+paths:
+  /api/transactions:
+    get:
+      description: List transactions with pagination and filters
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Wallet ID filter
+        in: query
+        name: wallet_id
+        type: integer
+      - description: Order ID filter
+        in: query
+        name: order_id
+        type: integer
+      - description: Transaction type filter
+        in: query
+        name: type
+        type: string
+      - description: Transaction status filter
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.ListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: List transactions
+      tags:
+      - transactions
+  /api/transactions/{id}:
+    get:
+      description: Get transaction by ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Get transaction
+      tags:
+      - transactions
+  /api/transactions/consume:
+    post:
+      consumes:
+      - application/json
+      description: Consume money from wallet
+      parameters:
+      - description: Consume data
+        in: body
+        name: consume
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.ConsumeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "423":
+          description: Locked
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Consume from wallet
+      tags:
+      - transactions
+  /api/transactions/recharge:
+    post:
+      consumes:
+      - application/json
+      description: Recharge money to wallet
+      parameters:
+      - description: Recharge data
+        in: body
+        name: recharge
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.RechargeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Recharge wallet
+      tags:
+      - transactions
+  /api/transactions/refund:
+    post:
+      consumes:
+      - application/json
+      description: Refund money to wallet
+      parameters:
+      - description: Refund data
+        in: body
+        name: refund
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.RefundRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Refund to wallet
+      tags:
+      - transactions
+  /api/wallets:
+    get:
+      description: List wallets with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Customer ID filter
+        in: query
+        name: customer_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.ListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: List wallets
+      tags:
+      - wallets
+    post:
+      consumes:
+      - application/json
+      description: Create a new wallet for customer
+      parameters:
+      - description: Wallet data
+        in: body
+        name: wallet
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.CreateWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.WalletResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Create wallet
+      tags:
+      - wallets
+  /api/wallets/{id}:
+    get:
+      description: Get wallet by ID
+      parameters:
+      - description: Wallet ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.WalletResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Get wallet by ID
+      tags:
+      - wallets
+  /api/wallets/customer/{customer_id}:
+    get:
+      description: Get wallet by customer ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: customer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.WalletResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response'
+      summary: Get wallet by customer ID
+      tags:
+      - wallets
+swagger: "2.0"

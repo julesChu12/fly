@@ -47,6 +47,7 @@ func (r *Router) SetupRoutes() *gin.Engine {
 		{
 			wallets.POST("", r.walletHandler.CreateWallet)
 			wallets.GET("", r.walletHandler.ListWallets)
+			wallets.GET("/:id", r.walletHandler.GetWallet)
 			wallets.GET("/customer/:customer_id", r.walletHandler.GetWalletByCustomerID)
 		}
 

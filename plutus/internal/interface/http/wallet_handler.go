@@ -56,6 +56,38 @@ func (h *WalletHandler) CreateWallet(c *gin.Context) {
 	})
 }
 
+// @Summary Get wallet by ID
+// @Description Get wallet by ID
+// @Tags wallets
+// @Produce json
+// @Param id path int true "Wallet ID"
+// @Success 200 {object} types.Response{data=types.WalletResponse}
+// @Failure 400 {object} types.Response
+// @Failure 404 {object} types.Response
+// @Failure 500 {object} types.Response
+// @Router /api/wallets/{id} [get]
+func (h *WalletHandler) GetWallet(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.handleError(c, errors.ErrInvalidRequest)
+		return
+	}
+
+	ctx := h.addContextFromHeaders(c)
+
+	wallet, err := h.walletService.GetWallet(ctx, uint(id))
+	if err != nil {
+		h.handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, types.Response{
+		Code:    errors.CodeSuccess,
+		Message: "Wallet retrieved successfully",
+		Data:    wallet,
+	})
+}
+
 // @Summary Get wallet by customer ID
 // @Description Get wallet by customer ID
 // @Tags wallets

@@ -3,13 +3,20 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
+	pb "github.com/julesChu12/fly/plutus/api/proto"
 	"github.com/julesChu12/fly/plutus/internal/application/service"
 	"github.com/julesChu12/fly/plutus/internal/infrastructure/database"
+	grpcInterface "github.com/julesChu12/fly/plutus/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/plutus/internal/interface/http"
 	"github.com/julesChu12/fly/plutus/pkg/observability"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -70,13 +77,27 @@ func main() {
 		}
 	}()
 
-	// Start main HTTP server
-	serverAddr := fmt.Sprintf(":%d", config.Server.HTTPPort)
-	log.Printf("Starting Plutus server on %s", serverAddr)
+	// Start gRPC server in background
+	go func() {
+		if err := startGRPCServer(config, walletService); err != nil {
+			log.Fatal("gRPC server failed:", err)
+		}
+	}()
 
-	if err := http.ListenAndServe(serverAddr, engine); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
+	// Start main HTTP server in background
+	go func() {
+		serverAddr := fmt.Sprintf(":%d", config.Server.HTTPPort)
+		log.Printf("Starting Plutus HTTP server on %s", serverAddr)
+		if err := http.ListenAndServe(serverAddr, engine); err != nil {
+			log.Fatalf("Failed to start HTTP server: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down Plutus server...")
 }
 
 type Config struct {
@@ -141,4 +162,27 @@ func initDatabase(config *Config) (*gorm.DB, error) {
 
 	log.Println("Database connection established successfully")
 	return db, nil
+}
+
+// startGRPCServer starts the gRPC server
+// 启动gRPC服务器
+func startGRPCServer(config *Config, walletService service.WalletService) error {
+	port := config.Server.GRPCPort
+	if port == 0 {
+		port = 9085
+	}
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return fmt.Errorf("failed to listen on port %d: %w", port, err)
+	}
+
+	s := grpc.NewServer()
+
+	// Register gRPC services
+	walletHandler := grpcInterface.NewWalletGRPCHandler(walletService)
+	pb.RegisterWalletServiceServer(s, walletHandler)
+
+	log.Printf("gRPC server starting on port %d", port)
+	return s.Serve(lis)
 }
