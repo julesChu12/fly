@@ -28,6 +28,7 @@ type CustomerResponse struct {
 }
 
 type CreateContactRequest struct {
+	TenantID   uint   `json:"tenant_id" binding:"required"`
 	CustomerID uint   `json:"customer_id" binding:"required"`
 	Type       string `json:"type" binding:"required"`
 	Value      string `json:"value" binding:"required"`
@@ -37,17 +38,24 @@ type CreateContactRequest struct {
 type UpdateContactRequest struct {
 	Type      string `json:"type"`
 	Value     string `json:"value"`
-	IsPrimary bool   `json:"is_primary"`
+	IsPrimary *bool  `json:"is_primary"`
 }
 
 type ContactResponse struct {
 	ID         uint      `json:"id"`
+	TenantID   uint      `json:"tenant_id"`
 	CustomerID uint      `json:"customer_id"`
 	Type       string    `json:"type"`
 	Value      string    `json:"value"`
 	IsPrimary  bool      `json:"is_primary"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+type ContactListResponse struct {
+	Data []ContactResponse `json:"data"`
+	Page int               `json:"page"`
+	Size int               `json:"size"`
 }
 
 type ListRequest struct {

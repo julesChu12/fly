@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/julesChu12/fly/mora/pkg/cache"
@@ -10,17 +11,17 @@ import (
 )
 
 type OrderCache struct {
-	client cache.Cache
+	client *cache.Client
 }
 
 func NewOrderCache(redisAddr string, db int) (*OrderCache, error) {
-	cfg := cache.RedisConfig{
+	cfg := cache.Config{
 		Addr: redisAddr,
 		DB:   db,
 	}
 
-	client, err := cache.NewRedisCache(cfg)
-	if err != nil {
+	client := cache.New(cfg)
+	if err := client.Ping(context.Background()); err != nil {
 		return nil, err
 	}
 
@@ -58,9 +59,9 @@ func (c *OrderCache) Close() error {
 
 // Cache key builders
 func OrderCacheKey(id uint) string {
-	return cache.BuildKey("order", id)
+	return fmt.Sprintf("order:%d", id)
 }
 
 func OrderListCacheKey(tenantID uint, filters string) string {
-	return cache.BuildKey("orders", tenantID, filters)
+	return fmt.Sprintf("orders:%d:%s", tenantID, filters)
 }

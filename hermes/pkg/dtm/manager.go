@@ -37,16 +37,10 @@ func (m *DTMManager) CreateSagaTransaction(ctx context.Context, gid string) *dtm
 	return dtmgrpc.NewSagaGrpc(m.dtmServer, gid)
 }
 
-// CreateTCCTransaction creates a TCC distributed transaction
-// 创建TCC分布式事务，适用于短流程高一致性要求的场景
-func (m *DTMManager) CreateTCCTransaction(ctx context.Context, gid string) *dtmgrpc.SagaGrpc {
-	return dtmgrpc.NewSagaGrpc(m.dtmServer, gid).EnableWaitResult()
-}
-
-// CreateXATransaction creates an XA distributed transaction
-// 创建XA分布式事务，适用于数据库事务的强一致性场景
-func (m *DTMManager) CreateXATransaction(ctx context.Context, gid string) *dtmgrpc.SagaGrpc {
-	return dtmgrpc.NewSagaGrpc(m.dtmServer, gid)
+// CreateMsgTransaction creates a MSG distributed transaction
+// 创建MSG分布式事务，适用于异步消息场景
+func (m *DTMManager) CreateMsgTransaction(ctx context.Context, gid string) *dtmgrpc.MsgGrpc {
+	return dtmgrpc.NewMsgGrpc(m.dtmServer, gid)
 }
 
 // Close closes the DTM connection

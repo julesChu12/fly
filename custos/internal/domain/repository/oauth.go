@@ -17,14 +17,6 @@ type UserOAuthRepository interface {
 	UnbindProvider(ctx context.Context, userID uint, provider string) error
 }
 
-// UserProfileRepository defines methods for user profile operations
-type UserProfileRepository interface {
-	Create(ctx context.Context, profile *entity.UserProfile) error
-	GetByUserID(ctx context.Context, userID uint) (*entity.UserProfile, error)
-	Update(ctx context.Context, profile *entity.UserProfile) error
-	Delete(ctx context.Context, userID uint) error
-}
-
 // RefreshTokenRepository defines methods for refresh token operations
 type RefreshTokenRepository interface {
 	Create(ctx context.Context, token *entity.RefreshToken) error

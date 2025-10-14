@@ -9,19 +9,28 @@ import (
 )
 
 var tracer trace.Tracer
+var cleanupFunc observability.CleanupFunc
 
 // InitObservability initializes OpenTelemetry tracing
 func InitObservability(serviceName, endpoint string) error {
 	cfg := observability.Config{
-		ServiceName: serviceName,
-		Endpoint:    endpoint,
-		Enabled:     endpoint != "",
+		ServiceName:  serviceName,
+		ExporterURL:  endpoint,
+		SampleRatio:  1.0,
+		Environment:  "development",
+		ExporterType: "otlp",
 	}
 
-	if err := observability.InitTracing(cfg); err != nil {
+	if endpoint == "" {
+		cfg.ExporterType = "stdout"
+	}
+
+	cleanup, err := observability.Init(cfg)
+	if err != nil {
 		return err
 	}
 
+	cleanupFunc = cleanup
 	tracer = otel.Tracer(serviceName)
 	return nil
 }
@@ -41,5 +50,8 @@ func StartSpan(ctx context.Context, name string) (context.Context, trace.Span) {
 
 // ShutdownObservability gracefully shuts down observability
 func ShutdownObservability(ctx context.Context) error {
-	return observability.Shutdown(ctx)
+	if cleanupFunc != nil {
+		return cleanupFunc()
+	}
+	return nil
 }

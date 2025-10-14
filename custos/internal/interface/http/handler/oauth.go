@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -166,26 +167,201 @@ func (h *OAuthHandler) HandleOAuthCallback(c *gin.Context) {
 // BindOAuthProvider binds OAuth provider to existing authenticated user
 // POST /api/v1/oauth/{provider}/bind
 func (h *OAuthHandler) BindOAuthProvider(c *gin.Context) {
-	// This would require authentication middleware to get current user
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "OAuth provider binding not implemented yet",
+	provider := c.Param("provider")
+
+	// Get authenticated user ID from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "user not authenticated",
+		})
+		return
+	}
+
+	uid, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid user ID format",
+		})
+		return
+	}
+
+	var req dto.OAuthBindRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request body",
+		})
+		return
+	}
+
+	var oauthProvider oauthService.Provider
+	switch strings.ToLower(provider) {
+	case "google":
+		oauthProvider = oauthService.Google
+	case "github":
+		oauthProvider = oauthService.GitHub
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "unsupported OAuth provider",
+		})
+		return
+	}
+
+	// Validate state parameter
+	storedState, err := c.Cookie("oauth_state")
+	if err != nil || storedState != req.State {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid state parameter",
+		})
+		return
+	}
+
+	// Clear state cookie
+	c.SetCookie("oauth_state", "", -1, "/", "", false, true)
+
+	// Get OAuth config
+	oauthConfig := h.oauthService.GetOAuthConfig(oauthProvider)
+	if oauthConfig == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "OAuth provider not configured",
+		})
+		return
+	}
+
+	// Set redirect URL
+	oauthConfig.RedirectURL = req.RedirectURL
+
+	// Exchange code for token
+	token, err := oauthConfig.Exchange(c.Request.Context(), req.Code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to exchange code for token",
+		})
+		return
+	}
+
+	// Get user info from provider
+	userInfo, err := h.oauthService.GetUserInfo(oauthProvider, token.AccessToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to get user info from provider",
+		})
+		return
+	}
+
+	// Check if this OAuth account is already bound to another user
+	existingOAuth, err := h.oauthService.GetOAuthByProviderUID(c.Request.Context(), string(oauthProvider), userInfo.ID)
+	if err == nil && existingOAuth != nil && existingOAuth.UserID != uid {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "this OAuth account is already bound to another user",
+		})
+		return
+	}
+
+	// Bind OAuth provider to current user
+	if err := h.oauthService.BindProvider(c.Request.Context(), uid, oauthProvider, userInfo.ID, token.AccessToken, token.RefreshToken, &token.Expiry); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to bind OAuth provider",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.OAuthBindResponse{
+		Success: true,
+		Message: fmt.Sprintf("%s account successfully bound", provider),
 	})
 }
 
 // UnbindOAuthProvider unbinds OAuth provider from authenticated user
 // DELETE /api/v1/oauth/{provider}/unbind
 func (h *OAuthHandler) UnbindOAuthProvider(c *gin.Context) {
-	// This would require authentication middleware to get current user
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "OAuth provider unbinding not implemented yet",
+	provider := c.Param("provider")
+
+	// Get authenticated user ID from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "user not authenticated",
+		})
+		return
+	}
+
+	uid, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid user ID format",
+		})
+		return
+	}
+
+	var oauthProvider oauthService.Provider
+	switch strings.ToLower(provider) {
+	case "google":
+		oauthProvider = oauthService.Google
+	case "github":
+		oauthProvider = oauthService.GitHub
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "unsupported OAuth provider",
+		})
+		return
+	}
+
+	// Unbind OAuth provider
+	if err := h.oauthService.UnbindProvider(c.Request.Context(), uid, oauthProvider); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to unbind OAuth provider",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.OAuthUnbindResponse{
+		Success: true,
+		Message: fmt.Sprintf("%s account successfully unbound", provider),
 	})
 }
 
 // GetUserOAuthBindings gets all OAuth bindings for authenticated user
 // GET /api/v1/oauth/bindings
 func (h *OAuthHandler) GetUserOAuthBindings(c *gin.Context) {
-	// This would require authentication middleware to get current user
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "OAuth bindings listing not implemented yet",
+	// Get authenticated user ID from context (set by auth middleware)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "user not authenticated",
+		})
+		return
+	}
+
+	uid, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid user ID format",
+		})
+		return
+	}
+
+	// Get OAuth bindings
+	bindings, err := h.oauthService.GetUserBindings(c.Request.Context(), uid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to get OAuth bindings",
+		})
+		return
+	}
+
+	// Convert to DTO
+	bindingInfos := make([]dto.OAuthBindingInfo, 0, len(bindings))
+	for _, binding := range bindings {
+		bindingInfos = append(bindingInfos, dto.OAuthBindingInfo{
+			ID:          binding.ID,
+			Provider:    binding.Provider,
+			ProviderUID: binding.ProviderUID,
+			BoundAt:     binding.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	c.JSON(http.StatusOK, dto.OAuthBindingsResponse{
+		Bindings: bindingInfos,
 	})
 }

@@ -14,7 +14,7 @@ type Customer struct {
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
-	Contacts []Contact `json:"contacts" gorm:"foreignKey:CustomerID"`
+	Contacts []Contact `json:"contacts" gorm:"foreignKey:CustomerID;constraint:OnDelete:CASCADE"`
 }
 
 type Contact struct {

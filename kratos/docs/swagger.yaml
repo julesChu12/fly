@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  entity.OrderStatus:
+  github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus:
     enum:
     - pending
     - paid
@@ -12,7 +12,7 @@ definitions:
     - OrderStatusPaid
     - OrderStatusFulfilled
     - OrderStatusCanceled
-  types.CreateOrderItemRequest:
+  github_com_julesChu12_fly_kratos_pkg_types.CreateOrderItemRequest:
     properties:
       product_id:
         type: integer
@@ -31,7 +31,7 @@ definitions:
     - quantity
     - unit_price
     type: object
-  types.CreateOrderRequest:
+  github_com_julesChu12_fly_kratos_pkg_types.CreateOrderRequest:
     properties:
       currency:
         type: string
@@ -39,7 +39,7 @@ definitions:
         type: integer
       items:
         items:
-          $ref: '#/definitions/types.CreateOrderItemRequest'
+          $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.CreateOrderItemRequest'
         minItems: 1
         type: array
       order_no:
@@ -55,7 +55,7 @@ definitions:
     - order_no
     - total_amount
     type: object
-  types.ListResponse:
+  github_com_julesChu12_fly_kratos_pkg_types.ListResponse:
     properties:
       data: {}
       page:
@@ -65,7 +65,7 @@ definitions:
       total:
         type: integer
     type: object
-  types.OrderAuditResponse:
+  github_com_julesChu12_fly_kratos_pkg_types.OrderAuditResponse:
     properties:
       action:
         type: string
@@ -82,7 +82,7 @@ definitions:
       tenant_id:
         type: integer
     type: object
-  types.OrderItemResponse:
+  github_com_julesChu12_fly_kratos_pkg_types.OrderItemResponse:
     properties:
       created_at:
         type: string
@@ -107,11 +107,11 @@ definitions:
       updated_at:
         type: string
     type: object
-  types.OrderResponse:
+  github_com_julesChu12_fly_kratos_pkg_types.OrderResponse:
     properties:
       audits:
         items:
-          $ref: '#/definitions/types.OrderAuditResponse'
+          $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderAuditResponse'
         type: array
       created_at:
         type: string
@@ -123,17 +123,17 @@ definitions:
         type: integer
       items:
         items:
-          $ref: '#/definitions/types.OrderItemResponse'
+          $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderItemResponse'
         type: array
       order_no:
         type: string
       remark:
         type: string
       status:
-        $ref: '#/definitions/entity.OrderStatus'
+        $ref: '#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus'
       status_logs:
         items:
-          $ref: '#/definitions/types.OrderStatusLogResponse'
+          $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderStatusLogResponse'
         type: array
       tenant_id:
         type: integer
@@ -142,12 +142,12 @@ definitions:
       updated_at:
         type: string
     type: object
-  types.OrderStatusLogResponse:
+  github_com_julesChu12_fly_kratos_pkg_types.OrderStatusLogResponse:
     properties:
       created_at:
         type: string
       from_status:
-        $ref: '#/definitions/entity.OrderStatus'
+        $ref: '#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus'
       id:
         type: integer
       operator_id:
@@ -159,9 +159,9 @@ definitions:
       tenant_id:
         type: integer
       to_status:
-        $ref: '#/definitions/entity.OrderStatus'
+        $ref: '#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus'
     type: object
-  types.Response:
+  github_com_julesChu12_fly_kratos_pkg_types.Response:
     properties:
       code:
         type: integer
@@ -169,14 +169,14 @@ definitions:
       message:
         type: string
     type: object
-  types.UpdateOrderStatusRequest:
+  github_com_julesChu12_fly_kratos_pkg_types.UpdateOrderStatusRequest:
     properties:
       operator_id:
         type: integer
       reason:
         type: string
       status:
-        $ref: '#/definitions/entity.OrderStatus'
+        $ref: '#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus'
     required:
     - status
     type: object
@@ -223,23 +223,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/types.Response'
+            - $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/types.ListResponse'
+                  $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.ListResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
       summary: List orders
       tags:
       - orders
@@ -253,7 +253,7 @@ paths:
         name: order
         required: true
         schema:
-          $ref: '#/definitions/types.CreateOrderRequest'
+          $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.CreateOrderRequest'
       produces:
       - application/json
       responses:
@@ -261,27 +261,27 @@ paths:
           description: Created
           schema:
             allOf:
-            - $ref: '#/definitions/types.Response'
+            - $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/types.OrderResponse'
+                  $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
       summary: Create order
       tags:
       - orders
@@ -300,23 +300,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
       summary: Delete order
       tags:
       - orders
@@ -335,23 +335,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/types.Response'
+            - $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/types.OrderResponse'
+                  $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
       summary: Get order
       tags:
       - orders
@@ -371,23 +371,23 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/types.Response'
+            - $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/types.OrderResponse'
+                  $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
       summary: Get order with items
       tags:
       - orders
@@ -407,7 +407,7 @@ paths:
         name: status
         required: true
         schema:
-          $ref: '#/definitions/types.UpdateOrderStatusRequest'
+          $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.UpdateOrderStatusRequest'
       produces:
       - application/json
       responses:
@@ -415,27 +415,27 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/types.Response'
+            - $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/types.OrderResponse'
+                  $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/types.Response'
+            $ref: '#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response'
       summary: Update order status
       tags:
       - orders

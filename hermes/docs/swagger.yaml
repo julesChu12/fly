@@ -1,5 +1,117 @@
 basePath: /api
-definitions: {}
+definitions:
+  types.ContactListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/types.ContactResponse'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+    type: object
+  types.ContactResponse:
+    properties:
+      created_at:
+        type: string
+      customer_id:
+        type: integer
+      id:
+        type: integer
+      is_primary:
+        type: boolean
+      tenant_id:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: string
+    type: object
+  types.CreateContactRequest:
+    properties:
+      customer_id:
+        type: integer
+      is_primary:
+        type: boolean
+      tenant_id:
+        type: integer
+      type:
+        type: string
+      value:
+        type: string
+    required:
+    - customer_id
+    - tenant_id
+    - type
+    - value
+    type: object
+  types.CreateCustomerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      tags:
+        type: string
+    required:
+    - name
+    type: object
+  types.CustomerResponse:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/types.ContactResponse'
+        type: array
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      tags:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  types.ListResponse:
+    properties:
+      data: {}
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  types.UpdateContactRequest:
+    properties:
+      is_primary:
+        type: boolean
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  types.UpdateCustomerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      tags:
+        type: string
+    type: object
 host: localhost:8083
 info:
   contact:
@@ -14,6 +126,186 @@ info:
   title: Hermes Customer Service API
   version: "1.0"
 paths:
+  /api/contacts:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取联系方式列表
+      parameters:
+      - description: 页码，默认为1
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小，默认为20
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            $ref: '#/definitions/types.ContactListResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 获取联系方式列表
+      tags:
+      - 联系方式管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的联系方式记录
+      parameters:
+      - description: 联系方式信息
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/types.CreateContactRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 创建成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.ContactResponse'
+            type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 创建联系方式
+      tags:
+      - 联系方式管理
+  /api/contacts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据联系方式ID删除
+      parameters:
+      - description: 联系方式ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 删除联系方式
+      tags:
+      - 联系方式管理
+    get:
+      consumes:
+      - application/json
+      description: 根据联系方式ID获取详细信息
+      parameters:
+      - description: 联系方式ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.ContactResponse'
+            type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 联系方式不存在
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 获取联系方式信息
+      tags:
+      - 联系方式管理
+    put:
+      consumes:
+      - application/json
+      description: 根据联系方式ID更新信息
+      parameters:
+      - description: 联系方式ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新的联系方式信息
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateContactRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.ContactResponse'
+            type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新联系方式信息
+      tags:
+      - 联系方式管理
   /api/customers:
     get:
       consumes:
@@ -33,10 +325,20 @@ paths:
       responses:
         "200":
           description: 获取成功
+          schema:
+            $ref: '#/definitions/types.ListResponse'
         "400":
           description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: 获取客户列表
       tags:
       - 客户管理
@@ -50,16 +352,28 @@ paths:
         name: customer
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/types.CreateCustomerRequest'
       produces:
       - application/json
       responses:
         "201":
           description: 创建成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.CustomerResponse'
+            type: object
         "400":
           description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: 创建客户
       tags:
       - 客户管理
@@ -79,10 +393,22 @@ paths:
       responses:
         "200":
           description: 删除成功
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "400":
           description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: 删除客户
       tags:
       - 客户管理
@@ -101,10 +427,22 @@ paths:
       responses:
         "200":
           description: 获取成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.CustomerResponse'
+            type: object
         "400":
           description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: 客户不存在
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: 获取客户信息
       tags:
       - 客户管理
@@ -123,16 +461,28 @@ paths:
         name: customer
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/types.UpdateCustomerRequest'
       produces:
       - application/json
       responses:
         "200":
           description: 更新成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.CustomerResponse'
+            type: object
         "400":
           description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: 内部服务器错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: 更新客户信息
       tags:
       - 客户管理
@@ -152,10 +502,22 @@ paths:
       responses:
         "200":
           description: 获取成功
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/types.CustomerResponse'
+            type: object
         "400":
           description: 请求参数错误
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: 客户不存在
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: 获取客户及联系方式
       tags:
       - 客户管理

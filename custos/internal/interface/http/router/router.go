@@ -7,12 +7,13 @@ import (
 )
 
 type Router struct {
-	authHandler   *handler.AuthHandler
-	userHandler   *handler.UserHandler
-	oauthHandler  *handler.OAuthHandler
-	adminHandler  *handler.AdminHandler
-	healthHandler *handler.HealthHandler
-	authMW        *middleware.AuthMiddleware
+	authHandler    *handler.AuthHandler
+	userHandler    *handler.UserHandler
+	oauthHandler   *handler.OAuthHandler
+	adminHandler   *handler.AdminHandler
+	profileHandler *handler.ProfileHandler
+	healthHandler  *handler.HealthHandler
+	authMW         *middleware.AuthMiddleware
 }
 
 func NewRouter(
@@ -20,16 +21,18 @@ func NewRouter(
 	userHandler *handler.UserHandler,
 	oauthHandler *handler.OAuthHandler,
 	adminHandler *handler.AdminHandler,
+	profileHandler *handler.ProfileHandler,
 	healthHandler *handler.HealthHandler,
 	authMW *middleware.AuthMiddleware,
 ) *Router {
 	return &Router{
-		authHandler:   authHandler,
-		userHandler:   userHandler,
-		oauthHandler:  oauthHandler,
-		adminHandler:  adminHandler,
-		healthHandler: healthHandler,
-		authMW:        authMW,
+		authHandler:    authHandler,
+		userHandler:    userHandler,
+		oauthHandler:   oauthHandler,
+		adminHandler:   adminHandler,
+		profileHandler: profileHandler,
+		healthHandler:  healthHandler,
+		authMW:         authMW,
 	}
 }
 
@@ -77,6 +80,14 @@ func (r *Router) SetupRoutes() *gin.Engine {
 		user.Use(r.authMW.RequireAuth())
 		{
 			user.GET("/profile", r.userHandler.GetProfile)
+		}
+
+		// Profile routes (user profile management)
+		profile := v1.Group("/profile")
+		profile.Use(r.authMW.RequireAuth())
+		{
+			profile.GET("", r.profileHandler.GetProfile)
+			profile.PUT("", r.profileHandler.UpdateProfile)
 		}
 
 		admin := v1.Group("/admin")

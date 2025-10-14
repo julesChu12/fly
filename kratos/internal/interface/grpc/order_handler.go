@@ -183,9 +183,39 @@ func (s *OrderServiceServer) DeleteOrder(ctx context.Context, req *orderv1.Delet
 
 // GetOrderLogs retrieves status change logs for an order
 func (s *OrderServiceServer) GetOrderLogs(ctx context.Context, req *orderv1.GetOrderLogsRequest) (*orderv1.GetOrderLogsResponse, error) {
-	// This functionality needs to be added to the service layer
-	// For now, return unimplemented
-	return nil, status.Error(codes.Unimplemented, "GetOrderLogs is not yet implemented")
+	logs, err := s.orderService.GetOrderLogs(ctx, uint(req.OrderId))
+	if err != nil {
+		return nil, convertError(err)
+	}
+
+	// Convert to protobuf
+	protoLogs := make([]*orderv1.OrderStatusLog, len(logs))
+	for i, log := range logs {
+		protoLog := &orderv1.OrderStatusLog{
+			Id:        uint64(log.ID),
+			TenantId:  uint64(log.TenantID),
+			OrderId:   uint64(log.OrderID),
+			ToStatus:  toProtoOrderStatus(log.ToStatus),
+			Reason:    log.Reason,
+			CreatedAt: timestamppb.New(log.CreatedAt),
+		}
+
+		if log.FromStatus != nil {
+			fromStatus := toProtoOrderStatus(*log.FromStatus)
+			protoLog.FromStatus = &fromStatus
+		}
+
+		if log.OperatorID != nil {
+			operatorID := uint64(*log.OperatorID)
+			protoLog.OperatorId = &operatorID
+		}
+
+		protoLogs[i] = protoLog
+	}
+
+	return &orderv1.GetOrderLogsResponse{
+		Logs: protoLogs,
+	}, nil
 }
 
 // Helper functions to convert between protobuf and internal types

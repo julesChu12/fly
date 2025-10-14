@@ -68,13 +68,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/types.Response"
+                                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.ListResponse"
+                                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.ListResponse"
                                         }
                                     }
                                 }
@@ -84,19 +84,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     }
                 }
@@ -120,7 +120,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.CreateOrderRequest"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.CreateOrderRequest"
                         }
                     }
                 ],
@@ -130,13 +130,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/types.Response"
+                                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.OrderResponse"
+                                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse"
                                         }
                                     }
                                 }
@@ -146,25 +146,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     }
                 }
@@ -195,13 +195,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/types.Response"
+                                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.OrderResponse"
+                                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse"
                                         }
                                     }
                                 }
@@ -211,19 +211,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     }
                 }
@@ -250,31 +250,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     }
                 }
@@ -305,13 +305,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/types.Response"
+                                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.OrderResponse"
+                                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse"
                                         }
                                     }
                                 }
@@ -321,19 +321,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     }
                 }
@@ -366,7 +366,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.UpdateOrderStatusRequest"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.UpdateOrderStatusRequest"
                         }
                     }
                 ],
@@ -376,13 +376,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/types.Response"
+                                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/types.OrderResponse"
+                                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderResponse"
                                         }
                                     }
                                 }
@@ -392,25 +392,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/types.Response"
+                            "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.Response"
                         }
                     }
                 }
@@ -418,7 +418,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entity.OrderStatus": {
+        "github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus": {
             "type": "string",
             "enum": [
                 "pending",
@@ -433,7 +433,7 @@ const docTemplate = `{
                 "OrderStatusCanceled"
             ]
         },
-        "types.CreateOrderItemRequest": {
+        "github_com_julesChu12_fly_kratos_pkg_types.CreateOrderItemRequest": {
             "type": "object",
             "required": [
                 "product_name",
@@ -460,7 +460,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.CreateOrderRequest": {
+        "github_com_julesChu12_fly_kratos_pkg_types.CreateOrderRequest": {
             "type": "object",
             "required": [
                 "customer_id",
@@ -479,7 +479,7 @@ const docTemplate = `{
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/types.CreateOrderItemRequest"
+                        "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.CreateOrderItemRequest"
                     }
                 },
                 "order_no": {
@@ -494,7 +494,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ListResponse": {
+        "github_com_julesChu12_fly_kratos_pkg_types.ListResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -509,7 +509,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.OrderAuditResponse": {
+        "github_com_julesChu12_fly_kratos_pkg_types.OrderAuditResponse": {
             "type": "object",
             "properties": {
                 "action": {
@@ -535,7 +535,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.OrderItemResponse": {
+        "github_com_julesChu12_fly_kratos_pkg_types.OrderItemResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -573,13 +573,13 @@ const docTemplate = `{
                 }
             }
         },
-        "types.OrderResponse": {
+        "github_com_julesChu12_fly_kratos_pkg_types.OrderResponse": {
             "type": "object",
             "properties": {
                 "audits": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.OrderAuditResponse"
+                        "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderAuditResponse"
                     }
                 },
                 "created_at": {
@@ -597,7 +597,7 @@ const docTemplate = `{
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.OrderItemResponse"
+                        "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderItemResponse"
                     }
                 },
                 "order_no": {
@@ -607,12 +607,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/entity.OrderStatus"
+                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus"
                 },
                 "status_logs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.OrderStatusLogResponse"
+                        "$ref": "#/definitions/github_com_julesChu12_fly_kratos_pkg_types.OrderStatusLogResponse"
                     }
                 },
                 "tenant_id": {
@@ -626,14 +626,14 @@ const docTemplate = `{
                 }
             }
         },
-        "types.OrderStatusLogResponse": {
+        "github_com_julesChu12_fly_kratos_pkg_types.OrderStatusLogResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
                     "type": "string"
                 },
                 "from_status": {
-                    "$ref": "#/definitions/entity.OrderStatus"
+                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus"
                 },
                 "id": {
                     "type": "integer"
@@ -651,11 +651,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to_status": {
-                    "$ref": "#/definitions/entity.OrderStatus"
+                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus"
                 }
             }
         },
-        "types.Response": {
+        "github_com_julesChu12_fly_kratos_pkg_types.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -667,7 +667,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.UpdateOrderStatusRequest": {
+        "github_com_julesChu12_fly_kratos_pkg_types.UpdateOrderStatusRequest": {
             "type": "object",
             "required": [
                 "status"
@@ -680,7 +680,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/entity.OrderStatus"
+                    "$ref": "#/definitions/github_com_julesChu12_fly_kratos_internal_domain_entity.OrderStatus"
                 }
             }
         }

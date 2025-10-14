@@ -50,3 +50,32 @@ type ErrorResponse struct {
 type SuccessResponse struct {
 	Data interface{} `json:"data"`
 }
+
+// OAuth-related DTOs
+
+type OAuthBindRequest struct {
+	Code        string `json:"code" binding:"required"`
+	State       string `json:"state" binding:"required"`
+	RedirectURL string `json:"redirect_url" binding:"required"`
+}
+
+type OAuthBindingInfo struct {
+	ID          uint   `json:"id"`
+	Provider    string `json:"provider"`
+	ProviderUID string `json:"provider_uid"`
+	BoundAt     string `json:"bound_at"`
+}
+
+type OAuthBindingsResponse struct {
+	Bindings []OAuthBindingInfo `json:"bindings"`
+}
+
+type OAuthBindResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+type OAuthUnbindResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}

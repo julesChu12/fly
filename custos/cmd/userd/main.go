@@ -61,6 +61,7 @@ func main() {
 	sessionRepo := mysql.NewSessionRepository(db.DB())
 	refreshTokenRepo := mysql.NewRefreshTokenRepository(db.DB())
 	userOAuthRepo := mysql.NewUserOAuthRepository(db.DB())
+	userProfileRepo := mysql.NewUserProfileRepository(db.DB())
 
 	// Initialize password service
 	passwordService := password.NewPasswordService()
@@ -87,10 +88,11 @@ func main() {
 	userHandler := handler.NewUserHandler()
 	oauthHandler := handler.NewOAuthHandler(oauthSvc, tokenService)
 	adminHandler := handler.NewAdminHandler(userRepo, sessionRepo, rbacSvc)
+	profileHandler := handler.NewProfileHandler(userRepo, userProfileRepo)
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 
-	routerHandler := router.NewRouter(authHandlerMain, userHandler, oauthHandler, adminHandler, healthHandler, authMW)
+	routerHandler := router.NewRouter(authHandlerMain, userHandler, oauthHandler, adminHandler, profileHandler, healthHandler, authMW)
 	ginEngine := routerHandler.SetupRoutes()
 
 	// Register password routes

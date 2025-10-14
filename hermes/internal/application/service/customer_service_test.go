@@ -2,366 +2,592 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/julesChu12/fly/hermes/internal/domain/entity"
+	"github.com/julesChu12/fly/hermes/pkg/constants"
 	"github.com/julesChu12/fly/hermes/pkg/errors"
 	"github.com/julesChu12/fly/hermes/pkg/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-// MockCustomerRepository 模拟客户存储库
+// MockCustomerRepository is a mock implementation of CustomerRepository
 type MockCustomerRepository struct {
-	customers map[uint]*entity.Customer
-	nextID    uint
-}
-
-func NewMockCustomerRepository() *MockCustomerRepository {
-	return &MockCustomerRepository{
-		customers: make(map[uint]*entity.Customer),
-		nextID:    1,
-	}
+	mock.Mock
 }
 
 func (m *MockCustomerRepository) Create(ctx context.Context, customer *entity.Customer) error {
-	customer.ID = m.nextID
-	m.nextID++
-	m.customers[customer.ID] = customer
-	return nil
+	args := m.Called(ctx, customer)
+	return args.Error(0)
 }
 
 func (m *MockCustomerRepository) GetByID(ctx context.Context, id uint) (*entity.Customer, error) {
-	customer, exists := m.customers[id]
-	if !exists {
-		return nil, &errors.NotFoundError{Message: "customer not found"}
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return customer, nil
+	return args.Get(0).(*entity.Customer), args.Error(1)
+}
+
+func (m *MockCustomerRepository) GetByIDAndTenant(ctx context.Context, id uint, tenantID uint) (*entity.Customer, error) {
+	args := m.Called(ctx, id, tenantID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Customer), args.Error(1)
 }
 
 func (m *MockCustomerRepository) GetByEmail(ctx context.Context, email string) (*entity.Customer, error) {
-	for _, customer := range m.customers {
-		if customer.Email == email {
-			return customer, nil
-		}
+	args := m.Called(ctx, email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, &errors.NotFoundError{Message: "customer not found"}
+	return args.Get(0).(*entity.Customer), args.Error(1)
+}
+
+func (m *MockCustomerRepository) GetByEmailAndTenant(ctx context.Context, email string, tenantID uint) (*entity.Customer, error) {
+	args := m.Called(ctx, email, tenantID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Customer), args.Error(1)
 }
 
 func (m *MockCustomerRepository) Update(ctx context.Context, customer *entity.Customer) error {
-	if _, exists := m.customers[customer.ID]; !exists {
-		return &errors.NotFoundError{Message: "customer not found"}
-	}
-	m.customers[customer.ID] = customer
-	return nil
+	args := m.Called(ctx, customer)
+	return args.Error(0)
 }
 
 func (m *MockCustomerRepository) Delete(ctx context.Context, id uint) error {
-	if _, exists := m.customers[id]; !exists {
-		return &errors.NotFoundError{Message: "customer not found"}
-	}
-	delete(m.customers, id)
-	return nil
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockCustomerRepository) DeleteByTenant(ctx context.Context, id uint, tenantID uint) error {
+	args := m.Called(ctx, id, tenantID)
+	return args.Error(0)
 }
 
 func (m *MockCustomerRepository) List(ctx context.Context, offset, limit int) ([]*entity.Customer, int64, error) {
-	var customers []*entity.Customer
-	for _, customer := range m.customers {
-		customers = append(customers, customer)
+	args := m.Called(ctx, offset, limit)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), args.Error(2)
 	}
+	return args.Get(0).([]*entity.Customer), args.Get(1).(int64), args.Error(2)
+}
 
-	total := int64(len(customers))
-
-	// 简单的分页逻辑
-	start := offset
-	end := offset + limit
-	if start > len(customers) {
-		return []*entity.Customer{}, total, nil
+func (m *MockCustomerRepository) ListByTenant(ctx context.Context, tenantID uint, offset, limit int) ([]*entity.Customer, int64, error) {
+	args := m.Called(ctx, tenantID, offset, limit)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), args.Error(2)
 	}
-	if end > len(customers) {
-		end = len(customers)
-	}
-
-	return customers[start:end], total, nil
+	return args.Get(0).([]*entity.Customer), args.Get(1).(int64), args.Error(2)
 }
 
 func (m *MockCustomerRepository) GetWithContacts(ctx context.Context, id uint) (*entity.Customer, error) {
-	return m.GetByID(ctx, id)
-}
-
-// MockContactRepository 模拟联系方式存储库
-type MockContactRepository struct {
-	contacts map[uint][]*entity.Contact
-	nextID   uint
-}
-
-func NewMockContactRepository() *MockContactRepository {
-	return &MockContactRepository{
-		contacts: make(map[uint][]*entity.Contact),
-		nextID:   1,
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
+	return args.Get(0).(*entity.Customer), args.Error(1)
+}
+
+func (m *MockCustomerRepository) GetWithContactsByTenant(ctx context.Context, id uint, tenantID uint) (*entity.Customer, error) {
+	args := m.Called(ctx, id, tenantID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Customer), args.Error(1)
+}
+
+// MockContactRepository is a mock implementation of ContactRepository
+type MockContactRepository struct {
+	mock.Mock
 }
 
 func (m *MockContactRepository) Create(ctx context.Context, contact *entity.Contact) error {
-	contact.ID = m.nextID
-	m.nextID++
-	m.contacts[contact.CustomerID] = append(m.contacts[contact.CustomerID], contact)
-	return nil
+	args := m.Called(ctx, contact)
+	return args.Error(0)
 }
 
 func (m *MockContactRepository) GetByID(ctx context.Context, id uint) (*entity.Contact, error) {
-	for _, contacts := range m.contacts {
-		for _, contact := range contacts {
-			if contact.ID == id {
-				return contact, nil
-			}
-		}
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, &errors.NotFoundError{Message: "contact not found"}
+	return args.Get(0).(*entity.Contact), args.Error(1)
+}
+
+func (m *MockContactRepository) GetByIDAndTenant(ctx context.Context, id uint, tenantID uint) (*entity.Contact, error) {
+	args := m.Called(ctx, id, tenantID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Contact), args.Error(1)
 }
 
 func (m *MockContactRepository) GetByCustomerID(ctx context.Context, customerID uint) ([]*entity.Contact, error) {
-	contacts, exists := m.contacts[customerID]
-	if !exists {
-		return []*entity.Contact{}, nil
+	args := m.Called(ctx, customerID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return contacts, nil
+	return args.Get(0).([]*entity.Contact), args.Error(1)
+}
+
+func (m *MockContactRepository) GetByCustomerIDAndTenant(ctx context.Context, customerID uint, tenantID uint) ([]*entity.Contact, error) {
+	args := m.Called(ctx, customerID, tenantID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*entity.Contact), args.Error(1)
 }
 
 func (m *MockContactRepository) Update(ctx context.Context, contact *entity.Contact) error {
-	for _, contacts := range m.contacts {
-		for i, c := range contacts {
-			if c.ID == contact.ID {
-				contacts[i] = contact
-				return nil
-			}
-		}
-	}
-	return &errors.NotFoundError{Message: "contact not found"}
+	args := m.Called(ctx, contact)
+	return args.Error(0)
 }
 
 func (m *MockContactRepository) Delete(ctx context.Context, id uint) error {
-	for customerID, contacts := range m.contacts {
-		for i, contact := range contacts {
-			if contact.ID == id {
-				m.contacts[customerID] = append(contacts[:i], contacts[i+1:]...)
-				return nil
-			}
-		}
-	}
-	return &errors.NotFoundError{Message: "contact not found"}
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
+
+func (m *MockContactRepository) DeleteByTenant(ctx context.Context, id uint, tenantID uint) error {
+	args := m.Called(ctx, id, tenantID)
+	return args.Error(0)
 }
 
 func (m *MockContactRepository) List(ctx context.Context, offset, limit int) ([]*entity.Contact, error) {
-	var allContacts []*entity.Contact
-	for _, contacts := range m.contacts {
-		allContacts = append(allContacts, contacts...)
+	args := m.Called(ctx, offset, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-
-	start := offset
-	end := offset + limit
-	if start > len(allContacts) {
-		return []*entity.Contact{}, nil
-	}
-	if end > len(allContacts) {
-		end = len(allContacts)
-	}
-
-	return allContacts[start:end], nil
+	return args.Get(0).([]*entity.Contact), args.Error(1)
 }
 
-// TestCustomerService_CreateCustomer 测试创建客户
+func (m *MockContactRepository) ListByTenant(ctx context.Context, tenantID uint, offset, limit int) ([]*entity.Contact, error) {
+	args := m.Called(ctx, tenantID, offset, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*entity.Contact), args.Error(1)
+}
+
+// Test CustomerService
+
 func TestCustomerService_CreateCustomer(t *testing.T) {
-	customerRepo := NewMockCustomerRepository()
-	contactRepo := NewMockContactRepository()
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
 	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
 
 	req := &types.CreateCustomerRequest{
-		Name:  "张三",
-		Email: "zhangsan@example.com",
-		Phone: "13800138000",
+		Name:  "Test Customer",
+		Phone: "1234567890",
+		Email: "test@example.com",
+		Tags:  "vip",
 	}
 
-	ctx := context.Background()
-	customer, err := service.CreateCustomer(ctx, req)
+	// Mock: Email doesn't exist
+	customerRepo.On("GetByEmail", ctx, req.Email).Return(nil, errors.ErrCustomerNotFound)
 
-	if err != nil {
-		t.Fatalf("创建客户失败: %v", err)
-	}
+	// Mock: Create succeeds
+	customerRepo.On("Create", ctx, mock.AnythingOfType("*entity.Customer")).Return(nil).Run(func(args mock.Arguments) {
+		customer := args.Get(1).(*entity.Customer)
+		customer.ID = 1
+		customer.CreatedAt = time.Now()
+		customer.UpdatedAt = time.Now()
+	})
 
-	if customer.Name != req.Name {
-		t.Errorf("期望客户姓名为 %s, 但得到 %s", req.Name, customer.Name)
-	}
+	// Execute
+	resp, err := service.CreateCustomer(ctx, req)
 
-	if customer.Email != req.Email {
-		t.Errorf("期望客户邮箱为 %s, 但得到 %s", req.Email, customer.Email)
-	}
-
-	if customer.Phone != req.Phone {
-		t.Errorf("期望客户电话为 %s, 但得到 %s", req.Phone, customer.Phone)
-	}
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, uint(1), resp.ID)
+	assert.Equal(t, req.Name, resp.Name)
+	assert.Equal(t, req.Email, resp.Email)
+	customerRepo.AssertExpectations(t)
 }
 
-// TestCustomerService_GetCustomer 测试获取客户
+func TestCustomerService_CreateCustomer_DuplicateEmail(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	req := &types.CreateCustomerRequest{
+		Name:  "Test Customer",
+		Email: "duplicate@example.com",
+	}
+
+	existingCustomer := &entity.Customer{
+		ID:    1,
+		Email: req.Email,
+	}
+
+	// Mock: Email already exists
+	customerRepo.On("GetByEmail", ctx, req.Email).Return(existingCustomer, nil)
+
+	// Execute
+	resp, err := service.CreateCustomer(ctx, req)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Equal(t, errors.ErrDuplicateEmail, err)
+	customerRepo.AssertExpectations(t)
+}
+
 func TestCustomerService_GetCustomer(t *testing.T) {
-	customerRepo := NewMockCustomerRepository()
-	contactRepo := NewMockContactRepository()
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
 	service := NewCustomerService(customerRepo, contactRepo)
-
-	// 先创建一个客户
-	req := &types.CreateCustomerRequest{
-		Name:  "李四",
-		Email: "lisi@example.com",
-		Phone: "13900139000",
-	}
-
 	ctx := context.Background()
-	created, err := service.CreateCustomer(ctx, req)
-	if err != nil {
-		t.Fatalf("创建客户失败: %v", err)
+
+	customer := &entity.Customer{
+		ID:    1,
+		Name:  "Test Customer",
+		Email: "test@example.com",
 	}
 
-	// 获取客户
-	customer, err := service.GetCustomer(ctx, created.ID)
-	if err != nil {
-		t.Fatalf("获取客户失败: %v", err)
-	}
+	// Mock
+	customerRepo.On("GetByID", ctx, uint(1)).Return(customer, nil)
 
-	if customer.ID != created.ID {
-		t.Errorf("期望客户ID为 %d, 但得到 %d", created.ID, customer.ID)
-	}
+	// Execute
+	resp, err := service.GetCustomer(ctx, 1)
 
-	if customer.Name != req.Name {
-		t.Errorf("期望客户姓名为 %s, 但得到 %s", req.Name, customer.Name)
-	}
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, customer.ID, resp.ID)
+	assert.Equal(t, customer.Name, resp.Name)
+	customerRepo.AssertExpectations(t)
 }
 
-// TestCustomerService_GetCustomer_NotFound 测试获取不存在的客户
 func TestCustomerService_GetCustomer_NotFound(t *testing.T) {
-	customerRepo := NewMockCustomerRepository()
-	contactRepo := NewMockContactRepository()
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
 	service := NewCustomerService(customerRepo, contactRepo)
-
 	ctx := context.Background()
-	_, err := service.GetCustomer(ctx, 999)
 
-	if err == nil {
-		t.Fatal("期望返回错误，但没有返回错误")
-	}
+	// Mock
+	customerRepo.On("GetByID", ctx, uint(999)).Return(nil, errors.ErrCustomerNotFound)
 
-	if _, ok := err.(*errors.NotFoundError); !ok {
-		t.Errorf("期望返回 NotFoundError, 但得到 %T", err)
-	}
+	// Execute
+	resp, err := service.GetCustomer(ctx, 999)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Equal(t, errors.ErrCustomerNotFound, err)
+	customerRepo.AssertExpectations(t)
 }
 
-// TestCustomerService_UpdateCustomer 测试更新客户
+func TestCustomerService_GetCustomerWithContacts(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	now := time.Now()
+	customer := &entity.Customer{
+		ID:    1,
+		Name:  "Test Customer",
+		Email: "test@example.com",
+		Contacts: []entity.Contact{
+			{ID: 1, CustomerID: 1, Type: "phone", Value: "123", CreatedAt: now, UpdatedAt: now},
+			{ID: 2, CustomerID: 1, Type: "email", Value: "contact@example.com", CreatedAt: now, UpdatedAt: now},
+		},
+	}
+
+	// Mock
+	customerRepo.On("GetWithContacts", ctx, uint(1)).Return(customer, nil)
+
+	// Execute
+	resp, err := service.GetCustomerWithContacts(ctx, 1)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, customer.ID, resp.ID)
+	assert.Len(t, resp.Contacts, 2)
+	assert.Equal(t, "phone", resp.Contacts[0].Type)
+	assert.Equal(t, "email", resp.Contacts[1].Type)
+	customerRepo.AssertExpectations(t)
+}
+
 func TestCustomerService_UpdateCustomer(t *testing.T) {
-	customerRepo := NewMockCustomerRepository()
-	contactRepo := NewMockContactRepository()
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
 	service := NewCustomerService(customerRepo, contactRepo)
-
-	// 先创建一个客户
-	createReq := &types.CreateCustomerRequest{
-		Name:  "王五",
-		Email: "wangwu@example.com",
-		Phone: "14000140000",
-	}
-
 	ctx := context.Background()
-	created, err := service.CreateCustomer(ctx, createReq)
-	if err != nil {
-		t.Fatalf("创建客户失败: %v", err)
+
+	existingCustomer := &entity.Customer{
+		ID:    1,
+		Name:  "Old Name",
+		Email: "old@example.com",
+		Phone: "111",
 	}
 
-	// 更新客户
-	updateReq := &types.UpdateCustomerRequest{
-		Name:  "王五更新",
-		Email: "wangwu_updated@example.com",
-		Phone: "14100141000",
+	req := &types.UpdateCustomerRequest{
+		Name:  "New Name",
+		Phone: "999",
+		Email: "new@example.com",
 	}
 
-	updated, err := service.UpdateCustomer(ctx, created.ID, updateReq)
-	if err != nil {
-		t.Fatalf("更新客户失败: %v", err)
-	}
+	// Mock: Get existing customer
+	customerRepo.On("GetByID", ctx, uint(1)).Return(existingCustomer, nil)
 
-	if updated.Name != updateReq.Name {
-		t.Errorf("期望更新后客户姓名为 %s, 但得到 %s", updateReq.Name, updated.Name)
-	}
+	// Mock: New email doesn't exist
+	customerRepo.On("GetByEmail", ctx, req.Email).Return(nil, errors.ErrCustomerNotFound)
 
-	if updated.Email != updateReq.Email {
-		t.Errorf("期望更新后客户邮箱为 %s, 但得到 %s", updateReq.Email, updated.Email)
-	}
+	// Mock: Update succeeds
+	customerRepo.On("Update", ctx, mock.AnythingOfType("*entity.Customer")).Return(nil)
+
+	// Execute
+	resp, err := service.UpdateCustomer(ctx, 1, req)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, req.Name, resp.Name)
+	assert.Equal(t, req.Phone, resp.Phone)
+	assert.Equal(t, req.Email, resp.Email)
+	customerRepo.AssertExpectations(t)
 }
 
-// TestCustomerService_DeleteCustomer 测试删除客户
+func TestCustomerService_UpdateCustomer_DuplicateEmail(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	existingCustomer := &entity.Customer{
+		ID:    1,
+		Email: "old@example.com",
+	}
+
+	anotherCustomer := &entity.Customer{
+		ID:    2,
+		Email: "taken@example.com",
+	}
+
+	req := &types.UpdateCustomerRequest{
+		Email: "taken@example.com",
+	}
+
+	// Mock: Get existing customer
+	customerRepo.On("GetByID", ctx, uint(1)).Return(existingCustomer, nil)
+
+	// Mock: Email already taken by another customer
+	customerRepo.On("GetByEmail", ctx, req.Email).Return(anotherCustomer, nil)
+
+	// Execute
+	resp, err := service.UpdateCustomer(ctx, 1, req)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Equal(t, errors.ErrDuplicateEmail, err)
+	customerRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_UpdateCustomer_PartialUpdate(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	existingCustomer := &entity.Customer{
+		ID:    1,
+		Name:  "Original Name",
+		Email: "original@example.com",
+		Phone: "111",
+		Tags:  "old-tag",
+	}
+
+	req := &types.UpdateCustomerRequest{
+		Name: "Updated Name",
+		// Email and Phone not provided, should remain unchanged
+	}
+
+	// Mock: Get existing customer
+	customerRepo.On("GetByID", ctx, uint(1)).Return(existingCustomer, nil)
+
+	// Mock: Update succeeds
+	customerRepo.On("Update", ctx, mock.AnythingOfType("*entity.Customer")).Return(nil)
+
+	// Execute
+	resp, err := service.UpdateCustomer(ctx, 1, req)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "Updated Name", resp.Name)
+	assert.Equal(t, "original@example.com", resp.Email) // Should remain unchanged
+	assert.Equal(t, "111", resp.Phone)                  // Should remain unchanged
+	customerRepo.AssertExpectations(t)
+}
+
 func TestCustomerService_DeleteCustomer(t *testing.T) {
-	customerRepo := NewMockCustomerRepository()
-	contactRepo := NewMockContactRepository()
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
 	service := NewCustomerService(customerRepo, contactRepo)
-
-	// 先创建一个客户
-	req := &types.CreateCustomerRequest{
-		Name:  "赵六",
-		Email: "zhaoliu@example.com",
-		Phone: "15000150000",
-	}
-
 	ctx := context.Background()
-	created, err := service.CreateCustomer(ctx, req)
-	if err != nil {
-		t.Fatalf("创建客户失败: %v", err)
-	}
 
-	// 删除客户
-	err = service.DeleteCustomer(ctx, created.ID)
-	if err != nil {
-		t.Fatalf("删除客户失败: %v", err)
-	}
+	customer := &entity.Customer{ID: 1, Name: "Test"}
 
-	// 尝试再次获取，应该返回错误
-	_, err = service.GetCustomer(ctx, created.ID)
-	if err == nil {
-		t.Fatal("期望获取已删除客户时返回错误，但没有返回错误")
-	}
+	// Mock: Customer exists
+	customerRepo.On("GetByID", ctx, uint(1)).Return(customer, nil)
+
+	// Mock: Delete succeeds
+	customerRepo.On("Delete", ctx, uint(1)).Return(nil)
+
+	// Execute
+	err := service.DeleteCustomer(ctx, 1)
+
+	// Assert
+	assert.NoError(t, err)
+	customerRepo.AssertExpectations(t)
 }
 
-// TestCustomerService_ListCustomers 测试列表查询
-func TestCustomerService_ListCustomers(t *testing.T) {
-	customerRepo := NewMockCustomerRepository()
-	contactRepo := NewMockContactRepository()
+func TestCustomerService_DeleteCustomer_NotFound(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
 	service := NewCustomerService(customerRepo, contactRepo)
-
 	ctx := context.Background()
 
-	// 创建多个客户
-	for i := 0; i < 5; i++ {
-		req := &types.CreateCustomerRequest{
-			Name:  fmt.Sprintf("客户%d", i+1),
-			Email: fmt.Sprintf("customer%d@example.com", i+1),
-			Phone: fmt.Sprintf("1300013%04d", i+1),
-		}
-		_, err := service.CreateCustomer(ctx, req)
-		if err != nil {
-			t.Fatalf("创建客户%d失败: %v", i+1, err)
-		}
+	// Mock: Customer doesn't exist
+	customerRepo.On("GetByID", ctx, uint(999)).Return(nil, errors.ErrCustomerNotFound)
+
+	// Execute
+	err := service.DeleteCustomer(ctx, 999)
+
+	// Assert
+	assert.Error(t, err)
+	assert.Equal(t, errors.ErrCustomerNotFound, err)
+	customerRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_ListCustomers(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	customers := []*entity.Customer{
+		{ID: 1, Name: "Customer 1"},
+		{ID: 2, Name: "Customer 2"},
+		{ID: 3, Name: "Customer 3"},
 	}
 
-	// 测试分页查询
-	listReq := &types.ListRequest{
+	req := &types.ListRequest{
 		Page:     1,
-		PageSize: 3,
+		PageSize: 10,
 	}
 
-	result, err := service.ListCustomers(ctx, listReq)
-	if err != nil {
-		t.Fatalf("查询客户列表失败: %v", err)
+	// Mock
+	customerRepo.On("List", ctx, 0, 10).Return(customers, int64(3), nil)
+
+	// Execute
+	resp, err := service.ListCustomers(ctx, req)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(3), resp.Total)
+	assert.Equal(t, 1, resp.Page)
+	assert.Len(t, resp.Data.([]types.CustomerResponse), 3)
+	customerRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_ListCustomers_DefaultPagination(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	req := &types.ListRequest{
+		Page:     0, // Invalid, should default to 1
+		PageSize: 0, // Should default to DefaultPageSize
 	}
 
-	if result.Total != 5 {
-		t.Errorf("期望总数为 5, 但得到 %d", result.Total)
+	customers := []*entity.Customer{}
+
+	// Mock: Should use default page size (20)
+	customerRepo.On("List", ctx, 0, constants.DefaultPageSize).Return(customers, int64(0), nil)
+
+	// Execute
+	resp, err := service.ListCustomers(ctx, req)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 1, resp.Page) // Should be corrected to 1
+	customerRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_ListCustomers_MaxPageSize(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	req := &types.ListRequest{
+		Page:     1,
+		PageSize: 200, // Exceeds max, should be capped to MaxPageSize
 	}
 
-	if len(result.Data.([]types.CustomerResponse)) != 3 {
-		t.Errorf("期望当前页数据数量为 3, 但得到 %d", len(result.Data.([]types.CustomerResponse)))
+	customers := []*entity.Customer{}
+
+	// Mock: Should use MaxPageSize (100)
+	customerRepo.On("List", ctx, 0, constants.MaxPageSize).Return(customers, int64(0), nil)
+
+	// Execute
+	resp, err := service.ListCustomers(ctx, req)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	customerRepo.AssertExpectations(t)
+}
+
+func TestCustomerService_ListCustomers_Pagination(t *testing.T) {
+	customerRepo := new(MockCustomerRepository)
+	contactRepo := new(MockContactRepository)
+	service := NewCustomerService(customerRepo, contactRepo)
+	ctx := context.Background()
+
+	// Create 25 customers for testing pagination
+	allCustomers := make([]*entity.Customer, 25)
+	for i := 0; i < 25; i++ {
+		allCustomers[i] = &entity.Customer{
+			ID:   uint(i + 1),
+			Name: "Customer",
+		}
 	}
+
+	// Test page 2 with page size 10
+	req := &types.ListRequest{
+		Page:     2,
+		PageSize: 10,
+	}
+
+	// Mock: Page 2 should have offset 10, limit 10
+	customerRepo.On("List", ctx, 10, 10).Return(allCustomers[10:20], int64(25), nil)
+
+	// Execute
+	resp, err := service.ListCustomers(ctx, req)
+
+	// Assert
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(25), resp.Total)
+	assert.Equal(t, 2, resp.Page)
+	assert.Len(t, resp.Data.([]types.CustomerResponse), 10)
+	customerRepo.AssertExpectations(t)
 }

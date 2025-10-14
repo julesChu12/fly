@@ -19,6 +19,7 @@ type OrderService interface {
 	UpdateOrderStatus(ctx context.Context, id uint, req *types.UpdateOrderStatusRequest) (*types.OrderResponse, error)
 	DeleteOrder(ctx context.Context, id uint) error
 	ListOrders(ctx context.Context, req *types.ListOrdersRequest) (*types.ListResponse, error)
+	GetOrderLogs(ctx context.Context, orderID uint) ([]types.OrderStatusLogResponse, error)
 }
 
 type orderService struct {
@@ -281,6 +282,37 @@ func (s *orderService) ListOrders(ctx context.Context, req *types.ListOrdersRequ
 		Page:  req.Page,
 		Size:  len(responses),
 	}, nil
+}
+
+func (s *orderService) GetOrderLogs(ctx context.Context, orderID uint) ([]types.OrderStatusLogResponse, error) {
+	// Verify order exists and user has access
+	_, err := s.orderRepo.GetByID(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get status logs
+	logs, err := s.statusLogRepo.GetByOrderID(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to response type
+	responses := make([]types.OrderStatusLogResponse, len(logs))
+	for i, log := range logs {
+		responses[i] = types.OrderStatusLogResponse{
+			ID:         log.ID,
+			TenantID:   log.TenantID,
+			OrderID:    log.OrderID,
+			FromStatus: log.FromStatus,
+			ToStatus:   log.ToStatus,
+			Reason:     log.Reason,
+			OperatorID: log.OperatorID,
+			CreatedAt:  log.CreatedAt,
+		}
+	}
+
+	return responses, nil
 }
 
 // Helper methods

@@ -202,6 +202,45 @@ func (s *Service) GetUserBindings(ctx context.Context, userID uint) ([]*entity.U
 	return s.userOAuthRepo.GetByUserID(ctx, userID)
 }
 
+// GetOAuthConfig gets OAuth config for a provider
+func (s *Service) GetOAuthConfig(provider Provider) *oauth2.Config {
+	return s.oauthConfigs[provider]
+}
+
+// GetUserInfo gets user info from OAuth provider
+func (s *Service) GetUserInfo(provider Provider, accessToken string) (*UserInfo, error) {
+	return s.getUserInfo(provider, accessToken)
+}
+
+// GetOAuthByProviderUID gets OAuth binding by provider and UID
+func (s *Service) GetOAuthByProviderUID(ctx context.Context, provider string, providerUID string) (*entity.UserOAuth, error) {
+	oauth, err := s.userOAuthRepo.GetByProviderUID(ctx, provider, providerUID)
+	if err != nil && err == repository.ErrUserOAuthNotFound {
+		return nil, nil
+	}
+	return oauth, err
+}
+
+// BindProvider binds OAuth provider to user
+func (s *Service) BindProvider(ctx context.Context, userID uint, provider Provider, providerUID string, accessToken string, refreshToken string, expiresAt *time.Time) error {
+	// Check if binding already exists
+	existingOAuth, err := s.userOAuthRepo.GetByProviderUID(ctx, string(provider), providerUID)
+	if err != nil && err != repository.ErrUserOAuthNotFound {
+		return fmt.Errorf("failed to check existing OAuth binding: %w", err)
+	}
+
+	if existingOAuth != nil {
+		// Update existing binding
+		existingOAuth.UpdateTokens(accessToken, refreshToken, expiresAt)
+		return s.userOAuthRepo.Update(ctx, existingOAuth)
+	}
+
+	// Create new binding
+	userOAuth := entity.NewUserOAuth(userID, string(provider), providerUID)
+	userOAuth.UpdateTokens(accessToken, refreshToken, expiresAt)
+	return s.userOAuthRepo.Create(ctx, userOAuth)
+}
+
 func (s *Service) getUserInfo(provider Provider, accessToken string) (*UserInfo, error) {
 	var userInfoURL string
 

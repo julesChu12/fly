@@ -20,7 +20,7 @@ type Order struct {
 	CustomerID   uint        `json:"customer_id" gorm:"not null;index"`
 	TotalAmount  float64     `json:"total_amount" gorm:"type:decimal(12,2);not null"`
 	Currency     string      `json:"currency" gorm:"size:3;default:CNY"`
-	Status       OrderStatus `json:"status" gorm:"type:enum('pending','paid','fulfilled','canceled');default:pending;index"`
+	Status       OrderStatus `json:"status" gorm:"default:pending;index"`
 	Remark       string      `json:"remark" gorm:"size:255"`
 	CreatedAt    time.Time   `json:"created_at"`
 	UpdatedAt    time.Time   `json:"updated_at"`
@@ -40,7 +40,7 @@ type OrderItem struct {
 	SKU         string    `json:"sku" gorm:"size:128"`
 	Quantity    int       `json:"quantity" gorm:"default:1;not null"`
 	UnitPrice   float64   `json:"unit_price" gorm:"type:decimal(12,2);not null"`
-	TotalPrice  float64   `json:"total_price" gorm:"type:decimal(12,2) GENERATED ALWAYS AS (quantity * unit_price) STORED"`
+	TotalPrice  float64   `json:"total_price" gorm:"type:decimal(12,2)"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -49,8 +49,8 @@ type OrderStatusLog struct {
 	ID         uint        `json:"id" gorm:"primaryKey"`
 	TenantID   uint        `json:"tenant_id" gorm:"not null;index"`
 	OrderID    uint        `json:"order_id" gorm:"not null;index"`
-	FromStatus *OrderStatus `json:"from_status" gorm:"type:enum('pending','paid','fulfilled','canceled')"`
-	ToStatus   OrderStatus `json:"to_status" gorm:"type:enum('pending','paid','fulfilled','canceled');not null"`
+	FromStatus *OrderStatus `json:"from_status"`
+	ToStatus   OrderStatus `json:"to_status" gorm:"not null"`
 	Reason     string      `json:"reason" gorm:"size:255"`
 	OperatorID *uint       `json:"operator_id"`
 	CreatedAt  time.Time   `json:"created_at"`

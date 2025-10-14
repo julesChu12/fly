@@ -5,23 +5,21 @@ import (
 	"go.uber.org/zap"
 )
 
-var Log *zap.Logger
+var Log *logger.Logger
 
 // InitLogger initializes the Mora logger
 func InitLogger(serviceName string, env string) error {
 	cfg := logger.Config{
-		Level:       "info",
-		Encoding:    "json",
-		Development: env == "development",
-		OutputPaths: []string{"stdout"},
+		Level:  "info",
+		Format: "json",
 	}
 
 	if env == "development" {
 		cfg.Level = "debug"
-		cfg.Encoding = "console"
+		cfg.Format = "console"
 	}
 
-	l, err := logger.NewLogger(cfg)
+	l, err := logger.New(cfg)
 	if err != nil {
 		return err
 	}
@@ -31,12 +29,20 @@ func InitLogger(serviceName string, env string) error {
 }
 
 // GetLogger returns the global logger instance
-func GetLogger() *zap.Logger {
+func GetLogger() *logger.Logger {
 	if Log == nil {
 		// Fallback to default logger if not initialized
-		Log, _ = zap.NewProduction()
+		Log = logger.NewDefault()
 	}
 	return Log
+}
+
+// GetZapLogger returns the underlying zap logger
+func GetZapLogger() *zap.Logger {
+	if Log == nil {
+		Log = logger.NewDefault()
+	}
+	return Log.Desugar()
 }
 
 // Sync flushes any buffered log entries

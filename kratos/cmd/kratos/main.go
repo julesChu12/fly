@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/julesChu12/fly/kratos/docs" // Import swagger docs
 	"github.com/julesChu12/fly/kratos/api/proto/order/v1"
 	"github.com/julesChu12/fly/kratos/internal/application/service"
 	"github.com/julesChu12/fly/kratos/internal/infrastructure/database"

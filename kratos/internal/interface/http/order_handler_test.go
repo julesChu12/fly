@@ -101,6 +101,10 @@ func (m *MockOrderService) ListOrders(ctx context.Context, req *types.ListOrders
 	}, nil
 }
 
+func (m *MockOrderService) GetOrderLogs(ctx context.Context, orderID uint) ([]types.OrderStatusLogResponse, error) {
+	return []types.OrderStatusLogResponse{}, nil
+}
+
 func TestCreateOrder(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

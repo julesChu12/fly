@@ -56,10 +56,11 @@ func main() {
 
 	// 初始化Service层
 	customerService := service.NewCustomerService(customerRepo, contactRepo)
+	contactService := service.NewContactService(contactRepo)
 
 	// 启动HTTP服务器
 	go func() {
-		if err := startHTTPServer(customerService); err != nil {
+		if err := startHTTPServer(customerService, contactService); err != nil {
 			log.Fatal("HTTP server failed:", err)
 		}
 	}()
@@ -98,7 +99,7 @@ func initDatabase() (*gorm.DB, error) {
 }
 
 // startHTTPServer 启动HTTP服务器，提供REST API和Swagger文档
-func startHTTPServer(customerService service.CustomerService) error {
+func startHTTPServer(customerService service.CustomerService, contactService service.ContactService) error {
 	r := gin.New()
 
 	// 添加中间件
@@ -129,6 +130,9 @@ func startHTTPServer(customerService service.CustomerService) error {
 	api := r.Group("/api")
 	customerHandler := http.NewCustomerHandler(customerService)
 	customerHandler.RegisterRoutes(api)
+
+	contactHandler := http.NewContactHandler(contactService)
+	contactHandler.RegisterRoutes(api)
 
 	// Swagger文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

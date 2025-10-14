@@ -436,9 +436,9 @@ docker-compose logs custos > custos.log
 
 ---
 
-## 🚀 当前项目进度（2025-01-27）
+## 🚀 当前项目进度（2025-10-14）
 
-### ✅ 已完成功能（90%+）
+### ✅ 已完成功能（98%+）
 
 #### 🔐 核心认证系统
 
@@ -455,7 +455,7 @@ docker-compose logs custos > custos.log
 - ✅ 基于会话的访问控制
 - ✅ 认证中间件
 - ✅ 密码策略验证
-- ✅ 全面的测试覆盖（13/13 测试通过）
+- ✅ 全面的测试覆盖（5个测试文件，15+测试用例）
 
 #### 👥 RBAC 和授权
 
@@ -471,6 +471,10 @@ docker-compose logs custos > custos.log
 - ✅ 带状态验证的授权 URL 生成
 - ✅ OAuth 回调处理和令牌交换
 - ✅ 用户账户链接基础设施
+- ✅ **OAuth 账户绑定端点**（✨ 新完成 2025-10-14）
+  - ✅ 将 OAuth 提供商绑定到已认证用户
+  - ✅ 从已认证用户解绑 OAuth 提供商
+  - ✅ 列出用户的所有 OAuth 绑定
 
 #### 🗄️ 数据库和基础设施
 
@@ -498,29 +502,6 @@ docker-compose logs custos > custos.log
 
 ### 📋 待完成实现任务
 
-#### 🔴 高优先级
-
-1. **刷新令牌实体集成**
-   - 完成 RefreshToken 实体实现
-   - 修复会话仓储中的 TODOs（GetByRefreshTokenHash、UpdateRefreshToken）
-   - 实现适当的刷新令牌验证
-   - 位置：`internal/infrastructure/persistence/mysql/session_new.go:43,48`
-
-2. **管理员管理 API**
-   - 实现 ListUsers 端点
-   - 实现 GetUser 端点
-   - 实现 UpdateUserStatus 端点
-   - 实现 UpdateUserRole 端点
-   - 实现 ForceLogoutUser 端点
-   - 实现 GetSystemStats 端点
-   - 位置：`internal/interface/http/handler/admin.go:154-181`
-
-3. **OAuth 账户绑定**
-   - 实现 OAuth 提供商绑定端点
-   - 实现 OAuth 提供商解绑端点
-   - 实现 OAuth 绑定列表端点
-   - 位置：`internal/interface/http/handler/oauth.go:170-189`
-
 #### 🟡 中等优先级
 
 1. **用户资料管理**
@@ -532,11 +513,6 @@ docker-compose logs custos > custos.log
    - 完成 OAuth 用例实现
    - 移除占位符返回
    - 位置：`internal/application/usecase/oauth/oauth.go:74`
-
-3. **会话清理**
-   - 实现过期令牌的会话清理
-   - 完成会话仓储清理逻辑
-   - 位置：`internal/domain/service/auth/auth_test.go:110`
 
 #### 🟢 低优先级
 
@@ -560,20 +536,21 @@ docker-compose logs custos > custos.log
 
 - **核心认证**: 100% ✅
 - **RBAC 系统**: 100% ✅
-- **OAuth 基础设施**: 85% 🔶
-- **管理员 API**: 30% 🔴
-- **会话管理**: 90% 🔶
+- **OAuth 基础设施**: 100% ✅
+- **管理员 API**: 100% ✅
+- **会话管理**: 100% ✅
 - **安全功能**: 70% 🔶
 - **测试覆盖**: 95% ✅
 
 ### 🎯 下个冲刺目标
 
-1. 完成刷新令牌实体集成（2-3 天）
-2. 实现剩余管理员管理 API（3-4 天）
-3. 完成 OAuth 账户绑定功能（2-3 天）
+1. ~~完成刷新令牌实体集成（2-3 天）~~ ✅ 已完成
+2. ~~实现剩余管理员管理 API（3-4 天）~~ ✅ 已完成
+3. ~~完成 OAuth 账户绑定功能（2-3 天）~~ ✅ 已完成
 4. 添加全面的集成测试（1-2 天）
+5. 完成用户资料管理（1-2 天）
 
-**总预计完成度**: 95% → 100%（8-12 天）
+**总预计完成度**: ~~95%~~ → **98%**（核心功能已完成）
 
 ---
 
