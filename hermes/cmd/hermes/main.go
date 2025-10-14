@@ -10,7 +10,9 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
+	pb "github.com/julesChu12/fly/hermes/api/proto"
 	"github.com/julesChu12/fly/hermes/internal/application/service"
+	"github.com/julesChu12/fly/hermes/internal/domain/repository"
 	"github.com/julesChu12/fly/hermes/internal/infrastructure/database"
 	"github.com/julesChu12/fly/hermes/internal/interface/grpc"
 	"github.com/julesChu12/fly/hermes/internal/interface/http"
@@ -64,7 +66,7 @@ func main() {
 
 	// 启动gRPC服务器
 	go func() {
-		if err := startGRPCServer(customerService); err != nil {
+		if err := startGRPCServer(customerService, contactRepo); err != nil {
 			log.Fatal("gRPC server failed:", err)
 		}
 	}()
@@ -141,7 +143,7 @@ func startHTTPServer(customerService service.CustomerService) error {
 }
 
 // startGRPCServer 启动gRPC服务器
-func startGRPCServer(customerService service.CustomerService) error {
+func startGRPCServer(customerService service.CustomerService, contactRepo repository.ContactRepository) error {
 	port := os.Getenv("GRPC_PORT")
 	if port == "" {
 		port = "9080"
@@ -156,7 +158,10 @@ func startGRPCServer(customerService service.CustomerService) error {
 
 	// 注册gRPC服务
 	customerHandler := grpc.NewCustomerGRPCHandler(customerService)
-	_ = customerHandler // 暂时避免未使用变量警告
+	pb.RegisterCustomerServiceServer(s, customerHandler)
+
+	contactHandler := grpc.NewContactGRPCHandler(contactRepo)
+	pb.RegisterContactServiceServer(s, contactHandler)
 
 	log.Printf("gRPC server starting on port %s", port)
 	return s.Serve(lis)
