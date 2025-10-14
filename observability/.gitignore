@@ -30,10 +30,6 @@ go.work.sum
 # Docker
 docker-compose.override.yml
 .dockerignore
-mysql/data/
-redis/data/
-mysql/my.cnf
-redis/redis.conf
 
 # Database data directories
 **/mysql/data/
@@ -51,4 +47,5 @@ redis/redis.conf
 # Go build cache
 .gocache/
 
+# Build output directory
 bin/
