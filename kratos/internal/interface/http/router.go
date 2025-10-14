@@ -1,8 +1,11 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/kratos/internal/application/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -28,8 +31,16 @@ func (r *Router) SetupRoutes() *gin.Engine {
 
 	// Health check
 	engine.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	// Readiness check
+	engine.GET("/ready", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+	})
+
+	// Prometheus metrics
+	engine.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// Swagger documentation
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

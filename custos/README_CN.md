@@ -20,11 +20,13 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
 ## Custos 核心职责
 
 ### 1. 用户生命周期管理
+
 - 用户注册（C端自助注册、B端管理员创建）
 - 激活 / 冻结 / 删除
 - 个人资料管理（昵称、头像、邮箱、手机、扩展资料）
 
 ### 2. 认证系统
+
 - 用户名 + 密码登录
 - 手机/邮箱 OTP 登录（C端）
 - OAuth2.0 第三方登录（Google、微信、Apple ID 等）
@@ -34,6 +36,7 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
 → 结合会话级撤销实现细粒度控制（见安全部分）
 
 ### 3. 安全控制
+
 - 密码哈希（bcrypt/argon2）
 - 登录失败限制（防暴力破解）
 - 双因素认证（2FA/MFA）
@@ -46,6 +49,7 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
   - **混合**：短生命周期访问令牌 + token_version 全局踢出 + 会话撤销设备级踢出
 
 ### 4. 授权系统（基于 Casbin）
+
 - 使用 Casbin 实现 RBAC
 - Custos 不维护自定义 `roles/permissions` 表
 - Casbin `casbin_rule` 表存储角色和权限策略
@@ -54,6 +58,7 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
 - 未来：使用 Casbin 模型实现 ABAC
 
 ### 5. OAuth2.0 联邦（客户端姿态）
+
 - 作为 **OAuth2.0/OIDC 客户端** 集成外部 IdP（Google、GitHub、微信）
 - 实现回调端点：`/oauth/{provider}/callback`（授权码交换）
 - 将外部身份标准化到 `user_oauth`（一个用户可绑定多个提供商）
@@ -61,12 +66,14 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
 - **非目标**：不向第三方暴露 `/authorize` 或 `/token` 作为 IdP
 
 ### 6. 审计和可观测性
+
 - 登录事件（成功/失败、IP、UA）
 - 权限变更日志
 - 安全事件（强制登出、重复使用刷新令牌检测）
 - 导出到 MQ/ES/Prometheus
 
 ### 7. 身份链接和账户合并
+
 - 支持将多个外部身份（微信/google/github）绑定到单个本地用户
 - 提供**账户合并**流程（目标账户强重认证）：
   1) 验证主账户所有者；
@@ -75,6 +82,7 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
 - 在审计日志中记录绑定/解绑/合并事件
 
 ### 8. 内部令牌权威和密钥管理
+
 - Custos 是**内部令牌签发者**（调用 Mora `auth` 签名 JWT）
 - 提供服务验证的内部 **JWKS** 端点（Clotho/Orders/Payments）
 - 实现带 `kid` 的**密钥轮换**；旧密钥在退役前仍可用于验证
@@ -85,6 +93,7 @@ Custos 是 Fly 微服务架构中的**用户域服务**，负责用户身份管�
 ## 数据库架构（DDL）
 
 ### users 用户表
+
 ```sql
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,                           -- 用户ID，主键
@@ -109,6 +118,7 @@ CREATE INDEX idx_users_tenant ON users(tenant_id);
 ```
 
 ### user_profiles 用户资料表
+
 ```sql
 CREATE TABLE user_profiles (
     user_id BIGINT PRIMARY KEY,
@@ -122,6 +132,7 @@ CREATE TABLE user_profiles (
 ```
 
 ### user_oauth OAuth绑定表
+
 ```sql
 CREATE TABLE user_oauth (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,              -- 绑定记录ID
@@ -139,6 +150,7 @@ CREATE INDEX idx_user_oauth_user_provider ON user_oauth(user_id, provider);
 ```
 
 ### refresh_tokens 刷新令牌表
+
 ```sql
 CREATE TABLE refresh_tokens (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -152,6 +164,7 @@ CREATE TABLE refresh_tokens (
 ```
 
 ### sessions 会话表（可选但推荐）
+
 ```sql
 CREATE TABLE sessions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,                -- 会话记录ID
@@ -172,6 +185,7 @@ CREATE INDEX idx_sessions_user ON sessions(user_id);
 ```
 
 ### jwk_keys 密钥元数据表
+
 ```sql
 CREATE TABLE jwk_keys (
     kid VARCHAR(64) PRIMARY KEY,                         -- Key ID
@@ -233,6 +247,7 @@ docker-compose logs -f custos
 ### 环境配置
 
 #### 1. 数据库配置
+
 ```yaml
 # docker-compose.yaml 中的 MySQL 配置
 mysql:
@@ -244,6 +259,7 @@ mysql:
 ```
 
 #### 2. 应用配置
+
 ```yaml
 # custos 服务配置
 custos:
@@ -281,6 +297,7 @@ curl http://localhost:8081/health/redis
 ### 开发环境配置
 
 #### 1. 使用本地配置文件
+
 ```bash
 # 复制环境配置模板
 cp configs/local.env.example .env
@@ -291,6 +308,7 @@ vim .env
 ```
 
 #### 2. 热重载开发
+
 ```bash
 # 使用 make dev 命令（推荐）
 make dev
@@ -302,6 +320,7 @@ docker-compose -f docker-compose.dev.yaml up
 ### 生产环境部署
 
 #### 1. 环境变量配置
+
 ```bash
 # 设置生产环境变量
 export CUSTOS_APP_ENV=production
@@ -312,6 +331,7 @@ export CUSTOS_OAUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
 #### 2. 安全配置
+
 ```yaml
 # 生产环境 docker-compose.prod.yaml
 version: '3.8'
@@ -333,6 +353,7 @@ services:
 ### 故障排查
 
 #### 1. 服务启动失败
+
 ```bash
 # 查看详细错误日志
 docker-compose logs custos
@@ -344,6 +365,7 @@ netstat -tlnp | grep :6379
 ```
 
 #### 2. 数据库连接问题
+
 ```bash
 # 检查 MySQL 容器状态
 docker-compose exec mysql mysql -u root -p
@@ -353,6 +375,7 @@ docker-compose exec mysql mysql -u custos -p custos -e "SHOW TABLES;"
 ```
 
 #### 3. 配置问题
+
 ```bash
 # 验证配置文件语法
 docker-compose exec custos /app/userd config-validate
@@ -364,6 +387,7 @@ docker-compose exec custos /app/userd config-show
 ### 数据持久化
 
 数据目录映射：
+
 - **MySQL 数据**: `./mysql/data` → `/var/lib/mysql`
 - **Redis 数据**: `./redis/data` → `/data`
 - **配置文件**: `./configs` → `/app/configs`
@@ -371,6 +395,7 @@ docker-compose exec custos /app/userd config-show
 ### 性能优化
 
 #### 1. 资源限制
+
 ```yaml
 # 在 docker-compose.yaml 中添加资源限制
 services:
@@ -386,6 +411,7 @@ services:
 ```
 
 #### 2. 数据库优化
+
 ```yaml
 # MySQL 配置优化
 mysql:
@@ -415,6 +441,7 @@ docker-compose logs custos > custos.log
 ### ✅ 已完成功能（90%+）
 
 #### 🔐 核心认证系统
+
 - ✅ 用户名/邮箱/密码用户注册
 - ✅ JWT 访问/刷新令牌机制登录
 - ✅ bcrypt 密码哈希
@@ -423,6 +450,7 @@ docker-compose logs custos > custos.log
 - ✅ 登出和全部登出功能
 
 #### 🔒 安全实现
+
 - ✅ 可配置 TTL 的 JWT 令牌服务
 - ✅ 基于会话的访问控制
 - ✅ 认证中间件
@@ -430,6 +458,7 @@ docker-compose logs custos > custos.log
 - ✅ 全面的测试覆盖（13/13 测试通过）
 
 #### 👥 RBAC 和授权
+
 - ✅ Casbin 集成的基于角色的访问控制
 - ✅ 默认角色策略（admin、user、guest）
 - ✅ 端点保护的 RBAC 中间件
@@ -437,12 +466,14 @@ docker-compose logs custos > custos.log
 - ✅ 权限检查和验证
 
 #### 🔗 OAuth2.0 集成
+
 - ✅ Google/GitHub 提供商的 OAuth 服务架构
 - ✅ 带状态验证的授权 URL 生成
 - ✅ OAuth 回调处理和令牌交换
 - ✅ 用户账户链接基础设施
 
 #### 🗄️ 数据库和基础设施
+
 - ✅ 基于 DDD 原则的清洁架构
 - ✅ 使用 GORM 的 MySQL 持久化层
 - ✅ 使用 sql-migrate 的数据库迁移
@@ -451,6 +482,7 @@ docker-compose logs custos > custos.log
 - ✅ 健康检查端点
 
 #### 🛠️ 开发和测试
+
 - ✅ 全面的单元测试套件
 - ✅ 测试用模拟仓储
 - ✅ Go 模块和依赖管理
@@ -458,6 +490,7 @@ docker-compose logs custos > custos.log
 - ✅ Gin Web 框架集成
 
 ### 🔧 当前技术状态
+
 - **构建状态**: ✅ 所有模块编译成功
 - **测试状态**: ✅ 13/13 测试通过
 - **代码质量**: ✅ 无 linting 错误，go vet 干净
@@ -466,6 +499,7 @@ docker-compose logs custos > custos.log
 ### 📋 待完成实现任务
 
 #### 🔴 高优先级
+
 1. **刷新令牌实体集成**
    - 完成 RefreshToken 实体实现
    - 修复会话仓储中的 TODOs（GetByRefreshTokenHash、UpdateRefreshToken）
@@ -488,39 +522,42 @@ docker-compose logs custos > custos.log
    - 位置：`internal/interface/http/handler/oauth.go:170-189`
 
 #### 🟡 中等优先级
-4. **用户资料管理**
+
+1. **用户资料管理**
    - 实现用户资料 CRUD 操作
    - 完成用户资料实体方法
    - 位置：`internal/domain/entity/user.go:87`
 
-5. **OAuth 用例**
+2. **OAuth 用例**
    - 完成 OAuth 用例实现
    - 移除占位符返回
    - 位置：`internal/application/usecase/oauth/oauth.go:74`
 
-6. **会话清理**
+3. **会话清理**
    - 实现过期令牌的会话清理
    - 完成会话仓储清理逻辑
    - 位置：`internal/domain/service/auth/auth_test.go:110`
 
 #### 🟢 低优先级
-7. **高级安全功能**
+
+1. **高级安全功能**
    - 实现 2FA/MFA 支持
    - 添加登录失败限制
    - 实现异常登录检测
    - 添加全面的审计日志
 
-8. **密钥管理**
+2. **密钥管理**
    - 实现 JWKS 密钥轮换
    - 完成密钥元数据管理
    - 实现密钥退役策略
 
-9. **账户管理**
+3. **账户管理**
    - 实现账户合并功能
    - 添加身份链接功能
    - 实现账户迁移工具
 
 ### 📊 完成度指标
+
 - **核心认证**: 100% ✅
 - **RBAC 系统**: 100% ✅
 - **OAuth 基础设施**: 85% 🔶
@@ -530,6 +567,7 @@ docker-compose logs custos > custos.log
 - **测试覆盖**: 95% ✅
 
 ### 🎯 下个冲刺目标
+
 1. 完成刷新令牌实体集成（2-3 天）
 2. 实现剩余管理员管理 API（3-4 天）
 3. 完成 OAuth 账户绑定功能（2-3 天）
@@ -543,7 +581,7 @@ docker-compose logs custos > custos.log
 
 ### 项目结构
 
-```
+```text
 custos/
 ├── cmd/
 │   └── userd/                 # 主应用程序入口点
@@ -653,4 +691,6 @@ custos/
 
 ---
 
-*最后更新：2025-01-27*
+## 最后更新
+
+2025-01-27

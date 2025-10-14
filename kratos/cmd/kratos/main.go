@@ -1,14 +1,24 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/julesChu12/fly/kratos/api/proto/order/v1"
 	"github.com/julesChu12/fly/kratos/internal/application/service"
 	"github.com/julesChu12/fly/kratos/internal/infrastructure/database"
+	grpcInterface "github.com/julesChu12/fly/kratos/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/kratos/internal/interface/http"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -50,17 +60,94 @@ func main() {
 	// Initialize services
 	orderService := service.NewOrderService(orderRepo, orderItemRepo, statusLogRepo, auditRepo)
 
-	// Initialize HTTP router
+	// Start servers
+	httpServer, grpcServer := startServers(config, orderService)
+
+	// Wait for interrupt signal to gracefully shutdown the servers
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down servers...")
+
+	// Graceful shutdown with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Shutdown HTTP server
+	if err := httpServer.Shutdown(ctx); err != nil {
+		log.Printf("HTTP server forced to shutdown: %v", err)
+	} else {
+		log.Println("HTTP server stopped gracefully")
+	}
+
+	// Graceful stop gRPC server
+	stopped := make(chan struct{})
+	go func() {
+		grpcServer.GracefulStop()
+		close(stopped)
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.Println("gRPC server shutdown timeout, forcing stop")
+		grpcServer.Stop()
+	case <-stopped:
+		log.Println("gRPC server stopped gracefully")
+	}
+
+	log.Println("Servers exited")
+}
+
+func startServers(config *Config, orderService service.OrderService) (*http.Server, *grpc.Server) {
+	// Start HTTP server
 	router := httpInterface.NewRouter(orderService)
 	engine := router.SetupRoutes()
 
-	// Start server
-	serverAddr := fmt.Sprintf(":%d", config.Server.HTTPPort)
-	log.Printf("Starting Kratos server on %s", serverAddr)
-
-	if err := http.ListenAndServe(serverAddr, engine); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	httpAddr := fmt.Sprintf(":%d", config.Server.HTTPPort)
+	httpServer := &http.Server{
+		Addr:    httpAddr,
+		Handler: engine,
 	}
+
+	go func() {
+		log.Printf("Starting HTTP server on %s", httpAddr)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server failed: %v", err)
+		}
+	}()
+
+	// Start gRPC server
+	grpcAddr := fmt.Sprintf(":%d", config.Server.GRPCPort)
+	lis, err := net.Listen("tcp", grpcAddr)
+	if err != nil {
+		log.Fatalf("Failed to listen on %s: %v", grpcAddr, err)
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			grpcInterface.UnaryServerInterceptor(),
+			grpcInterface.ContextInjectorInterceptor(),
+		),
+	)
+
+	// Register gRPC services
+	orderv1.RegisterOrderServiceServer(grpcServer, grpcInterface.NewOrderServiceServer(orderService))
+
+	// Register reflection service on gRPC server (for grpcurl, etc.)
+	reflection.Register(grpcServer)
+
+	go func() {
+		log.Printf("Starting gRPC server on %s", grpcAddr)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("gRPC server failed: %v", err)
+		}
+	}()
+
+	// Give servers time to start
+	time.Sleep(100 * time.Millisecond)
+
+	return httpServer, grpcServer
 }
 
 type Config struct {
