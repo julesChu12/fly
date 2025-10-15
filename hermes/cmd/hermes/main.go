@@ -4,23 +4,9 @@ package main
 
 import (
 	"log"
-	"net"
 	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/gin-gonic/gin"
-	pb "github.com/julesChu12/fly/hermes/api/proto"
-	"github.com/julesChu12/fly/hermes/internal/application/service"
-	"github.com/julesChu12/fly/hermes/internal/domain/repository"
-	"github.com/julesChu12/fly/hermes/internal/infrastructure/database"
-	"github.com/julesChu12/fly/hermes/internal/interface/grpc"
-	"github.com/julesChu12/fly/hermes/internal/interface/http"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	grpcLib "google.golang.org/grpc"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"github.com/julesChu12/fly/hermes/cmd/hermes/cmd"
 )
 
 // @title Hermes Customer Service API
@@ -35,138 +21,15 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host localhost:8083
+// @host localhost:8080
 // @BasePath /api
 
 // @tag.name 客户管理
 // @tag.description 客户信息管理相关接口
 
 func main() {
-	log.Println("Starting Hermes Customer Service...")
-
-	// 初始化数据库连接
-	db, err := initDatabase()
-	if err != nil {
-		log.Fatal("Failed to connect database:", err)
+	if err := cmd.Execute(); err != nil {
+		log.Println(err)
+		os.Exit(1)
 	}
-
-	// 初始化Repository层
-	customerRepo := database.NewCustomerRepository(db)
-	contactRepo := database.NewContactRepository(db)
-
-	// 初始化Service层
-	customerService := service.NewCustomerService(customerRepo, contactRepo)
-	contactService := service.NewContactService(contactRepo)
-
-	// 启动HTTP服务器
-	go func() {
-		if err := startHTTPServer(customerService, contactService); err != nil {
-			log.Fatal("HTTP server failed:", err)
-		}
-	}()
-
-	// 启动gRPC服务器
-	go func() {
-		if err := startGRPCServer(customerService, contactRepo); err != nil {
-			log.Fatal("gRPC server failed:", err)
-		}
-	}()
-
-	// 优雅关闭
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Println("Shutting down Hermes service...")
-
-	// 关闭数据库连接
-	sqlDB, err := db.DB()
-	if err == nil {
-		sqlDB.Close()
-	}
-
-	log.Println("Hermes service stopped")
-}
-
-// initDatabase 初始化数据库连接
-func initDatabase() (*gorm.DB, error) {
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		dsn = "root:password@tcp(localhost:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local"
-	}
-
-	return gorm.Open(mysql.Open(dsn), &gorm.Config{})
-}
-
-// startHTTPServer 启动HTTP服务器，提供REST API和Swagger文档
-func startHTTPServer(customerService service.CustomerService, contactService service.ContactService) error {
-	r := gin.New()
-
-	// 添加中间件
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
-
-	// 添加CORS中间件
-	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	})
-
-	// 健康检查接口
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"service": "hermes",
-		})
-	})
-
-	// API路由组
-	api := r.Group("/api")
-	customerHandler := http.NewCustomerHandler(customerService)
-	customerHandler.RegisterRoutes(api)
-
-	contactHandler := http.NewContactHandler(contactService)
-	contactHandler.RegisterRoutes(api)
-
-	// Swagger文档
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("HTTP server starting on port %s", port)
-	return r.Run(":" + port)
-}
-
-// startGRPCServer 启动gRPC服务器
-func startGRPCServer(customerService service.CustomerService, contactRepo repository.ContactRepository) error {
-	port := os.Getenv("GRPC_PORT")
-	if port == "" {
-		port = "9080"
-	}
-
-	lis, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		return err
-	}
-
-	s := grpcLib.NewServer()
-
-	// 注册gRPC服务
-	customerHandler := grpc.NewCustomerGRPCHandler(customerService)
-	pb.RegisterCustomerServiceServer(s, customerHandler)
-
-	contactHandler := grpc.NewContactGRPCHandler(contactRepo)
-	pb.RegisterContactServiceServer(s, contactHandler)
-
-	log.Printf("gRPC server starting on port %s", port)
-	return s.Serve(lis)
 }
