@@ -20,18 +20,69 @@ Hermes是Fly平台的客户管理服务，提供客户信息和联系方式的�
 - **API文档**: Swagger/OpenAPI 3.0文档
 - **健康检查**: 完善的服务健康检查机制
 
+## 🗄️ 数据库设计（MySQL）
+
+详见 `configs/migrations/001_initial_schema.sql`
+
+### customers (客户表)
+
+```sql
+CREATE TABLE customers (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL COMMENT '租户ID（多租户隔离）',
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(255),
+    tags TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_tenant (tenant_id),
+    INDEX idx_phone (phone),
+    INDEX idx_email (email),
+    UNIQUE KEY uk_tenant_email (tenant_id, email)
+);
+```
+
+- **多租户隔离**：通过 `tenant_id` 实现数据隔离
+- **唯一约束**：每个租户内 email 唯一
+- **索引优化**：对租户、手机号、邮箱建立索引
+
+### contacts (联系方式表)
+
+```sql
+CREATE TABLE contacts (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL COMMENT '租户ID（多租户隔离）',
+    customer_id INT UNSIGNED NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_tenant (tenant_id),
+    INDEX idx_customer_id (customer_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+);
+```
+
+- **联系方式类型**：支持电话、邮箱、地址、微信等多种类型
+- **主联系方式**：`is_primary` 标记主要联系方式
+- **级联删除**：删除客户时自动删除关联的联系方式
+
+---
+
 ## 📋 API接口
 
 ### HTTP REST API
 
-| 方法 | 路径 | 描述 |
-|------|------|------|
-| POST | `/api/customers` | 创建客户 |
-| GET | `/api/customers/{id}` | 获取客户信息 |
-| GET | `/api/customers/{id}/contacts` | 获取客户及联系方式 |
-| PUT | `/api/customers/{id}` | 更新客户信息 |
-| DELETE | `/api/customers/{id}` | 删除客户 |
-| GET | `/api/customers` | 客户列表查询 |
+| 方法 | 路径 | 描述 | 状态 |
+|------|------|------|------|
+| POST | `/api/customers` | 创建客户 | ✅ 已实现 |
+| GET | `/api/customers/{id}` | 获取客户信息 | ✅ 已实现 |
+| GET | `/api/customers/{id}/contacts` | 获取客户及联系方式 | ✅ 已实现 |
+| PUT | `/api/customers/{id}` | 更新客户信息 | ✅ 已实现 |
+| DELETE | `/api/customers/{id}` | 删除客户 | ✅ 已实现 |
+| GET | `/api/customers` | 客户列表查询（分页） | ✅ 已实现 |
 
 ### gRPC 接口
 
@@ -181,7 +232,171 @@ make test-integration
 
 # 生成测试覆盖率报告
 make test-coverage
+
+# 查看覆盖率报告
+open coverage.html
 ```
+
+---
+
+## 🔌 API 使用示例
+
+### 创建客户
+
+```bash
+curl -X POST http://localhost:8080/api/customers \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "name": "张三",
+    "phone": "13800138000",
+    "email": "zhangsan@example.com",
+    "tags": "VIP,企业客户"
+  }'
+
+# 响应示例
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "tenant_id": 1,
+    "name": "张三",
+    "phone": "13800138000",
+    "email": "zhangsan@example.com",
+    "tags": "VIP,企业客户",
+    "created_at": "2025-01-15T10:30:00Z",
+    "updated_at": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+### 获取客户信息
+
+```bash
+curl -X GET http://localhost:8080/api/customers/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 获取客户及联系方式
+
+```bash
+curl -X GET http://localhost:8080/api/customers/1/contacts \
+  -H "Authorization: Bearer $TOKEN"
+
+# 响应示例
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "customer": {
+      "id": 1,
+      "name": "张三",
+      "phone": "13800138000",
+      "email": "zhangsan@example.com"
+    },
+    "contacts": [
+      {
+        "id": 1,
+        "customer_id": 1,
+        "type": "phone",
+        "value": "13800138000",
+        "is_primary": true
+      },
+      {
+        "id": 2,
+        "customer_id": 1,
+        "type": "email",
+        "value": "zhangsan@example.com",
+        "is_primary": true
+      }
+    ]
+  }
+}
+```
+
+### 更新客户信息
+
+```bash
+curl -X PUT http://localhost:8080/api/customers/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "name": "张三（更新）",
+    "phone": "13900139000",
+    "tags": "VVIP,企业客户,长期合作"
+  }'
+```
+
+### 客户列表查询
+
+```bash
+# 分页查询
+curl -X GET "http://localhost:8080/api/customers?page=1&page_size=20" \
+  -H "Authorization: Bearer $TOKEN"
+
+# 按手机号查询
+curl -X GET "http://localhost:8080/api/customers?phone=138" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 删除客户
+
+```bash
+curl -X DELETE http://localhost:8080/api/customers/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+---
+
+## 📊 实现状态
+
+### ✅ 已完成 (95%)
+
+#### 核心功能
+- ✅ 客户 CRUD 完整实现
+- ✅ 联系方式管理
+- ✅ 多租户数据隔离
+- ✅ 分页查询支持
+- ✅ 数据校验和业务规则检查
+
+#### API 接口
+- ✅ HTTP REST API 完整实现
+- ✅ gRPC API 接口定义和实现
+- ✅ Swagger API 文档生成
+- ✅ JWT 认证集成
+
+#### 数据层
+- ✅ MySQL 数据库集成
+- ✅ Redis 缓存支持
+- ✅ 数据库迁移脚本
+- ✅ 完整的数据库 Schema
+
+#### 可观测性
+- ✅ OpenTelemetry 链路追踪集成
+- ✅ Prometheus 指标收集
+- ✅ 结构化日志输出
+- ✅ 健康检查端点
+
+#### 分布式特性
+- ✅ DTM 分布式事务集成
+- ✅ Redis 缓存策略
+- ✅ gRPC 服务间通信
+
+#### 部署
+- ✅ Dockerfile
+- ✅ Makefile 构建工具
+- ✅ 配置文件管理
+
+### 🔧 待完善 (5%)
+
+- ⏳ 客户标签管理功能增强
+- ⏳ 客户分组和批量操作
+- ⏳ 更多联系方式类型支持
+- ⏳ 客户画像和分析功能
+- ⏳ 性能压测报告
+
+---
 
 ## 📖 文档
 
