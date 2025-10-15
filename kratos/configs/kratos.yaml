@@ -21,15 +21,10 @@ database:
 
 # 缓存配置
 cache:
-  driver: "redis"
+  enabled: false
   address: "localhost:6379"
-  password: ""
   db: 0
-  pool_size: 10
-  min_idle_conns: 5
-  dial_timeout: 5s
-  read_timeout: 3s
-  write_timeout: 3s
+  ttl: 5m
 
 # 日志配置
 logger:
@@ -81,4 +76,5 @@ rate_limit:
 auth:
   jwt_secret: "your-jwt-secret-key"
   token_expire: 3600s
-  custos_endpoint: "localhost:8081"
+  custos_endpoint: "localhost:50051"  # Custos gRPC 端口
+  skip_paths: ["/health", "/ready", "/metrics", "/swagger/*"]

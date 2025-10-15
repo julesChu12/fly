@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -123,6 +124,39 @@ func (h *OrderHandler) GetOrderWithItems(c *gin.Context) {
 	})
 }
 
+// @Summary Get order logs
+// @Description Get status change logs for an order
+// @Tags orders
+// @Produce json
+// @Param id path int true "Order ID"
+// @Success 200 {object} types.Response{data=[]types.OrderStatusLogResponse}
+// @Failure 400 {object} types.Response
+// @Failure 401 {object} types.Response
+// @Failure 404 {object} types.Response
+// @Failure 500 {object} types.Response
+// @Router /api/orders/{id}/logs [get]
+func (h *OrderHandler) GetOrderLogs(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		h.handleError(c, errors.ErrInvalidRequest)
+		return
+	}
+
+	ctx := h.addContextFromHeaders(c)
+
+	logs, err := h.orderService.GetOrderLogs(ctx, uint(id))
+	if err != nil {
+		h.handleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, types.Response{
+		Code:    errors.CodeSuccess,
+		Message: "Order logs retrieved successfully",
+		Data:    logs,
+	})
+}
+
 // @Summary Update order status
 // @Description Update order status
 // @Tags orders
@@ -235,27 +269,58 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 }
 
 // Helper methods
-func (h *OrderHandler) addContextFromHeaders(c *gin.Context) *gin.Context {
+func (h *OrderHandler) addContextFromHeaders(c *gin.Context) context.Context {
+	ctx := c.Request.Context()
+
 	// Add tenant ID
+	if value, exists := c.Get(constants.ContextKeyTenantID); exists {
+		switch v := value.(type) {
+		case uint:
+			ctx = context.WithValue(ctx, constants.ContextKeyTenantID, v)
+		case int:
+			ctx = context.WithValue(ctx, constants.ContextKeyTenantID, uint(v))
+		case string:
+			if tenantID, err := strconv.ParseUint(v, 10, 32); err == nil {
+				ctx = context.WithValue(ctx, constants.ContextKeyTenantID, uint(tenantID))
+			}
+		}
+	}
+
 	if tenantIDStr := c.GetHeader(constants.HeaderTenantID); tenantIDStr != "" {
 		if tenantID, err := strconv.ParseUint(tenantIDStr, 10, 32); err == nil {
 			c.Set(constants.ContextKeyTenantID, uint(tenantID))
+			ctx = context.WithValue(ctx, constants.ContextKeyTenantID, uint(tenantID))
 		}
 	}
 
 	// Add user ID
+	if value, exists := c.Get(constants.ContextKeyUserID); exists {
+		switch v := value.(type) {
+		case uint:
+			ctx = context.WithValue(ctx, constants.ContextKeyUserID, v)
+		case int:
+			ctx = context.WithValue(ctx, constants.ContextKeyUserID, uint(v))
+		case string:
+			if userID, err := strconv.ParseUint(v, 10, 32); err == nil {
+				ctx = context.WithValue(ctx, constants.ContextKeyUserID, uint(userID))
+			}
+		}
+	}
+
 	if userIDStr := c.GetHeader(constants.HeaderUserID); userIDStr != "" {
 		if userID, err := strconv.ParseUint(userIDStr, 10, 32); err == nil {
 			c.Set(constants.ContextKeyUserID, uint(userID))
+			ctx = context.WithValue(ctx, constants.ContextKeyUserID, uint(userID))
 		}
 	}
 
 	// Add trace ID
 	if traceID := c.GetHeader(constants.HeaderTraceID); traceID != "" {
 		c.Set(constants.ContextKeyTraceID, traceID)
+		ctx = context.WithValue(ctx, constants.ContextKeyTraceID, traceID)
 	}
 
-	return c
+	return ctx
 }
 
 func (h *OrderHandler) handleError(c *gin.Context, err error) {

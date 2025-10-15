@@ -21,8 +21,10 @@ func NewOrderCache(redisAddr string, db int) (*OrderCache, error) {
 	}
 
 	client := cache.New(cfg)
+
+	// Test connection
 	if err := client.Ping(context.Background()); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
 	return &OrderCache{client: client}, nil

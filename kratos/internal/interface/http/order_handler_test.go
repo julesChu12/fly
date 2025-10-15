@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/kratos/internal/domain/entity"
@@ -102,7 +103,14 @@ func (m *MockOrderService) ListOrders(ctx context.Context, req *types.ListOrders
 }
 
 func (m *MockOrderService) GetOrderLogs(ctx context.Context, orderID uint) ([]types.OrderStatusLogResponse, error) {
-	return []types.OrderStatusLogResponse{}, nil
+	return []types.OrderStatusLogResponse{
+		{
+			ID:        1,
+			OrderID:   orderID,
+			ToStatus:  entity.OrderStatusPending,
+			CreatedAt: time.Now(),
+		},
+	}, nil
 }
 
 func TestCreateOrder(t *testing.T) {
@@ -228,6 +236,34 @@ func TestGetOrderWithItems(t *testing.T) {
 	items := orderData["items"]
 	if items == nil {
 		t.Error("Expected items to be included in response")
+	}
+}
+
+func TestGetOrderLogs(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/api/orders/1/logs", nil)
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+	c.Request.Header.Set("X-Tenant-ID", "1")
+
+	handler.GetOrderLogs(c)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status code %d, got %d", http.StatusOK, w.Code)
+	}
+
+	var response types.Response
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	if response.Code != 0 {
+		t.Fatalf("Expected response code 0, got %d", response.Code)
 	}
 }
 

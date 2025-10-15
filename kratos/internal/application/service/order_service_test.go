@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/julesChu12/fly/kratos/internal/domain/entity"
 	"github.com/julesChu12/fly/kratos/pkg/constants"
@@ -13,8 +15,9 @@ import (
 
 // Mock repositories for testing
 type MockOrderRepository struct {
-	orders map[uint]*entity.Order
-	nextID uint
+	orders       map[uint]*entity.Order
+	nextID       uint
+	getByIDCalls int
 }
 
 func NewMockOrderRepository() *MockOrderRepository {
@@ -32,6 +35,7 @@ func (m *MockOrderRepository) Create(ctx context.Context, order *entity.Order) e
 }
 
 func (m *MockOrderRepository) GetByID(ctx context.Context, id uint) (*entity.Order, error) {
+	m.getByIDCalls++
 	order, exists := m.orders[id]
 	if !exists {
 		return nil, errors.ErrOrderNotFound
@@ -79,6 +83,10 @@ func (m *MockOrderRepository) Delete(ctx context.Context, id uint) error {
 	}
 	delete(m.orders, id)
 	return nil
+}
+
+func (m *MockOrderRepository) CallsToGetByID() int {
+	return m.getByIDCalls
 }
 
 func (m *MockOrderRepository) List(ctx context.Context, tenantID uint, offset, limit int) ([]*entity.Order, int64, error) {
@@ -288,6 +296,38 @@ func (m *MockOrderAuditRepository) List(ctx context.Context, offset, limit int) 
 	return m.audits[start:end], nil
 }
 
+type mockOrderCache struct {
+	data map[string][]byte
+}
+
+func newMockOrderCache() *mockOrderCache {
+	return &mockOrderCache{
+		data: make(map[string][]byte),
+	}
+}
+
+func (m *mockOrderCache) Get(ctx context.Context, key string, dest interface{}) error {
+	payload, ok := m.data[key]
+	if !ok {
+		return fmt.Errorf("cache miss")
+	}
+	return json.Unmarshal(payload, dest)
+}
+
+func (m *mockOrderCache) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	bytes, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	m.data[key] = bytes
+	return nil
+}
+
+func (m *mockOrderCache) Delete(ctx context.Context, key string) error {
+	delete(m.data, key)
+	return nil
+}
+
 // Test cases
 func TestOrderService_CreateOrder(t *testing.T) {
 	orderRepo := NewMockOrderRepository()
@@ -396,6 +436,82 @@ func TestOrderService_GetOrder(t *testing.T) {
 
 	if order.ID != created.ID {
 		t.Errorf("Expected order ID %d, got %d", created.ID, order.ID)
+	}
+}
+
+func TestOrderService_GetOrder_UsesCache(t *testing.T) {
+	orderRepo := NewMockOrderRepository()
+	itemRepo := NewMockOrderItemRepository()
+	statusRepo := NewMockOrderStatusLogRepository()
+	auditRepo := NewMockOrderAuditRepository()
+	cache := newMockOrderCache()
+
+	order := &entity.Order{
+		ID:          1,
+		TenantID:    1,
+		OrderNo:     "ORD001",
+		CustomerID:  1,
+		TotalAmount: 100,
+		Currency:    "CNY",
+		Status:      entity.OrderStatusPending,
+	}
+	orderRepo.orders[order.ID] = order
+
+	service := NewOrderService(orderRepo, itemRepo, statusRepo, auditRepo, WithOrderCache(cache, time.Minute))
+
+	ctx := context.Background()
+
+	if _, err := service.GetOrder(ctx, order.ID); err != nil {
+		t.Fatalf("expected first fetch to succeed: %v", err)
+	}
+	if _, err := service.GetOrder(ctx, order.ID); err != nil {
+		t.Fatalf("expected cached fetch to succeed: %v", err)
+	}
+
+	if got := orderRepo.CallsToGetByID(); got != 1 {
+		t.Fatalf("expected repository to be hit once, got %d", got)
+	}
+}
+
+func TestOrderService_GetOrderLogs(t *testing.T) {
+	orderRepo := NewMockOrderRepository()
+	itemRepo := NewMockOrderItemRepository()
+	statusRepo := NewMockOrderStatusLogRepository()
+	auditRepo := NewMockOrderAuditRepository()
+	service := NewOrderService(orderRepo, itemRepo, statusRepo, auditRepo)
+
+	order := &entity.Order{
+		ID:          1,
+		TenantID:    42,
+		OrderNo:     "ORD001",
+		CustomerID:  1,
+		TotalAmount: 123,
+		Currency:    "CNY",
+		Status:      entity.OrderStatusPending,
+	}
+	orderRepo.orders[order.ID] = order
+
+	logEntry := &entity.OrderStatusLog{
+		TenantID:  order.TenantID,
+		OrderID:   order.ID,
+		ToStatus:  entity.OrderStatusPending,
+		Reason:    "created",
+		CreatedAt: time.Now(),
+	}
+	if err := statusRepo.Create(context.Background(), logEntry); err != nil {
+		t.Fatalf("failed to seed log: %v", err)
+	}
+
+	ctx := context.WithValue(context.Background(), constants.ContextKeyTenantID, order.TenantID)
+	logs, err := service.GetOrderLogs(ctx, order.ID)
+	if err != nil {
+		t.Fatalf("expected logs to be returned: %v", err)
+	}
+	if len(logs) != 1 {
+		t.Fatalf("expected 1 log, got %d", len(logs))
+	}
+	if logs[0].Reason != "created" {
+		t.Fatalf("unexpected log reason: %s", logs[0].Reason)
 	}
 }
 

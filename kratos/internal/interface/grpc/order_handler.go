@@ -188,29 +188,10 @@ func (s *OrderServiceServer) GetOrderLogs(ctx context.Context, req *orderv1.GetO
 		return nil, convertError(err)
 	}
 
-	// Convert to protobuf
 	protoLogs := make([]*orderv1.OrderStatusLog, len(logs))
-	for i, log := range logs {
-		protoLog := &orderv1.OrderStatusLog{
-			Id:        uint64(log.ID),
-			TenantId:  uint64(log.TenantID),
-			OrderId:   uint64(log.OrderID),
-			ToStatus:  toProtoOrderStatus(log.ToStatus),
-			Reason:    log.Reason,
-			CreatedAt: timestamppb.New(log.CreatedAt),
-		}
-
-		if log.FromStatus != nil {
-			fromStatus := toProtoOrderStatus(*log.FromStatus)
-			protoLog.FromStatus = &fromStatus
-		}
-
-		if log.OperatorID != nil {
-			operatorID := uint64(*log.OperatorID)
-			protoLog.OperatorId = &operatorID
-		}
-
-		protoLogs[i] = protoLog
+	for i := range logs {
+		log := logs[i]
+		protoLogs[i] = toProtoOrderStatusLog(&log)
 	}
 
 	return &orderv1.GetOrderLogsResponse{
@@ -287,6 +268,31 @@ func toEntityOrderStatus(status orderv1.OrderStatus) entity.OrderStatus {
 	}
 }
 
+func toProtoOrderStatusLog(log *types.OrderStatusLogResponse) *orderv1.OrderStatusLog {
+	var fromStatus *orderv1.OrderStatus
+	if log.FromStatus != nil {
+		status := toProtoOrderStatus(*log.FromStatus)
+		fromStatus = &status
+	}
+
+	var operatorID *uint64
+	if log.OperatorID != nil {
+		id := uint64(*log.OperatorID)
+		operatorID = &id
+	}
+
+	return &orderv1.OrderStatusLog{
+		Id:         uint64(log.ID),
+		TenantId:   uint64(log.TenantID),
+		OrderId:    uint64(log.OrderID),
+		FromStatus: fromStatus,
+		ToStatus:   toProtoOrderStatus(log.ToStatus),
+		Reason:     log.Reason,
+		OperatorId: operatorID,
+		CreatedAt:  timestamppb.New(log.CreatedAt),
+	}
+}
+
 func convertError(err error) error {
 	switch {
 	case err == errors.ErrUnauthorized:
@@ -309,6 +315,8 @@ func convertError(err error) error {
 		return status.Error(codes.FailedPrecondition, "Order cannot be modified")
 	case err == errors.ErrInvalidRequest:
 		return status.Error(codes.InvalidArgument, "Invalid request")
+	case err == errors.ErrForbidden:
+		return status.Error(codes.PermissionDenied, err.Error())
 	default:
 		return status.Error(codes.Internal, "Internal server error")
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/julesChu12/fly/kratos/internal/domain/entity"
 	"github.com/julesChu12/fly/kratos/internal/domain/repository"
@@ -11,6 +12,27 @@ import (
 	"github.com/julesChu12/fly/kratos/pkg/errors"
 	"github.com/julesChu12/fly/kratos/pkg/types"
 )
+
+// OrderCache abstracts the cache client used by the service.
+type OrderCache interface {
+	Get(ctx context.Context, key string, dest interface{}) error
+	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
+	Delete(ctx context.Context, key string) error
+}
+
+// Option configures optional behaviour for orderService.
+type Option func(*orderService)
+
+// WithOrderCache enables read-through caching for order payloads.
+func WithOrderCache(cache OrderCache, ttl time.Duration) Option {
+	return func(s *orderService) {
+		s.orderCache = cache
+		if ttl <= 0 {
+			ttl = 5 * time.Minute
+		}
+		s.orderCacheTTL = ttl
+	}
+}
 
 type OrderService interface {
 	CreateOrder(ctx context.Context, req *types.CreateOrderRequest) (*types.OrderResponse, error)
@@ -27,6 +49,8 @@ type orderService struct {
 	orderItemRepo repository.OrderItemRepository
 	statusLogRepo repository.OrderStatusLogRepository
 	auditRepo     repository.OrderAuditRepository
+	orderCache    OrderCache
+	orderCacheTTL time.Duration
 }
 
 func NewOrderService(
@@ -34,13 +58,17 @@ func NewOrderService(
 	orderItemRepo repository.OrderItemRepository,
 	statusLogRepo repository.OrderStatusLogRepository,
 	auditRepo repository.OrderAuditRepository,
+	opts ...Option,
 ) OrderService {
-	return &orderService{
+	service := &orderService{
 		orderRepo:     orderRepo,
 		orderItemRepo: orderItemRepo,
 		statusLogRepo: statusLogRepo,
 		auditRepo:     auditRepo,
+		orderCacheTTL: 5 * time.Minute,
 	}
+
+	return service.applyOptions(opts...)
 }
 
 func (s *orderService) CreateOrder(ctx context.Context, req *types.CreateOrderRequest) (*types.OrderResponse, error) {
@@ -134,19 +162,31 @@ func (s *orderService) CreateOrder(ctx context.Context, req *types.CreateOrderRe
 		// Don't fail the request if audit fails
 	}
 
-	return s.toOrderResponse(order), nil
+	resp := s.toOrderResponse(order)
+	s.cacheOrder(ctx, resp)
+	return resp, nil
 }
 
 func (s *orderService) GetOrder(ctx context.Context, id uint) (*types.OrderResponse, error) {
+	if cached, found := s.getOrderFromCache(ctx, id); found {
+		return cached, nil
+	}
+
 	order, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.toOrderResponse(order), nil
+	resp := s.toOrderResponse(order)
+	s.cacheOrder(ctx, resp)
+	return resp, nil
 }
 
 func (s *orderService) GetOrderWithItems(ctx context.Context, id uint) (*types.OrderResponse, error) {
+	if cached, found := s.getOrderFromCache(ctx, id); found && len(cached.Items) > 0 {
+		return cached, nil
+	}
+
 	order, err := s.orderRepo.GetWithItems(ctx, id)
 	if err != nil {
 		return nil, err
@@ -158,6 +198,23 @@ func (s *orderService) GetOrderWithItems(ctx context.Context, id uint) (*types.O
 		resp.Items[i] = s.toOrderItemResponse(&item)
 	}
 
+	logs, err := s.statusLogRepo.GetByOrderID(ctx, order.ID)
+	if err == nil {
+		resp.StatusLogs = make([]types.OrderStatusLogResponse, len(logs))
+		for i, log := range logs {
+			resp.StatusLogs[i] = s.toOrderStatusLogResponse(log)
+		}
+	}
+
+	audits, err := s.auditRepo.GetByOrderID(ctx, order.ID)
+	if err == nil {
+		resp.Audits = make([]types.OrderAuditResponse, len(audits))
+		for i, audit := range audits {
+			resp.Audits[i] = s.toOrderAuditResponse(audit)
+		}
+	}
+
+	s.cacheOrder(ctx, resp)
 	return resp, nil
 }
 
@@ -211,12 +268,27 @@ func (s *orderService) UpdateOrderStatus(ctx context.Context, id uint, req *type
 	}
 
 	// Get updated order
-	updatedOrder, err := s.orderRepo.GetByID(ctx, id)
+	updatedOrder, err := s.orderRepo.GetWithItems(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.toOrderResponse(updatedOrder), nil
+	resp := s.toOrderResponse(updatedOrder)
+	resp.Items = make([]types.OrderItemResponse, len(updatedOrder.Items))
+	for i, item := range updatedOrder.Items {
+		resp.Items[i] = s.toOrderItemResponse(&item)
+	}
+
+	updatedLogs, err := s.statusLogRepo.GetByOrderID(ctx, id)
+	if err == nil {
+		resp.StatusLogs = make([]types.OrderStatusLogResponse, len(updatedLogs))
+		for i, log := range updatedLogs {
+			resp.StatusLogs[i] = s.toOrderStatusLogResponse(log)
+		}
+	}
+
+	s.cacheOrder(ctx, resp)
+	return resp, nil
 }
 
 func (s *orderService) DeleteOrder(ctx context.Context, id uint) error {
@@ -231,6 +303,7 @@ func (s *orderService) DeleteOrder(ctx context.Context, id uint) error {
 		return errors.ErrOrderCannotBeModified
 	}
 
+	defer s.invalidateOrderCache(ctx, id)
 	return s.orderRepo.Delete(ctx, id)
 }
 
@@ -285,31 +358,28 @@ func (s *orderService) ListOrders(ctx context.Context, req *types.ListOrdersRequ
 }
 
 func (s *orderService) GetOrderLogs(ctx context.Context, orderID uint) ([]types.OrderStatusLogResponse, error) {
-	// Verify order exists and user has access
-	_, err := s.orderRepo.GetByID(ctx, orderID)
+	tenantID, ok := ctx.Value(constants.ContextKeyTenantID).(uint)
+	if !ok {
+		return nil, errors.ErrUnauthorized
+	}
+
+	order, err := s.orderRepo.GetByID(ctx, orderID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get status logs
+	if order.TenantID != tenantID {
+		return nil, errors.ErrForbidden
+	}
+
 	logs, err := s.statusLogRepo.GetByOrderID(ctx, orderID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert to response type
 	responses := make([]types.OrderStatusLogResponse, len(logs))
 	for i, log := range logs {
-		responses[i] = types.OrderStatusLogResponse{
-			ID:         log.ID,
-			TenantID:   log.TenantID,
-			OrderID:    log.OrderID,
-			FromStatus: log.FromStatus,
-			ToStatus:   log.ToStatus,
-			Reason:     log.Reason,
-			OperatorID: log.OperatorID,
-			CreatedAt:  log.CreatedAt,
-		}
+		responses[i] = s.toOrderStatusLogResponse(log)
 	}
 
 	return responses, nil
@@ -407,4 +477,70 @@ func (s *orderService) toOrderItemResponse(item *entity.OrderItem) types.OrderIt
 		CreatedAt:   item.CreatedAt,
 		UpdatedAt:   item.UpdatedAt,
 	}
+}
+
+func (s *orderService) toOrderStatusLogResponse(log *entity.OrderStatusLog) types.OrderStatusLogResponse {
+	return types.OrderStatusLogResponse{
+		ID:         log.ID,
+		TenantID:   log.TenantID,
+		OrderID:    log.OrderID,
+		FromStatus: log.FromStatus,
+		ToStatus:   log.ToStatus,
+		Reason:     log.Reason,
+		OperatorID: log.OperatorID,
+		CreatedAt:  log.CreatedAt,
+	}
+}
+
+func (s *orderService) toOrderAuditResponse(audit *entity.OrderAudit) types.OrderAuditResponse {
+	return types.OrderAuditResponse{
+		ID:        audit.ID,
+		TenantID:  audit.TenantID,
+		OrderID:   audit.OrderID,
+		Action:    audit.Action,
+		Actor:     audit.Actor,
+		Payload:   audit.Payload,
+		CreatedAt: audit.CreatedAt,
+	}
+}
+
+func (s *orderService) cacheOrder(ctx context.Context, order *types.OrderResponse) {
+	if s.orderCache == nil || order == nil {
+		return
+	}
+
+	_ = s.orderCache.Set(ctx, s.cacheKey(order.ID), order, s.orderCacheTTL)
+}
+
+func (s *orderService) getOrderFromCache(ctx context.Context, id uint) (*types.OrderResponse, bool) {
+	if s.orderCache == nil {
+		return nil, false
+	}
+
+	var cached types.OrderResponse
+	if err := s.orderCache.Get(ctx, s.cacheKey(id), &cached); err == nil && cached.ID != 0 {
+		return &cached, true
+	}
+
+	return nil, false
+}
+
+func (s *orderService) invalidateOrderCache(ctx context.Context, id uint) {
+	if s.orderCache == nil {
+		return
+	}
+	_ = s.orderCache.Delete(ctx, s.cacheKey(id))
+}
+
+func (s *orderService) cacheKey(id uint) string {
+	return fmt.Sprintf("order:%d", id)
+}
+
+func (s *orderService) applyOptions(opts ...Option) *orderService {
+	for _, opt := range opts {
+		if opt != nil {
+			opt(s)
+		}
+	}
+	return s
 }

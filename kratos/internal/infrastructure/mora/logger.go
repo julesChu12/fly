@@ -37,12 +37,10 @@ func GetLogger() *logger.Logger {
 	return Log
 }
 
-// GetZapLogger returns the underlying zap logger
+// GetZapLogger returns the underlying zap.Logger from the mora logger
 func GetZapLogger() *zap.Logger {
-	if Log == nil {
-		Log = logger.NewDefault()
-	}
-	return Log.Desugar()
+	l := GetLogger()
+	return l.SugaredLogger.Desugar()
 }
 
 // Sync flushes any buffered log entries

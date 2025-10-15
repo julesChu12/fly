@@ -8,20 +8,23 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var tracer trace.Tracer
-var cleanupFunc observability.CleanupFunc
+var (
+	tracer      trace.Tracer
+	cleanupFunc observability.CleanupFunc
+)
 
 // InitObservability initializes OpenTelemetry tracing
-func InitObservability(serviceName, endpoint string) error {
+func InitObservability(serviceName, exporterURL, env string) error {
 	cfg := observability.Config{
 		ServiceName:  serviceName,
-		ExporterURL:  endpoint,
+		ExporterURL:  exporterURL,
+		Environment:  env,
 		SampleRatio:  1.0,
-		Environment:  "development",
 		ExporterType: "otlp",
 	}
 
-	if endpoint == "" {
+	// If no exporter URL, use stdout for development
+	if exporterURL == "" {
 		cfg.ExporterType = "stdout"
 	}
 
