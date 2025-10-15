@@ -92,11 +92,14 @@ func SetupTestServer(t *testing.T) *TestServer {
 	// Clean up test data
 	CleanupTestData(t, db)
 
+	// Get mora db.Client for repository initialization
+	dbClient := db.Client()
+
 	// Initialize repositories
-	userRepo := mysql.NewUserRepository(db.DB())
-	sessionRepo := mysql.NewSessionRepository(db.DB())
-	refreshTokenRepo := mysql.NewRefreshTokenRepository(db.DB())
-	userOAuthRepo := mysql.NewUserOAuthRepository(db.DB())
+	userRepo := mysql.NewUserRepository(dbClient)
+	sessionRepo := mysql.NewSessionRepository(dbClient)
+	refreshTokenRepo := mysql.NewRefreshTokenRepository(dbClient)
+	userOAuthRepo := mysql.NewUserOAuthRepository(dbClient)
 	userProfileRepo := mysql.NewUserProfileRepository(db.DB())
 
 	// Initialize services
