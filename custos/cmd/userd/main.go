@@ -45,6 +45,9 @@ func main() {
 	}
 	defer db.Close()
 
+	// Get mora db.Client for repository initialization
+	dbClient := db.Client()
+
 	// Get raw SQL DB connection for migrations
 	sqlDB, err := db.DB().DB()
 	if err != nil {
@@ -57,10 +60,11 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	userRepo := mysql.NewUserRepository(db.DB())
-	sessionRepo := mysql.NewSessionRepository(db.DB())
-	refreshTokenRepo := mysql.NewRefreshTokenRepository(db.DB())
-	userOAuthRepo := mysql.NewUserOAuthRepository(db.DB())
+	// Initialize repositories with mora db.Client
+	userRepo := mysql.NewUserRepository(dbClient)
+	sessionRepo := mysql.NewSessionRepository(dbClient)
+	refreshTokenRepo := mysql.NewRefreshTokenRepository(dbClient)
+	userOAuthRepo := mysql.NewUserOAuthRepository(dbClient)
 	userProfileRepo := mysql.NewUserProfileRepository(db.DB())
 
 	// Initialize password service

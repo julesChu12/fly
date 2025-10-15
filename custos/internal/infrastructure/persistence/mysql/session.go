@@ -6,29 +6,30 @@ import (
 
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
+	moradb "github.com/julesChu12/fly/mora/pkg/db"
 	"gorm.io/gorm"
 )
 
 type sessionRepository struct {
-	db               *gorm.DB
+	client           *moradb.Client
 	refreshTokenRepo repository.RefreshTokenRepository
 }
 
-func NewSessionRepository(db *gorm.DB) repository.SessionRepository {
-	refreshTokenRepo := NewRefreshTokenRepository(db)
+func NewSessionRepository(client *moradb.Client) repository.SessionRepository {
+	refreshTokenRepo := NewRefreshTokenRepository(client)
 	return &sessionRepository{
-		db:               db,
+		client:           client,
 		refreshTokenRepo: refreshTokenRepo,
 	}
 }
 
 func (r *sessionRepository) Create(ctx context.Context, session *entity.Session) error {
-	return r.db.WithContext(ctx).Create(session).Error
+	return r.client.Create(ctx, session)
 }
 
 func (r *sessionRepository) GetByID(ctx context.Context, id string) (*entity.Session, error) {
 	var session entity.Session
-	if err := r.db.WithContext(ctx).
+	if err := r.client.DB().WithContext(ctx).
 		Where("session_id = ? AND revoked = false", id).
 		First(&session).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -51,7 +52,7 @@ func (r *sessionRepository) GetByRefreshTokenHash(ctx context.Context, hash stri
 
 	// Find the session associated with this refresh token
 	var session entity.Session
-	if err := r.db.WithContext(ctx).
+	if err := r.client.DB().WithContext(ctx).
 		Where("refresh_token_id = ? AND revoked = false", refreshToken.ID).
 		First(&session).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -63,64 +64,51 @@ func (r *sessionRepository) GetByRefreshTokenHash(ctx context.Context, hash stri
 }
 
 func (r *sessionRepository) UpdateRefreshToken(ctx context.Context, id, newHash string, expiresAt time.Time, lastUsed time.Time) error {
-	// Start a transaction to ensure consistency
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Get the session first
-	var session entity.Session
-	if err := tx.Where("session_id = ?", id).First(&session).Error; err != nil {
-		tx.Rollback()
-		if err == gorm.ErrRecordNotFound {
-			return gorm.ErrRecordNotFound
-		}
-		return err
-	}
-
-	// If session has an existing refresh token, mark it as used
-	if session.RefreshTokenID != nil {
-		if err := tx.Model(&entity.RefreshToken{}).
-			Where("id = ?", *session.RefreshTokenID).
-			Update("is_used", true).Error; err != nil {
-			tx.Rollback()
+	// Use mora's WithTransaction for safe transaction management
+	return r.client.WithTransaction(ctx, func(tx *moradb.Transaction) error {
+		// Get the session first
+		var session entity.Session
+		if err := tx.DB().Where("session_id = ?", id).First(&session).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return gorm.ErrRecordNotFound
+			}
 			return err
 		}
-	}
 
-	// Create a new refresh token
-	newRefreshToken := &entity.RefreshToken{
-		UserID:    session.UserID,
-		TokenHash: newHash,
-		ExpiresAt: expiresAt,
-	}
-	if err := tx.Create(newRefreshToken).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+		// If session has an existing refresh token, mark it as used
+		if session.RefreshTokenID != nil {
+			if err := tx.DB().Model(&entity.RefreshToken{}).
+				Where("id = ?", *session.RefreshTokenID).
+				Update("is_used", true).Error; err != nil {
+				return err
+			}
+		}
 
-	// Update the session with the new refresh token ID and last seen time
-	if err := tx.Model(&session).
-		Updates(map[string]interface{}{
-			"refresh_token_id": newRefreshToken.ID,
-			"last_seen_at":     lastUsed,
-		}).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+		// Create a new refresh token
+		newRefreshToken := &entity.RefreshToken{
+			UserID:    session.UserID,
+			TokenHash: newHash,
+			ExpiresAt: expiresAt,
+		}
+		if err := tx.DB().Create(newRefreshToken).Error; err != nil {
+			return err
+		}
 
-	// Commit the transaction
-	return tx.Commit().Error
+		// Update the session with the new refresh token ID and last seen time
+		if err := tx.DB().Model(&session).
+			Updates(map[string]interface{}{
+				"refresh_token_id": newRefreshToken.ID,
+				"last_seen_at":     lastUsed,
+			}).Error; err != nil {
+			return err
+		}
+
+		return nil // Auto-commit on success
+	})
 }
 
 func (r *sessionRepository) Revoke(ctx context.Context, id string, revokedAt time.Time) error {
-	result := r.db.WithContext(ctx).Model(&entity.Session{}).
+	result := r.client.DB().WithContext(ctx).Model(&entity.Session{}).
 		Where("session_id = ?", id).
 		Update("revoked", true)
 	if result.Error != nil {
@@ -133,14 +121,14 @@ func (r *sessionRepository) Revoke(ctx context.Context, id string, revokedAt tim
 }
 
 func (r *sessionRepository) RevokeByUser(ctx context.Context, userID uint, revokedAt time.Time) error {
-	return r.db.WithContext(ctx).Model(&entity.Session{}).
+	return r.client.DB().WithContext(ctx).Model(&entity.Session{}).
 		Where("user_id = ?", userID).
 		Update("revoked", true).Error
 }
 
 func (r *sessionRepository) ListActiveByUser(ctx context.Context, userID uint, now time.Time) ([]*entity.Session, error) {
 	var sessions []*entity.Session
-	err := r.db.WithContext(ctx).
+	err := r.client.DB().WithContext(ctx).
 		Where("user_id = ? AND revoked = false", userID).
 		Order("last_seen_at DESC").
 		Find(&sessions).Error
@@ -148,7 +136,7 @@ func (r *sessionRepository) ListActiveByUser(ctx context.Context, userID uint, n
 }
 
 func (r *sessionRepository) UpdateLastSeen(ctx context.Context, sessionID string, lastSeenAt time.Time) error {
-	result := r.db.WithContext(ctx).Model(&entity.Session{}).
+	result := r.client.DB().WithContext(ctx).Model(&entity.Session{}).
 		Where("session_id = ?", sessionID).
 		Update("last_seen_at", lastSeenAt)
 
@@ -162,7 +150,7 @@ func (r *sessionRepository) UpdateLastSeen(ctx context.Context, sessionID string
 }
 
 func (r *sessionRepository) CleanupExpired(ctx context.Context, olderThan time.Time) error {
-	return r.db.WithContext(ctx).
+	return r.client.DB().WithContext(ctx).
 		Where("revoked = true AND created_at < ?", olderThan).
 		Delete(&entity.Session{}).Error
 }
@@ -170,15 +158,13 @@ func (r *sessionRepository) CleanupExpired(ctx context.Context, olderThan time.T
 // CountTotal counts total sessions
 func (r *sessionRepository) CountTotal(ctx context.Context) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.Session{}).Count(&count).Error
+	err := r.client.Count(ctx, &entity.Session{}, &count)
 	return count, err
 }
 
 // CountActive counts active (non-revoked) sessions
 func (r *sessionRepository) CountActive(ctx context.Context) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.Session{}).
-		Where("revoked = false").
-		Count(&count).Error
+	err := r.client.Count(ctx, &entity.Session{}, &count, "revoked = false")
 	return count, err
 }

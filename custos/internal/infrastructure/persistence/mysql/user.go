@@ -4,67 +4,81 @@ import (
 	"context"
 	"fmt"
 
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
+	moradb "github.com/julesChu12/fly/mora/pkg/db"
+	"gorm.io/gorm"
 )
 
+// Database wraps mora db.Client
 type Database struct {
-	db *gorm.DB
+	client *moradb.Client
 }
 
+// NewDatabase creates a new database instance using mora/pkg/db
 func NewDatabase(dsn string, debug bool) (*Database, error) {
-	config := &gorm.Config{}
+	logLevel := "warn"
 	if debug {
-		config.Logger = logger.Default.LogMode(logger.Info)
+		logLevel = "info"
 	}
 
-	db, err := gorm.Open(mysql.Open(dsn), config)
+	cfg := moradb.Config{
+		Driver:          "mysql",
+		DSN:             dsn,
+		MaxOpenConns:    10,
+		MaxIdleConns:    5,
+		ConnMaxLifetime: 3600, // 1 hour
+		LogLevel:        logLevel,
+	}
+
+	client, err := moradb.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	return &Database{db: db}, nil
+	return &Database{client: client}, nil
 }
 
 func (d *Database) AutoMigrate() error {
-	return d.db.AutoMigrate(
+	return d.client.AutoMigrate(
 		&entity.Tenant{},  // Add Tenant table
 		&entity.User{},
 		&entity.Session{},
 	)
 }
 
+// DB returns the underlying GORM DB instance for backward compatibility
 func (d *Database) DB() *gorm.DB {
-	return d.db
+	return d.client.DB()
+}
+
+// Client returns the mora db.Client for advanced usage
+func (d *Database) Client() *moradb.Client {
+	return d.client
 }
 
 func (d *Database) Close() error {
-	sqlDB, err := d.db.DB()
-	if err != nil {
-		return err
-	}
-	return sqlDB.Close()
+	return d.client.Close()
 }
 
 type UserRepository struct {
-	db *gorm.DB
+	client *moradb.Client
 }
 
-func NewUserRepository(db *gorm.DB) repository.UserRepository {
-	return &UserRepository{db: db}
+// NewUserRepository creates UserRepository from mora db.Client (extracted from Database.Client())
+func NewUserRepository(client *moradb.Client) repository.UserRepository {
+	return &UserRepository{client: client}
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *entity.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
+	// Use mora's Create helper for simple operations
+	return r.client.Create(ctx, user)
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id uint) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).First(&user, id).Error
+	// Use mora's First helper
+	err := r.client.First(ctx, &user, id)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +87,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uint) (*entity.User, er
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error
+	err := r.client.DB().WithContext(ctx).Where("username = ?", username).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +96,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*e
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	err := r.client.DB().WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -90,36 +104,37 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entity.
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *entity.User) error {
-	return r.db.WithContext(ctx).Save(user).Error
+	// Use mora's Save helper
+	return r.client.Save(ctx, user)
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Delete(&entity.User{}, id).Error
+	// Use mora's Delete helper
+	return r.client.Delete(ctx, &entity.User{}, id)
 }
 
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entity.User, error) {
 	var users []*entity.User
-	err := r.db.WithContext(ctx).Limit(limit).Offset(offset).Find(&users).Error
+	// Use mora's Paginate helper
+	err := r.client.Paginate(ctx, &users, (offset/limit)+1, limit)
 	return users, err
 }
 
 func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) (bool, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("username = ?", username).Count(&count).Error
-	return count > 0, err
+	// Use mora's Exists helper
+	return r.client.Exists(ctx, &entity.User{}, "username = ?", username)
 }
 
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("email = ?", email).Count(&count).Error
-	return count > 0, err
+	// Use mora's Exists helper
+	return r.client.Exists(ctx, &entity.User{}, "email = ?", email)
 }
 
 // Multi-tenant methods implementation
 
 func (r *UserRepository) GetByIDWithTenant(ctx context.Context, id uint, tenantID uint) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&user).Error
+	err := r.client.DB().WithContext(ctx).Where("id = ? AND tenant_id = ?", id, tenantID).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +143,7 @@ func (r *UserRepository) GetByIDWithTenant(ctx context.Context, id uint, tenantI
 
 func (r *UserRepository) GetByUsernameWithTenant(ctx context.Context, username string, tenantID uint) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).Where("username = ? AND tenant_id = ?", username, tenantID).First(&user).Error
+	err := r.client.DB().WithContext(ctx).Where("username = ? AND tenant_id = ?", username, tenantID).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +152,7 @@ func (r *UserRepository) GetByUsernameWithTenant(ctx context.Context, username s
 
 func (r *UserRepository) GetByEmailWithTenant(ctx context.Context, email string, tenantID uint) (*entity.User, error) {
 	var user entity.User
-	err := r.db.WithContext(ctx).Where("email = ? AND tenant_id = ?", email, tenantID).First(&user).Error
+	err := r.client.DB().WithContext(ctx).Where("email = ? AND tenant_id = ?", email, tenantID).First(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -146,20 +161,16 @@ func (r *UserRepository) GetByEmailWithTenant(ctx context.Context, email string,
 
 func (r *UserRepository) ListByTenant(ctx context.Context, tenantID uint, limit, offset int) ([]*entity.User, error) {
 	var users []*entity.User
-	err := r.db.WithContext(ctx).Where("tenant_id = ?", tenantID).Limit(limit).Offset(offset).Find(&users).Error
+	err := r.client.DB().WithContext(ctx).Where("tenant_id = ?", tenantID).Limit(limit).Offset(offset).Find(&users).Error
 	return users, err
 }
 
 func (r *UserRepository) ExistsByUsernameWithTenant(ctx context.Context, username string, tenantID uint) (bool, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("username = ? AND tenant_id = ?", username, tenantID).Count(&count).Error
-	return count > 0, err
+	return r.client.Exists(ctx, &entity.User{}, "username = ? AND tenant_id = ?", username, tenantID)
 }
 
 func (r *UserRepository) ExistsByEmailWithTenant(ctx context.Context, email string, tenantID uint) (bool, error) {
-	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("email = ? AND tenant_id = ?", email, tenantID).Count(&count).Error
-	return count > 0, err
+	return r.client.Exists(ctx, &entity.User{}, "email = ? AND tenant_id = ?", email, tenantID)
 }
 
 // ListWithFilter lists users with advanced filtering
@@ -167,7 +178,7 @@ func (r *UserRepository) ListWithFilter(ctx context.Context, filter *repository.
 	var users []*entity.User
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&entity.User{})
+	query := r.client.DB().WithContext(ctx).Model(&entity.User{})
 
 	// Apply filters
 	if filter != nil {
@@ -205,7 +216,7 @@ func (r *UserRepository) ListWithFilter(ctx context.Context, filter *repository.
 // CountByStatus counts users by status
 func (r *UserRepository) CountByStatus(ctx context.Context, status string) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).Where("status = ?", status).Count(&count).Error
+	err := r.client.Count(ctx, &entity.User{}, &count, "status = ?", status)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count users by status: %w", err)
 	}
@@ -220,7 +231,7 @@ func (r *UserRepository) CountByRole(ctx context.Context) (map[string]int64, err
 	}
 	var results []Result
 
-	err := r.db.WithContext(ctx).Model(&entity.User{}).
+	err := r.client.DB().WithContext(ctx).Model(&entity.User{}).
 		Select("role, COUNT(*) as count").
 		Group("role").
 		Scan(&results).Error
@@ -244,7 +255,7 @@ func (r *UserRepository) CountByType(ctx context.Context) (map[string]int64, err
 	}
 	var results []Result
 
-	err := r.db.WithContext(ctx).Model(&entity.User{}).
+	err := r.client.DB().WithContext(ctx).Model(&entity.User{}).
 		Select("user_type, COUNT(*) as count").
 		Group("user_type").
 		Scan(&results).Error
@@ -263,10 +274,7 @@ func (r *UserRepository) CountByType(ctx context.Context) (map[string]int64, err
 // CountNewUsers counts users created since a specific date
 func (r *UserRepository) CountNewUsers(ctx context.Context, since string) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).
-		Where("created_at >= ?", since).
-		Count(&count).Error
-
+	err := r.client.Count(ctx, &entity.User{}, &count, "created_at >= ?", since)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count new users: %w", err)
 	}
@@ -276,7 +284,7 @@ func (r *UserRepository) CountNewUsers(ctx context.Context, since string) (int64
 // CountTotal counts total users
 func (r *UserRepository) CountTotal(ctx context.Context) (int64, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&entity.User{}).Count(&count).Error
+	err := r.client.Count(ctx, &entity.User{}, &count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count total users: %w", err)
 	}
