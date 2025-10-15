@@ -2,23 +2,20 @@ package handler
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/custos/internal/application/dto"
-	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/internal/application/service"
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
 )
 
 type ProfileHandler struct {
-	userRepo        repository.UserRepository
-	userProfileRepo repository.UserProfileRepository
+	profileService *service.UserProfileService
 }
 
 func NewProfileHandler(userRepo repository.UserRepository, userProfileRepo repository.UserProfileRepository) *ProfileHandler {
 	return &ProfileHandler{
-		userRepo:        userRepo,
-		userProfileRepo: userProfileRepo,
+		profileService: service.NewUserProfileService(userRepo, userProfileRepo),
 	}
 }
 
@@ -38,33 +35,11 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	// Get user profile
-	profile, err := h.userProfileRepo.GetByUserID(c.Request.Context(), uid)
+	// Get user profile using service
+	response, err := h.profileService.GetProfile(c.Request.Context(), uid)
 	if err != nil {
-		if err == repository.ErrUserProfileNotFound {
-			// Profile doesn't exist, create a default one
-			profile = entity.NewUserProfile(uid)
-			if err := h.userProfileRepo.Create(c.Request.Context(), profile); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create profile"})
-				return
-			}
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get profile"})
-			return
-		}
-	}
-
-	// Convert to DTO
-	response := dto.GetProfileResponse{
-		UserID:   profile.UserID,
-		Nickname: profile.Nickname,
-		Avatar:   profile.Avatar,
-		Gender:   profile.Gender,
-		Extra:    profile.Extra,
-	}
-
-	if profile.Birthday != nil {
-		response.Birthday = profile.Birthday.Format("2006-01-02")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get profile"})
+		return
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -92,53 +67,10 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Get existing profile or create new one
-	profile, err := h.userProfileRepo.GetByUserID(c.Request.Context(), uid)
-	if err != nil {
-		if err == repository.ErrUserProfileNotFound {
-			// Create new profile
-			profile = entity.NewUserProfile(uid)
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get profile"})
-			return
-		}
-	}
-
-	// Update profile fields
-	if req.Nickname != "" {
-		profile.Nickname = req.Nickname
-	}
-	if req.Avatar != "" {
-		profile.Avatar = req.Avatar
-	}
-	if req.Gender != "" {
-		profile.Gender = req.Gender
-	}
-	if req.Birthday != "" {
-		birthday, err := time.Parse("2006-01-02", req.Birthday)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid birthday format, use YYYY-MM-DD"})
-			return
-		}
-		profile.Birthday = &birthday
-	}
-	if req.Extra != "" {
-		profile.Extra = req.Extra
-	}
-
-	// Save profile
-	if err == repository.ErrUserProfileNotFound {
-		// Create
-		if err := h.userProfileRepo.Create(c.Request.Context(), profile); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create profile"})
-			return
-		}
-	} else {
-		// Update
-		if err := h.userProfileRepo.Update(c.Request.Context(), profile); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update profile"})
-			return
-		}
+	// Update profile using service
+	if err := h.profileService.UpdateProfile(c.Request.Context(), uid, &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update profile"})
+		return
 	}
 
 	response := dto.UpdateProfileResponse{

@@ -79,10 +79,3 @@ func (u *User) MergeInto(targetUserID uint) {
 	u.Status = types.UserStatusMerged
 	u.MergedIntoUserID = &targetUserID
 }
-
-// SetOAuthProvider sets OAuth provider information for the user
-func (u *User) SetOAuthProvider(provider, providerID string) {
-	// This method can be used to update or create OAuth bindings
-	// Implementation depends on how OAuth bindings are managed
-	// For now, this is a placeholder that can be expanded later
-}

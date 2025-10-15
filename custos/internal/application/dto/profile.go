@@ -3,6 +3,8 @@ package dto
 // GetProfileResponse defines the response for getting user profile
 type GetProfileResponse struct {
 	UserID   uint   `json:"user_id"`
+	Username string `json:"username,omitempty"`
+	Email    string `json:"email,omitempty"`
 	Nickname string `json:"nickname"`
 	Avatar   string `json:"avatar"`
 	Gender   string `json:"gender"`

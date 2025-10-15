@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -23,7 +24,7 @@ func (UserProfile) TableName() string {
 	return "user_profiles"
 }
 
-// NewUserProfile creates a new user profile
+// NewUserProfile creates a new user profile with default values
 func NewUserProfile(userID uint) *UserProfile {
 	return &UserProfile{
 		UserID: userID,
@@ -42,4 +43,61 @@ func (up *UserProfile) UpdateProfile(nickname, avatar string, birthday *time.Tim
 	if birthday != nil {
 		up.Birthday = birthday
 	}
+}
+
+// SetGender sets the gender with validation
+func (up *UserProfile) SetGender(gender string) error {
+	validGenders := map[string]bool{
+		"male":   true,
+		"female": true,
+		"other":  true,
+	}
+
+	if !validGenders[gender] {
+		return ErrInvalidGender
+	}
+
+	up.Gender = gender
+	return nil
+}
+
+// SetExtra sets extra data as JSON
+func (up *UserProfile) SetExtra(data interface{}) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	up.Extra = string(jsonData)
+	return nil
+}
+
+// GetExtra retrieves extra data from JSON
+func (up *UserProfile) GetExtra(v interface{}) error {
+	if up.Extra == "" {
+		return nil
+	}
+	return json.Unmarshal([]byte(up.Extra), v)
+}
+
+// IsComplete checks if the profile has all basic information filled
+func (up *UserProfile) IsComplete() bool {
+	return up.Nickname != "" && up.Avatar != ""
+}
+
+// Age calculates the age from birthday
+func (up *UserProfile) Age() int {
+	if up.Birthday == nil {
+		return 0
+	}
+
+	now := time.Now()
+	years := now.Year() - up.Birthday.Year()
+
+	// Adjust if birthday hasn't occurred this year
+	if now.Month() < up.Birthday.Month() ||
+		(now.Month() == up.Birthday.Month() && now.Day() < up.Birthday.Day()) {
+		years--
+	}
+
+	return years
 }
