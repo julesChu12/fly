@@ -144,7 +144,7 @@ import "github.com/julesChu12/fly/mora/adapters/gin"
 #### Custos 对外接口
 
 
-**1. HTTP REST API (端口 8081)**
+##### 1. HTTP REST API (端口 8081)
 
 ```text
 
@@ -176,7 +176,7 @@ OAuth认证:
 
 
 
-**2. gRPC 内部接口 (端口 9001 - 计划中)**
+##### 2. gRPC 内部接口 (端口 9001 - 计划中)
 
 ```protobuf
 service CustosService {
@@ -334,7 +334,7 @@ circuit_breaker:
 
 #### Hermes 对外接口
 
-**1. HTTP REST API (端口 8083)**
+##### 1. HTTP REST API (端口 8083)
 
 ```text
 客户管理:
@@ -351,7 +351,7 @@ circuit_breaker:
   GET    /swagger/*any            - API文档
 ```
 
-**2. gRPC 内部接口 (端口 9080)**
+### 2. gRPC 内部接口 (端口 9080)
 
 ```protobuf
 service CustomerService {
@@ -365,6 +365,7 @@ service CustomerService {
 ```
 
 #### Hermes 分布式事务支持
+
 - **SAGA模式**: 适用于长流程业务
 - **TCC模式**: 适用于短流程高一致性要求
 - **XA模式**: 适用于数据库事务
@@ -395,6 +396,7 @@ service CustomerService {
 | API文档 | ✅ 完成 | 100% |
 
 #### Kratos 技术栈选择
+
 - **Web框架**: Gin
 - **数据库**: MySQL + GORM
 - **API文档**: Swagger/OpenAPI
@@ -403,6 +405,7 @@ service CustomerService {
 - **配置管理**: Viper
 
 #### Kratos 技术栈优势
+
 ✅ **完整状态机**: 严格的订单状态流转控制，防止无效状态转换
 ✅ **审计完善**: 状态变更日志和操作审计双重记录
 ✅ **测试覆盖**: 13个测试用例，覆盖所有核心业务逻辑
@@ -410,6 +413,7 @@ service CustomerService {
 ✅ **多租户架构**: 基于租户ID的数据隔离
 
 #### Kratos 核心实体
+
 - **Order**: 订单主体 (id, tenant_id, order_no, customer_id, total_amount, currency, status, remark, timestamps)
 - **OrderItem**: 订单项 (id, tenant_id, order_id, product_id, product_name, sku, quantity, unit_price, total_price, timestamps)
 - **OrderStatusLog**: 状态变更日志 (id, tenant_id, order_id, from_status, to_status, reason, operator_id, created_at)
@@ -417,7 +421,7 @@ service CustomerService {
 
 #### Kratos 对外接口
 
-**1. HTTP REST API (端口 8082)**
+##### 1. HTTP REST API (端口 8082)
 
 ```text
 订单管理:
@@ -434,11 +438,13 @@ service CustomerService {
 ```
 
 #### Kratos 订单状态流转
+
 - **pending** → **paid** → **fulfilled**
 - **pending** → **canceled**
 - **paid** → **canceled** (支持已付款订单取消)
 
 #### Kratos 业务特性
+
 - **幂等性设计**: 基于order_no防止重复订单创建
 - **状态机验证**: 严格的状态转换规则，防止无效状态变更
 - **金额校验**: 创建订单时自动校验订单总额与明细金额一致性
@@ -447,6 +453,7 @@ service CustomerService {
 - **租户隔离**: 完整的多租户数据隔离支持
 
 #### Kratos 测试覆盖
+
 - **服务层测试**: 6个测试用例，覆盖创建、查询、更新、删除、列表操作
 - **HTTP接口测试**: 7个测试用例，覆盖所有API端点
 - **异常场景测试**: 重复订单号、无效状态转换等边界情况
@@ -476,20 +483,30 @@ service CustomerService {
 | 完整测试覆盖 | ✅ 完成 | 100% |
 | API文档 | ✅ 完成 | 100% |
 
+#### Plutus 技术栈选择
+
+- **Web框架**: Gin
+- **数据库**: MySQL + GORM
+- **缓存**: Redis
+- **通信协议**: HTTP REST + gRPC
+
 #### Plutus 技术栈优势
+
 ✅ **双协议支持**: HTTP REST + gRPC完整实现，满足不同场景需求
 ✅ **事务安全**: 严格的余额更新机制，所有资金操作具备原子性
 ✅ **幂等性设计**: 完整的幂等键支持，防止重复交易
 ✅ **完整测试**: 服务层、HTTP层、gRPC层全覆盖测试
 ✅ **生产就绪**: 完整的API文档、健康检查、指标监控
 
+
 #### Plutus 核心实体
+
 - **Wallet**: 钱包实体 (customer_id, balance)
 - **Transaction**: 交易记录 (id, customer_id, order_id, type, channel, amount, status)
 
 #### Plutus 对外接口
 
-**1. HTTP REST API (端口 8085)**
+##### 1. HTTP REST API (端口 8085)
 
 ```text
 钱包管理:
@@ -507,7 +524,7 @@ service CustomerService {
   GET    /metrics                       - Prometheus指标
 ```
 
-**2. gRPC 内部接口 (端口 9082)**
+##### 2. gRPC 内部接口 (端口 9082)
 
 ```protobuf
 service PaymentService {
@@ -520,6 +537,7 @@ service PaymentService {
 ```
 
 #### Plutus 交易类型支持
+
 - **RECHARGE**: 充值交易
 - **CONSUME**: 消费交易
 - **REFUND**: 退款交易
@@ -544,7 +562,9 @@ service PaymentService {
 | Grafana仪表板 | ❌ 未实现 | 0% |
 | 日志聚合 | ❌ 未实现 | 0% |
 | 告警规则 | ❌ 未实现 | 0% |
+
 #### Custos 技术栈选择
+
 - **链路追踪**: Jaeger (全链路)
 - **指标收集**: Prometheus
 - **应用指标**: OpenTelemetry
@@ -553,8 +573,7 @@ service PaymentService {
 
 #### Custos 对外接口
 
-
-**监控访问地址**
+#### 监控访问地址
 
 ```text
 
