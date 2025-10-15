@@ -32,5 +32,8 @@ go.work.sum
 .vscode/
 .claude/
 
+# AI
+CLAUDE.md
+
 # Build output directory
 bin/
