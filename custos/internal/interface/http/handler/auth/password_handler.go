@@ -95,7 +95,7 @@ func (h *PasswordHandler) ValidatePassword(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body ChangePasswordRequest true "Password change details"
-// @Success 200 {object} SuccessResponse
+// @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 403 {object} dto.ErrorResponse

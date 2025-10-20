@@ -25,6 +25,10 @@ import (
 	"github.com/julesChu12/fly/custos/internal/interface/http/router"
 	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/spf13/cobra"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/julesChu12/fly/custos/api/swagger" // Swagger docs
 )
 
 var serveCmd = &cobra.Command{
@@ -133,6 +137,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Register password routes
 	api := ginEngine.Group("/api/v1")
 	passwordHandler.RegisterPasswordRoutes(api, authMW.RequireAuth(), nil)
+
+	// Swagger documentation route
+	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Initialize gRPC server
 	grpcServer := grpcInterface.NewCustosGRPCServer(userRepo, sessionRepo, tokenService)

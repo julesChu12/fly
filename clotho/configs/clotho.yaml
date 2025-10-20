@@ -21,7 +21,7 @@ logging:
 # OpenTelemetry observability configuration
 observability:
   service_name: "clotho"
-  exporter_url: "http://localhost:4317"
+  exporter_url: "http://jaeger:4317"
   sample_ratio: 1.0
   environment: "development"
   exporter_type: "stdout"
@@ -39,7 +39,7 @@ observability:
     enabled: true
     jaeger:
       enabled: true
-      endpoint: "http://localhost:14268/api/traces"
+      endpoint: "http://jaeger:14268/api/traces"
 
   # Resource attributes
   resource:
@@ -86,10 +86,10 @@ services:
 # Database (if needed for caching or session management)
 database:
   driver: "mysql"
-  host: "localhost"
+  host: "mysql"
   port: 3306
-  username: "clotho"
-  password: "password"
+  username: "custos"
+  password: "custospassword"
   database: "clotho_db"
   max_open_conns: 25
   max_idle_conns: 10
@@ -97,7 +97,7 @@ database:
 
 # Redis cache
 redis:
-  address: "localhost:6379"
+  address: "redis:6379"
   password: ""
   db: 0
   pool_size: 10

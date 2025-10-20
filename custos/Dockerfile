@@ -4,8 +4,7 @@ FROM golang:1.25.1-alpine AS builder
 # Set necessary environment variables
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
-    GOOS=linux \
-    GOARCH=amd64
+    GOOS=linux
 
 WORKDIR /app
 
@@ -28,6 +27,7 @@ WORKDIR /app
 # 复制编译好的二进制
 COPY --from=builder /app/userd /app/userd
 COPY configs /app/configs
+COPY api/swagger /app/api/swagger
 
 # 创建非 root 用户
 RUN adduser -D -s /bin/sh custos
@@ -37,5 +37,5 @@ USER custos
 ENV CONFIG_PATH=/app/configs/custos.yaml
 
 EXPOSE 8081
-
-CMD ["/app/userd"]
+ENTRYPOINT ["/app/userd"]
+CMD ["serve"]

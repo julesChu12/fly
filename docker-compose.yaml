@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:latest
     container_name: fly-mysql
     restart: always
     ports:
@@ -10,6 +10,7 @@ services:
       MYSQL_DATABASE: custos
       MYSQL_USER: custos
       MYSQL_PASSWORD: custospassword
+      MYSQL_ROOT_HOST: "%"
     volumes:
       - ./custos/mysql/data:/var/lib/mysql
       - ./custos/mysql/my.cnf:/etc/mysql/my.cnf
@@ -43,8 +44,8 @@ services:
 
   clotho:
     build: 
-      context: ./clotho
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: clotho/Dockerfile
     container_name: clotho-app
     depends_on:
       - custos
@@ -73,42 +74,44 @@ services:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
   hermes:
     build:
-      context: ./hermes
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: hermes/Dockerfile
     container_name: hermes-app
     depends_on:
       - mysql
       - redis
     ports:
       - "8083:8080"
+    volumes:
+      - ./hermes/configs:/root/configs
     environment:
-      DATABASE_URL: root:rootpassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
-      PORT: 8080
+      DATABASE_URL: custos:custospassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
+      PORT: "8080"
+      GRPC_PORT: "9080"
+      REDIS_URL: redis:6379
 
   kratos:
     build:
-      context: ./kratos
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: kratos/Dockerfile
     container_name: kratos-app
     depends_on:
       - mysql
       - redis
     ports:
       - "8084:8081"
-    environment:
-      DATABASE_URL: root:rootpassword@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local
-      PORT: 8081
+    volumes:
+      - ./kratos/configs:/root/configs
 
   plutus:
     build:
-      context: ./plutus
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: plutus/Dockerfile
     container_name: plutus-app
     depends_on:
       - mysql
       - redis
     ports:
       - "8085:8082"
-    environment:
-      DATABASE_URL: root:rootpassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local
-      PORT: 8082
+    volumes:
+      - ./plutus/configs:/app/configs

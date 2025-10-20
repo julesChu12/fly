@@ -14,10 +14,11 @@ fly/
   mora/        # 通用能力库
   custos/      # 用户域（身份 & 权限中心）
   clotho/      # API 编排层
-  orders/      # (未来扩展) 订单域
-  payments/    # (未来扩展) 支付域
-  docs/        # 文档与架构说明
-  deploy/      # 部署配置 (docker-compose / k8s)
+  hermes/      # 客户管理服务
+  kratos/      # 订单管理服务 (已完成)
+  plutus/      # 支付钱包服务 (已完成)
+  observability/ # 可观测性服务
+  scripts/     # 脚本工具
 ```
 
 ---

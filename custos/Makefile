@@ -1,19 +1,20 @@
-.PHONY: build test clean run dev help migrate
+.PHONY: build test clean run dev help migrate swagger
 
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  build    - Build the application"
-	@echo "  test     - Run tests with coverage"
-	@echo "  clean    - Clean build artifacts"
-	@echo "  run      - Run the application"
-	@echo "  dev      - Setup development environment"
-	@echo "  lint     - Run linter (if available)"
+	@echo "  build        - Build the application"
+	@echo "  test         - Run tests with coverage"
+	@echo "  clean        - Clean build artifacts"
+	@echo "  run          - Run the application"
+	@echo "  dev          - Setup development environment"
+	@echo "  lint         - Run linter (if available)"
+	@echo "  swagger      - Generate Swagger documentation"
 	@echo "  migrate      - Show migration status"
 	@echo "  migrate-up   - Apply all pending migrations"
 	@echo "  migrate-down - Rollback last migration"
 	@echo "  migrate-new  - Create new migration (use NAME=migration_name)"
-	@echo "  help     - Show this help message"
+	@echo "  help         - Show this help message"
 
 build:
 	@chmod +x ./scripts/build.sh
@@ -41,6 +42,12 @@ lint:
 	else \
 		echo "golangci-lint not installed, skipping..."; \
 	fi
+
+# Generate Swagger documentation
+swagger:
+	@echo "Generating Swagger docs for Custos..."
+	@swag init -g cmd/userd/main.go --output api/swagger
+	@echo "Swagger documentation generated in api/swagger/"
 
 migrate:
 	@chmod +x ./scripts/migrate.sh

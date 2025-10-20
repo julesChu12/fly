@@ -1,0 +1,73 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: hermes-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: hermes
+      MYSQL_USER: hermes
+      MYSQL_PASSWORD: hermespassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./configs/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: hermes-redis
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: hermes-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    restart: unless-stopped
+
+  hermes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hermes-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "9080:9080"
+      - "9090:9090"
+    environment:
+      DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
+      PORT: "8080"
+      GRPC_PORT: "9080"
+      REDIS_URL: redis:6379
+      OBSERVABILITY_ENDPOINT: http://jaeger:4317
+      OBSERVABILITY_SERVICE_NAME: hermes
+    volumes:
+      - ./configs:/root/configs:ro
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
