@@ -11,13 +11,10 @@ server:
   shutdown_timeout: 30s
 
 # 数据库配置
+# 可通过环境变量 DATABASE_DSN 覆盖
 database:
   driver: "mysql"
-  dsn: "root:rootpassword@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local"
-  max_open_conns: 100
-  max_idle_conns: 10
-  conn_max_lifetime: 3600s
-  log_level: "info"
+  dsn: "root:password@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local"
 
 # 缓存配置
 cache:

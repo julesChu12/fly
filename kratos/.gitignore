@@ -49,3 +49,4 @@ docker-compose.override.yml
 
 # Build output directory
 bin/
+tmp/

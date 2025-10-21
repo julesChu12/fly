@@ -6,6 +6,7 @@ import (
 	"time"
 
 	custosv1 "github.com/julesChu12/fly/clotho/api/proto"
+	"github.com/julesChu12/fly/mora/pkg/discovery"
 	"github.com/julesChu12/fly/mora/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -15,9 +16,10 @@ import (
 
 // CustosClient represents a gRPC client for the Custos service
 type CustosClient struct {
-	conn   *grpc.ClientConn
-	client custosv1.CustosServiceClient
-	logger *logger.Logger
+	conn      *grpc.ClientConn
+	client    custosv1.CustosServiceClient
+	logger    *logger.Logger
+	discovery discovery.Discovery // 服务发现客户端
 }
 
 // UserInfo represents user information from Custos
@@ -40,6 +42,7 @@ type UserInfo struct {
 }
 
 // NewCustosClient creates a new Custos gRPC client
+// 保留用于向后兼容，建议使用 NewCustosClientWithDiscovery
 func NewCustosClient(address string, timeout time.Duration) (*CustosClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -63,6 +66,43 @@ func NewCustosClient(address string, timeout time.Duration) (*CustosClient, erro
 		conn:   conn,
 		client: client,
 		logger: log,
+	}, nil
+}
+
+// NewCustosClientWithDiscovery 使用服务发现创建 Custos gRPC 客户端
+func NewCustosClientWithDiscovery(disc discovery.Discovery, timeout time.Duration) (*CustosClient, error) {
+	log := logger.NewDefault()
+
+	// 从服务发现获取 custos 服务地址
+	instance, err := disc.GetService(context.Background(), "custos")
+	if err != nil {
+		log.Error("Failed to discover Custos service", "error", err.Error())
+		return nil, fmt.Errorf("failed to discover Custos service: %w", err)
+	}
+
+	address := instance.Address()
+	log.Info("Discovered Custos service", "address", address, "instance_id", instance.ID)
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, address,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Error("Failed to connect to Custos service", "address", address, "error", err.Error())
+		return nil, fmt.Errorf("failed to connect to Custos service at %s: %w", address, err)
+	}
+
+	client := custosv1.NewCustosServiceClient(conn)
+	log.Info("Successfully connected to Custos service", "address", address)
+
+	return &CustosClient{
+		conn:      conn,
+		client:    client,
+		logger:    log,
+		discovery: disc,
 	}, nil
 }
 

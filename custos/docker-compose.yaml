@@ -22,7 +22,7 @@ services:
       interval: 10s
       start_period: 30s
     networks:
-      - app-network
+      - fly-network
 
   redis:
     image: redis:6-alpine
@@ -36,7 +36,7 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     restart: always
     networks:
-      - app-network
+      - fly-network
 
 
   custos-dev:
@@ -53,7 +53,7 @@ services:
       - GO_ENV=development
     command: ["air"]
     networks:
-      - app-network
+      - fly-network
     depends_on:
       mysql:
         condition: service_healthy
@@ -70,7 +70,7 @@ services:
       - GIN_MODE=release
       - GO_ENV=production
     networks:
-      - app-network
+      - fly-network
     depends_on:
       mysql:
         condition: service_healthy
@@ -80,5 +80,5 @@ volumes:
   go-modules:
 
 networks:
-  app-network:
+  fly-network:
     driver: bridge

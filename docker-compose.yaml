@@ -19,6 +19,8 @@ services:
       retries: 10
       interval: 10s
       start_period: 30s
+    networks:
+      - fly-network
 
   redis:
     image: redis:6-alpine
@@ -30,11 +32,18 @@ services:
       - ./custos/redis/data:/data
       - ./custos/redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fly-network
 
   custos:
-    build: 
-      context: ./custos
-      dockerfile: Dockerfile
+    build:
+      context: .
+      dockerfile: custos/Dockerfile.prod
     container_name: custos-app
     depends_on:
       mysql:
@@ -43,25 +52,58 @@ services:
         condition: service_started
     ports:
       - "8081:8081"
+      - "9001:9001"
     volumes:
       - ./custos/configs:/app/configs
     environment:
       CONFIG_PATH: /app/configs/custos.yaml
+      SERVER_HTTP_PORT: "8081"
+      SERVER_GRPC_PORT: "9001"
+      DATABASE_DSN: custos:custospassword@tcp(mysql:3306)/custos?charset=utf8mb4&parseTime=True&loc=Local
+      REDIS_ADDR: redis:6379
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fly-network
 
   clotho:
-    build: 
+    build:
       context: .
-      dockerfile: clotho/Dockerfile
+      dockerfile: clotho/Dockerfile.prod
     container_name: clotho-app
     depends_on:
-      - custos
+      custos:
+        condition: service_healthy
     ports:
       - "8080:8080"
     volumes:
       - ./clotho/configs:/app/configs
     environment:
       CONFIG_PATH: /app/configs/clotho.yaml
+      SERVER_PORT: "8080"
+      SERVER_HOST: "0.0.0.0"
+      JWT_SECRET: "production-secret-key-change-this"
+      LOG_LEVEL: "info"
+      LOG_FORMAT: "json"
+      # 服务发现配置 (与代码读取一致的 *_GRPC_ADDRESS 键名)
+      CUSTOS_GRPC_ADDRESS: "custos:9001"
+      HERMES_GRPC_ADDRESS: "hermes:9080"
+      KRATOS_GRPC_ADDRESS: "kratos:9092"
+      PLUTUS_GRPC_ADDRESS: "plutus:9085"
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   jaeger:
     image: jaegertracing/all-in-one:1.53
     container_name: fly-jaeger
@@ -70,6 +112,8 @@ services:
       - "16686:16686"  # Jaeger UI
       - "4317:4317"    # OTLP gRPC
       - "4318:4318"    # OTLP HTTP
+    networks:
+      - fly-network
 
   prometheus:
     image: prom/prometheus:v2.50.0
@@ -79,46 +123,104 @@ services:
       - "9090:9090"
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - fly-network
   hermes:
     build:
       context: .
-      dockerfile: hermes/Dockerfile
+      dockerfile: hermes/Dockerfile.prod
     container_name: hermes-app
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8083:8080"
+      - "9080:9080"
     volumes:
-      - ./hermes/configs:/root/configs
+      - ./hermes/configs:/app/configs
     environment:
-      DATABASE_URL: custos:custospassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
+      DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
       PORT: "8080"
       GRPC_PORT: "9080"
       REDIS_URL: redis:6379
+      OBSERVABILITY_ENDPOINT: http://jaeger:4317
+      OBSERVABILITY_SERVICE_NAME: hermes
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   kratos:
     build:
       context: .
-      dockerfile: kratos/Dockerfile
+      dockerfile: kratos/Dockerfile.prod
     container_name: kratos-app
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
-      - "8084:8081"
+      - "8084:8082"
+      - "9092:9092"
     volumes:
-      - ./kratos/configs:/root/configs
+      - ./kratos/configs:/app/configs
+    environment:
+      SERVER_HTTP_PORT: "8082"
+      SERVER_GRPC_PORT: "9092"
+      DATABASE_DSN: root:rootpassword@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local
+      REDIS_ADDR: redis:6379
+      OBSERVABILITY_ENDPOINT: http://jaeger:4317
+      OBSERVABILITY_SERVICE_NAME: kratos
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   plutus:
     build:
       context: .
-      dockerfile: plutus/Dockerfile
+      dockerfile: plutus/Dockerfile.prod
     container_name: plutus-app
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
-      - "8085:8082"
+      - "8085:8085"
+      - "9085:9085"
     volumes:
       - ./plutus/configs:/app/configs
+    environment:
+      SERVER_HTTP_PORT: "8085"
+      SERVER_GRPC_PORT: "9085"
+      DATABASE_DSN: plutus:plutuspassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local
+      REDIS_ADDR: redis:6379
+      OBSERVABILITY_ENDPOINT: http://jaeger:4317
+      OBSERVABILITY_SERVICE_NAME: plutus
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  fly-network:
+    driver: bridge

@@ -18,6 +18,7 @@ type Config struct {
 	Database DatabaseConfig
 	JWT      JWTConfig
 	OAuth    OAuth
+	Log      LogConfig
 }
 
 type AppConfig struct {
@@ -38,6 +39,18 @@ type JWTConfig struct {
 	SecretKey       string
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
+}
+
+type LogConfig struct {
+	Level        string `mapstructure:"level"`
+	Format       string `mapstructure:"format"`
+	OutputPath   string `mapstructure:"outputPath"`
+	MaxSize      int    `mapstructure:"maxSize"`
+	MaxBackups   int    `mapstructure:"maxBackups"`
+	MaxAge       int    `mapstructure:"maxAge"`
+	Compress     bool   `mapstructure:"compress"`
+	EnableStdout bool   `mapstructure:"enableStdout"`
+	EnableFile   bool   `mapstructure:"enableFile"`
 }
 
 // Load 加载应用配置，按照以下优先级顺序：
@@ -68,9 +81,9 @@ func Load() (*Config, error) {
 
 	// 步骤2: 加载基础配置源 (YAML + .env + 环境变量前缀)
 	v, err := moracfg.New().
-		WithDotenv(".env").              // 加载 .env 文件
-		WithYAML(configPath).            // 使用确定的配置文件路径
-		WithEnvPrefix("CUSTOS").         // 设置环境变量前缀
+		WithDotenv(".env").      // 加载 .env 文件
+		WithYAML(configPath).    // 使用确定的配置文件路径
+		WithEnvPrefix("CUSTOS"). // 设置环境变量前缀
 		Load()
 	if err != nil {
 		return nil, fmt.Errorf("load base config failed: %w", err)
@@ -121,6 +134,17 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("jwt.accessTokenTTL", "15m")
 	v.SetDefault("jwt.refreshTokenTTL", "168h")
 
+	// Log defaults
+	v.SetDefault("log.level", "info")
+	v.SetDefault("log.format", "json")
+	v.SetDefault("log.outputPath", "logs/custos.log")
+	v.SetDefault("log.maxSize", 100)    // 100 MB
+	v.SetDefault("log.maxBackups", 7)   // 7 backup files
+	v.SetDefault("log.maxAge", 30)      // 30 days
+	v.SetDefault("log.compress", true)  // compress old log files
+	v.SetDefault("log.enableStdout", true)  // always output to stdout for k8s
+	v.SetDefault("log.enableFile", true)    // also write to file
+
 	// OAuth defaults
 	v.SetDefault("oauth.stateKey", "dev-oauth-state-key-change-me")
 	v.SetDefault("oauth.stateTTL", 600) // 10 minutes
@@ -151,6 +175,15 @@ func bindEnv(v *viper.Viper) error {
 		"jwt.secretKey":             {"CUSTOS_JWT_SECRET_KEY", "JWT_SECRET"},
 		"jwt.accessTokenTTL":        {"CUSTOS_JWT_ACCESS_TOKEN_TTL", "JWT_ACCESS_TTL"},
 		"jwt.refreshTokenTTL":       {"CUSTOS_JWT_REFRESH_TOKEN_TTL", "JWT_REFRESH_TTL"},
+		"log.level":                 {"CUSTOS_LOG_LEVEL", "LOG_LEVEL"},
+		"log.format":                {"CUSTOS_LOG_FORMAT", "LOG_FORMAT"},
+		"log.outputPath":            {"CUSTOS_LOG_OUTPUT_PATH", "LOG_OUTPUT_PATH"},
+		"log.maxSize":               {"CUSTOS_LOG_MAX_SIZE", "LOG_MAX_SIZE"},
+		"log.maxBackups":            {"CUSTOS_LOG_MAX_BACKUPS", "LOG_MAX_BACKUPS"},
+		"log.maxAge":                {"CUSTOS_LOG_MAX_AGE", "LOG_MAX_AGE"},
+		"log.compress":              {"CUSTOS_LOG_COMPRESS", "LOG_COMPRESS"},
+		"log.enableStdout":          {"CUSTOS_LOG_ENABLE_STDOUT", "LOG_ENABLE_STDOUT"},
+		"log.enableFile":            {"CUSTOS_LOG_ENABLE_FILE", "LOG_ENABLE_FILE"},
 		"oauth.stateKey":            {"CUSTOS_OAUTH_STATE_KEY", "OAUTH_STATE_KEY"},
 		"oauth.stateTTL":            {"CUSTOS_OAUTH_STATE_TTL", "OAUTH_STATE_TTL"},
 		"oauth.google.clientID":     {"CUSTOS_GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_ID"},

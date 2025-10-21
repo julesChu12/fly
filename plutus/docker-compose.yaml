@@ -7,8 +7,8 @@ services:
       MYSQL_DATABASE: plutus
       MYSQL_USER: plutus
       MYSQL_PASSWORD: plutuspassword
-    ports:
-      - "3306:3306"
+    expose:
+      - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./configs/migrations:/docker-entrypoint-initdb.d:ro
@@ -18,13 +18,15 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - fly-network
 
   redis:
     image: redis:7-alpine
     container_name: plutus-redis
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -33,6 +35,8 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - fly-network
 
   jaeger:
     image: jaegertracing/all-in-one:1.53
@@ -42,25 +46,69 @@ services:
       - "4317:4317"
       - "4318:4318"
     restart: unless-stopped
+    networks:
+      - fly-network
 
-  plutus:
+  plutus-dev:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: plutus-service
+      dockerfile: Dockerfile.dev
+    container_name: plutus-service-dev
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
     ports:
-      - "8082:8082"
-      - "9082:9082"
+      - "8085:8085"
+      - "9085:9085"
       - "9090:9090"
     volumes:
+      - .:/app
+      - go-modules:/go/pkg/mod
       - ./configs:/app/configs:ro
+    environment:
+      - SERVER_HTTP_PORT=8085
+      - SERVER_GRPC_PORT=9085
+      - DATABASE_DSN=plutus:plutuspassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_ADDR=redis:6379
+      - OBSERVABILITY_ENDPOINT=http://jaeger:4317
+      - OBSERVABILITY_SERVICE_NAME=plutus
     restart: unless-stopped
+    networks:
+      - fly-network
+
+  plutus-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: plutus-service-prod
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "18085:8085"
+      - "19085:9085"
+    volumes:
+      - ./configs:/app/configs:ro
+    environment:
+      - SERVER_HTTP_PORT=8085
+      - SERVER_GRPC_PORT=9085
+      - DATABASE_DSN=plutus:plutuspassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_ADDR=redis:6379
+      - OBSERVABILITY_ENDPOINT=http://jaeger:4317
+      - OBSERVABILITY_SERVICE_NAME=plutus
+    restart: unless-stopped
+    networks:
+      - fly-network
 
 volumes:
   mysql_data:
   redis_data:
+  go-modules:
+
+networks:
+  fly-network:
+    driver: bridge

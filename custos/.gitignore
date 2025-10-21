@@ -52,3 +52,4 @@ redis/redis.conf
 .gocache/
 
 bin/
+tmp/
