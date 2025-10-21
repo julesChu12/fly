@@ -2,38 +2,83 @@ services:
   mysql:
     image: mysql:8.0
     container_name: custos-mysql
-    ports:
-      - "3306:3306"
+    # 声明内部端口，只在容器网络内访问
+    expose:
+      - "3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: custos
       MYSQL_USER: custos
       MYSQL_PASSWORD: custospassword
+      MYSQL_ROOT_HOST: "%"
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/my.cnf:/etc/mysql/my.cnf
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+    networks:
+      - app-network
 
   redis:
     image: redis:6-alpine
     container_name: custos-redis
-    ports:
-      - "6379:6379"
+    # 声明内部端口，只在容器网络内访问
+    expose:
+      - "6379"
     volumes:
       - ./redis/data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     restart: always
+    networks:
+      - app-network
 
-  custos:
-    build: .
-    container_name: custos-app
-    depends_on:
-      - mysql
-      - redis
+
+  custos-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     ports:
       - "8081:8081"
     volumes:
-      - ./configs:/app/configs
+      - .:/app
+      - go-modules:/go/pkg/mod
     environment:
-      CONFIG_PATH: /app/configs/custos.yaml
+      - GIN_MODE=debug
+      - GO_ENV=development
+    command: ["air"]
+    networks:
+      - app-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  custos-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8881:8881"
+    environment:
+      - GIN_MODE=release
+      - GO_ENV=production
+    networks:
+      - app-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+volumes:
+  go-modules:
+
+networks:
+  app-network:
+    driver: bridge

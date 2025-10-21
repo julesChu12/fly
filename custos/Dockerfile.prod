@@ -17,7 +17,7 @@ COPY . .
 RUN go build -ldflags="-s -w" -o userd ./cmd/userd
 
 # Step 2: Runtime stage
-FROM alpine:3.18
+FROM alpine:3.20
 
 # Install ca-certificates for HTTPS requests
 RUN apk --no-cache add ca-certificates tzdata

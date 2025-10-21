@@ -230,7 +230,7 @@ func (h *PasswordHandler) GetPasswordPolicy(c *gin.Context) {
 // @Router /api/v1/admin/users/{user_id}/password/check [post]
 func (h *PasswordHandler) CheckPasswordStrength(c *gin.Context) {
 	// Get user ID from URL parameter
-	userIDParam := c.Param("user_id")
+	userIDParam := c.Param("id")
 	userID, err := strconv.ParseUint(userIDParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
@@ -290,6 +290,6 @@ func (h *PasswordHandler) RegisterPasswordRoutes(r *gin.RouterGroup, authMiddlew
 	// Admin routes (require admin privileges)
 	adminGroup := r.Group("/admin", authMiddleware, adminMiddleware)
 	{
-		adminGroup.POST("/users/:user_id/password/check", h.CheckPasswordStrength)
+		adminGroup.POST("/users/:id/password/check", h.CheckPasswordStrength)
 	}
 }

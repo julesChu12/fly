@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -41,47 +42,55 @@ type JWTConfig struct {
 
 // Load 加载应用配置，按照以下优先级顺序：
 // 1. 默认值 (最低优先级) - 通过 setDefaults() 设置
-// 2. YAML 配置文件 - configs/custos.yaml
+// 2. YAML 配置文件 - 由 CONFIG_PATH 环境变量指定，或默认为 configs/custos.yaml
 // 3. .env 文件 - 项目根目录下的 .env 文件
 // 4. 环境变量 (最高优先级) - 通过 bindEnv() 绑定
 //
 // 配置加载流程：
-// 1. 创建 Viper 实例并加载基础配置源 (YAML + .env + 环境变量前缀)
-// 2. 设置默认值作为兜底配置
-// 3. 绑定环境变量到配置键，支持多种环境变量命名格式
-// 4. 将配置反序列化到 Config 结构体
-// 5. 验证配置的完整性和有效性
+// 1. 读取 CONFIG_PATH 环境变量确定配置文件路径（如未设置则使用默认的相对路径）
+// 2. 创建 Viper 实例并加载基础配置源 (YAML + .env + 环境变量前缀)
+// 3. 设置默认值作为兜底配置
+// 4. 绑定环境变量到配置键，支持多种环境变量命名格式
+// 5. 将配置反序列化到 Config 结构体
+// 6. 验证配置的完整性和有效性
 //
 // 环境变量绑定规则：
 // - 支持 CUSTOS_ 前缀的环境变量 (如 CUSTOS_APP_PORT)
 // - 支持无前缀的环境变量 (如 PORT, DB_HOST)
 // - 每个配置项可绑定多个环境变量名，按顺序尝试
+// - CONFIG_PATH 用于指定配置文件路径 (在 Docker 环境中使用绝对路径)
 func Load() (*Config, error) {
-	// 步骤1: 加载基础配置源 (YAML + .env + 环境变量前缀)
+	// 步骤1: 确定配置文件路径
+	configPath := "configs/custos.yaml" // 默认相对路径
+	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
+		configPath = envPath // 使用环境变量指定的路径
+	}
+
+	// 步骤2: 加载基础配置源 (YAML + .env + 环境变量前缀)
 	v, err := moracfg.New().
 		WithDotenv(".env").              // 加载 .env 文件
-		WithYAML("configs/custos.yaml"). // 加载 YAML 配置文件
+		WithYAML(configPath).            // 使用确定的配置文件路径
 		WithEnvPrefix("CUSTOS").         // 设置环境变量前缀
 		Load()
 	if err != nil {
 		return nil, fmt.Errorf("load base config failed: %w", err)
 	}
 
-	// 步骤2: 设置默认值 (最低优先级)
+	// 步骤3: 设置默认值 (最低优先级)
 	setDefaults(v)
 
-	// 步骤3: 绑定环境变量 (最高优先级)
+	// 步骤4: 绑定环境变量 (最高优先级)
 	if err := bindEnv(v); err != nil {
 		return nil, err
 	}
 
-	// 步骤4: 反序列化到 Config 结构体
+	// 步骤5: 反序列化到 Config 结构体
 	var cfg Config
 	if err := v.Unmarshal(&cfg, viper.DecodeHook(durationDecodeHook())); err != nil {
 		return nil, fmt.Errorf("unmarshal to Config failed: %w", err)
 	}
 
-	// 步骤5: 验证配置
+	// 步骤6: 验证配置
 	if err := validate(&cfg); err != nil {
 		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
