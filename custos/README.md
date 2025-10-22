@@ -19,11 +19,13 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
 ## Custos Responsibilities
 
 ### 1. User Lifecycle Management
+
 - User registration (C-end self-service, B-end admin-created)  
 - Activation / Freeze / Deletion  
 - Profile management (nickname, avatar, email, phone, extended profile)  
 
 ### 2. Authentication
+
 - Username + password login  
 - Phone/email OTP login (C-end)  
 - OAuth2.0 third-party login (Google, WeChat, Apple ID, etc.)  
@@ -33,6 +35,7 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
 → combined with session-level revocation for fine-grained control (see Security section).
 
 ### 3. Security
+
 - Password hashing (bcrypt/argon2)  
 - Login failure limit (anti-brute-force)  
 - Two-factor authentication (2FA/MFA)  
@@ -45,6 +48,7 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
   - **Hybrid**: short-lived Access Tokens + token_version for global kicks + session revocation for device-level kicks.
 
 ### 4. Authorization (via Casbin)
+
 - RBAC implemented with Casbin  
 - Custos does not maintain custom `roles/permissions` tables  
 - Casbin `casbin_rule` table stores role & permission policies  
@@ -53,6 +57,7 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
 - Future: ABAC using Casbin models  
 
 ### 5. OAuth2.0 Federation (Client posture)
+
 - Act as **OAuth2.0/OIDC client** to external IdPs (Google, GitHub, WeChat).
 - Implement callback endpoints: `/oauth/{provider}/callback` (authorization-code exchange).
 - Normalize external identities into `user_oauth` (one user can bind multiple providers).
@@ -60,12 +65,14 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
 - **Non-goal**: do not expose `/authorize` or `/token` as an IdP for third parties.
 
 ### 6. Audit & Observability
+
 - Login events (success/failure, IP, UA)  
 - Permission change logs  
 - Security events (forced logout, reused refresh token detection)  
 - Export to MQ/ES/Prometheus  
 
 ### 7. Identity Linking & Account Merge
+
 - Support binding multiple external identities (wechat/google/github) to a single local user.
 - Provide **account merge** flow (strong re-auth on the target account):
   1) verify owner of the primary account;
@@ -74,6 +81,7 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
 - Record bind/unbind/merge events in audit logs.
 
 ### 8. Internal Token Authority & Key Management
+
 - Custos is the **internal token issuer** (calls Mora `auth` to sign JWT).
 - Provide internal **JWKS** endpoint for service verification (Clotho/Orders/Payments).
 - Implement **key rotation** with `kid`; old keys remain available for verification until retired.
@@ -82,7 +90,9 @@ Custos integrates external IdPs (Google/GitHub/WeChat) as a **client**. It is no
 ---
 
 ## Out of Scope
+
 The User Domain **does not handle**:  
+
 - Trust/Zero Trust (device, IP, network validation → handled by Clotho)  
 - Infrastructure capabilities (logging, config, db, mq → handled by Mora)  
 - Other business domains (orders, payments, etc.)  
@@ -94,6 +104,7 @@ The schema below models local users, profile extensions, external identity bindi
 ## Database Schema (DDL)
 
 ### users
+
 ```sql
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,                           -- 用户ID，主键
@@ -118,6 +129,7 @@ CREATE INDEX idx_users_tenant ON users(tenant_id);
 ```
 
 ### user_profiles
+
 ```sql
 CREATE TABLE user_profiles (
     user_id BIGINT PRIMARY KEY,
@@ -131,6 +143,7 @@ CREATE TABLE user_profiles (
 ```
 
 ### user_oauth
+
 ```sql
 CREATE TABLE user_oauth (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,              -- 绑定记录ID
@@ -148,6 +161,7 @@ CREATE INDEX idx_user_oauth_user_provider ON user_oauth(user_id, provider);
 ```
 
 ### refresh_tokens
+
 ```sql
 CREATE TABLE refresh_tokens (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -161,6 +175,7 @@ CREATE TABLE refresh_tokens (
 ```
 
 ### sessions (optional but recommended)
+
 ```sql
 CREATE TABLE sessions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,                -- 会话记录ID
@@ -181,6 +196,7 @@ CREATE INDEX idx_sessions_user ON sessions(user_id);
 ```
 
 ### jwk_keys (public metadata for rotation)
+
 ```sql
 CREATE TABLE jwk_keys (
     kid VARCHAR(64) PRIMARY KEY,                         -- Key ID
@@ -196,6 +212,7 @@ CREATE TABLE jwk_keys (
 ---
 
 ## Public API Surface (called by Clotho)
+
 - `POST /v1/auth/login` → local username/password login
 - `POST /v1/auth/refresh` → rotate refresh token, return new access token
 - `POST /v1/auth/logout` → revoke current session
@@ -210,7 +227,9 @@ CREATE TABLE jwk_keys (
 ---
 
 ## Instructions to AI
+
 When generating code or architecture:  
+
 - Assume **RBAC = Casbin**, no custom role/permission tables  
 - Generate Golang structs, APIs, middleware, and services based on Custos responsibilities  
 - Use Mora for common utilities (auth token signing, config, db connection, etc.)  
@@ -256,6 +275,7 @@ docker-compose logs -f custos
 ### 环境配置
 
 #### 1. 数据库配置
+
 ```yaml
 # docker-compose.yaml 中的 MySQL 配置
 mysql:
@@ -267,6 +287,7 @@ mysql:
 ```
 
 #### 2. 应用配置
+
 ```yaml
 # custos 服务配置
 custos:
@@ -304,6 +325,7 @@ curl http://localhost:8081/health/redis
 ### 开发环境配置
 
 #### 1. 使用本地配置文件
+
 ```bash
 # 复制环境配置模板
 cp configs/local.env.example .env
@@ -314,6 +336,7 @@ vim .env
 ```
 
 #### 2. 热重载开发
+
 ```bash
 # 使用 make dev 命令（推荐）
 make dev
@@ -325,6 +348,7 @@ docker-compose -f docker-compose.dev.yaml up
 ### 生产环境部署
 
 #### 1. 环境变量配置
+
 ```bash
 # 设置生产环境变量
 export CUSTOS_APP_ENV=production
@@ -335,6 +359,7 @@ export CUSTOS_OAUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
 #### 2. 安全配置
+
 ```yaml
 # 生产环境 docker-compose.prod.yaml
 version: '3.8'
@@ -356,6 +381,7 @@ services:
 ### 故障排查
 
 #### 1. 服务启动失败
+
 ```bash
 # 查看详细错误日志
 docker-compose logs custos
@@ -367,6 +393,7 @@ netstat -tlnp | grep :6379
 ```
 
 #### 2. 数据库连接问题
+
 ```bash
 # 检查 MySQL 容器状态
 docker-compose exec mysql mysql -u root -p
@@ -376,6 +403,7 @@ docker-compose exec mysql mysql -u custos -p custos -e "SHOW TABLES;"
 ```
 
 #### 3. 配置问题
+
 ```bash
 # 验证配置文件语法
 docker-compose exec custos /app/userd config-validate
@@ -387,6 +415,7 @@ docker-compose exec custos /app/userd config-show
 ### 数据持久化
 
 数据目录映射：
+
 - **MySQL 数据**: `./mysql/data` → `/var/lib/mysql`
 - **Redis 数据**: `./redis/data` → `/data`
 - **配置文件**: `./configs` → `/app/configs`
@@ -394,6 +423,7 @@ docker-compose exec custos /app/userd config-show
 ### 性能优化
 
 #### 1. 资源限制
+
 ```yaml
 # 在 docker-compose.yaml 中添加资源限制
 services:
@@ -409,6 +439,7 @@ services:
 ```
 
 #### 2. 数据库优化
+
 ```yaml
 # MySQL 配置优化
 mysql:
@@ -438,6 +469,7 @@ docker-compose logs custos > custos.log
 ### ✅ Completed Features (98%+)
 
 #### 🔐 Core Authentication System
+
 - ✅ User registration with username/email/password
 - ✅ Login with JWT access/refresh token mechanism
 - ✅ Password hashing with bcrypt
@@ -446,6 +478,7 @@ docker-compose logs custos > custos.log
 - ✅ Logout and logout-all functionality
 
 #### 🔒 Security Implementation
+
 - ✅ JWT token service with configurable TTL
 - ✅ Session-based access control
 - ✅ Authentication middleware
@@ -453,6 +486,7 @@ docker-compose logs custos > custos.log
 - ✅ Comprehensive test coverage (5 test files, 15+ test cases)
 
 #### 👥 RBAC & Authorization
+
 - ✅ Casbin integration for role-based access control
 - ✅ Default role policies (admin, user, guest)
 - ✅ RBAC middleware for endpoint protection
@@ -460,6 +494,7 @@ docker-compose logs custos > custos.log
 - ✅ Permission checking and validation
 
 #### 🔗 OAuth2.0 Integration
+
 - ✅ OAuth service architecture with Google/GitHub providers
 - ✅ Authorization URL generation with state validation
 - ✅ OAuth callback handling and token exchange
@@ -470,6 +505,7 @@ docker-compose logs custos > custos.log
   - ✅ List all OAuth bindings for user
 
 #### 🗄️ Database & Infrastructure
+
 - ✅ Clean Architecture with DDD principles
 - ✅ MySQL persistence layer with GORM
 - ✅ Database migrations using sql-migrate (7 migration files)
@@ -479,6 +515,7 @@ docker-compose logs custos > custos.log
 - ✅ Multi-tenant support with tenant entity
 
 #### 🛠️ Development & Testing
+
 - ✅ Comprehensive unit test suite (5 test files)
 - ✅ Mock repositories for testing
 - ✅ Go modules and dependency management
@@ -487,6 +524,7 @@ docker-compose logs custos > custos.log
 - ✅ Makefile with build, test, migrate commands
 
 ### 🔧 Current Technical Status
+
 - **Build Status**: ✅ All modules compile successfully
 - **Test Status**: ✅ 5 test files with comprehensive coverage
 - **Code Quality**: ✅ Clean architecture, well-structured code
@@ -496,6 +534,7 @@ docker-compose logs custos > custos.log
 ### 📋 TODO: Remaining Implementation Tasks
 
 #### 🟡 Medium Priority
+
 1. **User Profile Management** (1-2 days)
    - Implement user profile CRUD operations
    - Complete user profile entity methods
@@ -522,6 +561,7 @@ docker-compose logs custos > custos.log
    - Implement account migration tools
 
 ### 📊 Completion Metrics
+
 - **Core Authentication**: 100% ✅
 - **RBAC System**: 100% ✅
 - **OAuth Infrastructure**: 100% ✅ (binding功能已完成)

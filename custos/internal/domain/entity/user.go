@@ -11,8 +11,6 @@ type User struct {
 	Username            string           `json:"username" gorm:"uniqueIndex;size:50"`
 	Email               string           `json:"email" gorm:"uniqueIndex;size:100"`
 	Password            string           `json:"-" gorm:"size:255"`
-	Nickname            string           `json:"nickname" gorm:"size:100"`
-	Avatar              string           `json:"avatar" gorm:"size:255"`
 	Status              types.UserStatus `json:"status" gorm:"size:20;not null;default:'active'"`
 	Role                types.UserRole   `json:"role" gorm:"size:20;not null;default:'user'"`
 	UserType            types.UserType   `json:"user_type" gorm:"size:20;default:'customer'"`

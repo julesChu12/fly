@@ -10,9 +10,17 @@ import (
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
 )
 
+// contextKey is a custom type for context keys to avoid collisions
+type contextKey string
+
 const (
-	TenantContextKey = "tenant_id"
+	// TenantContextKey is the key for storing tenant ID in context.Context
+	TenantContextKey contextKey = "tenant_id"
+	// tenantGinKey is the key for storing tenant ID in gin.Context
+	tenantGinKey = "tenant_id"
+	// TenantSlugHeader is the HTTP header name for tenant slug
 	TenantSlugHeader = "X-Tenant-Slug"
+	// TenantIDHeader is the HTTP header name for tenant ID
 	TenantIDHeader   = "X-Tenant-ID"
 )
 
@@ -81,7 +89,7 @@ func (m *TenantMiddleware) ResolveTenant() gin.HandlerFunc {
 			// Set tenant in context
 			ctx := context.WithValue(c.Request.Context(), TenantContextKey, tenantID)
 			c.Request = c.Request.WithContext(ctx)
-			c.Set(TenantContextKey, tenantID)
+			c.Set(tenantGinKey, tenantID)
 		}
 
 		c.Next()
@@ -91,7 +99,7 @@ func (m *TenantMiddleware) ResolveTenant() gin.HandlerFunc {
 // RequireTenant middleware ensures a tenant is present
 func (m *TenantMiddleware) RequireTenant() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tenantID, exists := c.Get(TenantContextKey)
+		tenantID, exists := c.Get(tenantGinKey)
 		if !exists || tenantID.(uint) == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Tenant required"})
 			c.Abort()
@@ -109,7 +117,7 @@ func GetTenantIDFromContext(ctx context.Context) (uint, bool) {
 
 // GetTenantIDFromGin extracts tenant ID from Gin context
 func GetTenantIDFromGin(c *gin.Context) (uint, bool) {
-	if tenantID, exists := c.Get(TenantContextKey); exists {
+	if tenantID, exists := c.Get(tenantGinKey); exists {
 		return tenantID.(uint), true
 	}
 	return 0, false
@@ -135,5 +143,5 @@ func extractSubdomain(host string) string {
 func SetTenantInContext(c *gin.Context, tenantID uint) {
 	ctx := context.WithValue(c.Request.Context(), TenantContextKey, tenantID)
 	c.Request = c.Request.WithContext(ctx)
-	c.Set(TenantContextKey, tenantID)
+	c.Set(tenantGinKey, tenantID)
 }

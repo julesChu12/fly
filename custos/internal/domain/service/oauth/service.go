@@ -39,20 +39,22 @@ type UserInfo struct {
 }
 
 type Service struct {
-	cfg           *config.Config
-	userRepo      repository.UserRepository
-	userOAuthRepo repository.UserOAuthRepository
-	httpClient    *http.Client
-	oauthConfigs  map[Provider]*oauth2.Config
+	cfg             *config.Config
+	userRepo        repository.UserRepository
+	userOAuthRepo   repository.UserOAuthRepository
+	userProfileRepo repository.UserProfileRepository
+	httpClient      *http.Client
+	oauthConfigs    map[Provider]*oauth2.Config
 }
 
-func NewService(cfg *config.Config, userRepo repository.UserRepository, userOAuthRepo repository.UserOAuthRepository) *Service {
+func NewService(cfg *config.Config, userRepo repository.UserRepository, userOAuthRepo repository.UserOAuthRepository, userProfileRepo repository.UserProfileRepository) *Service {
 	s := &Service{
-		cfg:           cfg,
-		userRepo:      userRepo,
-		userOAuthRepo: userOAuthRepo,
-		httpClient:    &http.Client{Timeout: 10 * time.Second},
-		oauthConfigs:  make(map[Provider]*oauth2.Config),
+		cfg:             cfg,
+		userRepo:        userRepo,
+		userOAuthRepo:   userOAuthRepo,
+		userProfileRepo: userProfileRepo,
+		httpClient:      &http.Client{Timeout: 10 * time.Second},
+		oauthConfigs:    make(map[Provider]*oauth2.Config),
 	}
 
 	// Initialize OAuth configs
@@ -168,11 +170,49 @@ func (s *Service) HandleCallback(ctx context.Context, provider Provider, code, s
 		if user == nil {
 			// Create new user
 			user = entity.NewUser("", userInfo.Email, "")
-			user.Nickname = userInfo.Name
-			user.Avatar = userInfo.Picture
 
 			if err := s.userRepo.Create(ctx, user); err != nil {
 				return nil, nil, fmt.Errorf("failed to create user: %w", err)
+			}
+
+			// Create user profile with OAuth data
+			profile := entity.NewUserProfile(user.ID)
+			profile.Nickname = userInfo.Name
+			profile.Avatar = userInfo.Picture
+			if err := s.userProfileRepo.Create(ctx, profile); err != nil {
+				return nil, nil, fmt.Errorf("failed to create user profile: %w", err)
+			}
+		} else {
+			// User exists - update profile if OAuth data is better
+			profile, err := s.userProfileRepo.GetByUserID(ctx, user.ID)
+			if err != nil && err != repository.ErrUserProfileNotFound {
+				return nil, nil, fmt.Errorf("failed to get user profile: %w", err)
+			}
+
+			if err == repository.ErrUserProfileNotFound {
+				// Create profile for existing user
+				profile = entity.NewUserProfile(user.ID)
+				profile.Nickname = userInfo.Name
+				profile.Avatar = userInfo.Picture
+				if err := s.userProfileRepo.Create(ctx, profile); err != nil {
+					return nil, nil, fmt.Errorf("failed to create user profile: %w", err)
+				}
+			} else {
+				// Update profile if OAuth has better data
+				updated := false
+				if profile.Nickname == "" && userInfo.Name != "" {
+					profile.Nickname = userInfo.Name
+					updated = true
+				}
+				if profile.Avatar == "" && userInfo.Picture != "" {
+					profile.Avatar = userInfo.Picture
+					updated = true
+				}
+				if updated {
+					if err := s.userProfileRepo.Update(ctx, profile); err != nil {
+						return nil, nil, fmt.Errorf("failed to update user profile: %w", err)
+					}
+				}
 			}
 		}
 

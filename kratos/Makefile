@@ -1,15 +1,20 @@
 BINARY_NAME=kratos
-MAIN_PACKAGE=./cmd/kratos
+MAIN_PACKAGE_DIR=./cmd/kratos
+MAIN_PACKAGE=$(MAIN_PACKAGE_DIR)/main.go
+SWAGGER_OUTPUT=docs
 
-.PHONY: build run test clean swagger deps
+# Include shared Swagger targets
+include ../scripts/makefile-swagger.mk
+
+.PHONY: build run test clean deps
 
 # Build the application
-build:
-	go build -o bin/$(BINARY_NAME) $(MAIN_PACKAGE)
+build: pre-build-swagger
+	go build -o bin/$(BINARY_NAME) $(MAIN_PACKAGE_DIR)
 
 # Run the application
-run:
-	go run $(MAIN_PACKAGE)
+run: pre-build-swagger
+	go run $(MAIN_PACKAGE_DIR)
 
 # Run tests
 test:
@@ -21,13 +26,9 @@ test-coverage:
 	go tool cover -html=coverage.out -o coverage.html
 
 # Clean build artifacts
-clean:
+clean: swagger-clean
 	rm -rf bin/
 	rm -f coverage.out coverage.html
-
-# Generate swagger documentation
-swagger:
-	swag init -g $(MAIN_PACKAGE)/main.go --output docs
 
 # Download dependencies
 deps:

@@ -32,17 +32,20 @@ import (
 // @tag.name 认证
 // @tag.description 用户认证相关接口（注册、登录、刷新令牌等）
 
+// @tag.name 密码管理
+// @tag.description 密码相关接口（验证、修改密码等）
+
 // @tag.name OAuth
 // @tag.description OAuth 第三方登录相关接口
-
-// @tag.name 用户
-// @tag.description 用户信息管理相关接口
 
 // @tag.name 用户配置
 // @tag.description 用户个人配置管理接口
 
 // @tag.name 管理员
 // @tag.description 管理员功能相关接口（需要管理员权限）
+
+// @tag.name 租户
+// @tag.description 多租户管理相关接口
 
 // @tag.name 健康检查
 // @tag.description 服务健康检查接口

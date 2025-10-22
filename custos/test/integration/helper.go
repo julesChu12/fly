@@ -106,7 +106,7 @@ func SetupTestServer(t *testing.T) *TestServer {
 	passwordService := password.NewPasswordService()
 	tokenService := token.NewTokenService(cfg.JWT.SecretKey, cfg.JWT.AccessTokenTTL, cfg.JWT.RefreshTokenTTL)
 	authSvc := authService.NewAuthService(userRepo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
-	oauthSvc := oauth.NewService(cfg, userRepo, userOAuthRepo)
+	oauthSvc := oauth.NewService(cfg, userRepo, userOAuthRepo, userProfileRepo)
 
 	// Initialize RBAC service
 	rbacModelPath := "../../configs/rbac_model.conf"
@@ -114,24 +114,23 @@ func SetupTestServer(t *testing.T) *TestServer {
 	require.NoError(t, err, "Failed to initialize RBAC service")
 
 	// Initialize use cases
-	registerUC := auth.NewRegisterUseCase(authSvc)
-	loginUC := auth.NewLoginUseCase(authSvc)
-	refreshUC := auth.NewRefreshUseCase(authSvc)
+	registerUC := auth.NewRegisterUseCase(authSvc, userProfileRepo)
+	loginUC := auth.NewLoginUseCase(authSvc, userProfileRepo)
+	refreshUC := auth.NewRefreshUseCase(authSvc, userProfileRepo)
 	logoutUC := auth.NewLogoutUseCase(authSvc)
 	logoutAllUC := auth.NewLogoutAllUseCase(authSvc)
 
 	// Initialize handlers
 	authHandlerMain := handler.NewAuthHandler(registerUC, loginUC, refreshUC, logoutUC, logoutAllUC)
 	passwordHandler := authHandler.NewPasswordHandler(passwordService, userRepo)
-	userHandler := handler.NewUserHandler()
-	oauthHandler := handler.NewOAuthHandler(oauthSvc, tokenService)
-	adminHandler := handler.NewAdminHandler(userRepo, sessionRepo, rbacSvc)
+	oauthHandler := handler.NewOAuthHandler(oauthSvc, userProfileRepo, tokenService)
+	adminHandler := handler.NewAdminHandler(userRepo, userProfileRepo, sessionRepo, rbacSvc)
 	profileHandler := handler.NewProfileHandler(userRepo, userProfileRepo)
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 
 	// Setup router
-	routerHandler := router.NewRouter(authHandlerMain, userHandler, oauthHandler, adminHandler, profileHandler, healthHandler, authMW)
+	routerHandler := router.NewRouter(authHandlerMain, oauthHandler, adminHandler, profileHandler, healthHandler, authMW)
 	ginEngine := routerHandler.SetupRoutes()
 
 	// Register password routes

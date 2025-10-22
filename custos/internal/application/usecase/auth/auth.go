@@ -5,16 +5,19 @@ import (
 
 	"github.com/julesChu12/fly/custos/internal/application/dto"
 	"github.com/julesChu12/fly/custos/internal/domain/entity"
+	"github.com/julesChu12/fly/custos/internal/domain/repository"
 	"github.com/julesChu12/fly/custos/internal/domain/service/auth"
 )
 
 type RegisterUseCase struct {
-	authService *auth.AuthService
+	authService     *auth.AuthService
+	userProfileRepo repository.UserProfileRepository
 }
 
-func NewRegisterUseCase(authService *auth.AuthService) *RegisterUseCase {
+func NewRegisterUseCase(authService *auth.AuthService, userProfileRepo repository.UserProfileRepository) *RegisterUseCase {
 	return &RegisterUseCase{
-		authService: authService,
+		authService:     authService,
+		userProfileRepo: userProfileRepo,
 	}
 }
 
@@ -24,24 +27,18 @@ func (uc *RegisterUseCase) Execute(ctx context.Context, req *dto.RegisterRequest
 		return nil, err
 	}
 
-	return &dto.UserInfo{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
-		Nickname: user.Nickname,
-		Avatar:   user.Avatar,
-		Role:     string(user.Role),
-		Status:   string(user.Status),
-	}, nil
+	return uc.buildUserInfo(ctx, user)
 }
 
 type LoginUseCase struct {
-	authService *auth.AuthService
+	authService     *auth.AuthService
+	userProfileRepo repository.UserProfileRepository
 }
 
-func NewLoginUseCase(authService *auth.AuthService) *LoginUseCase {
+func NewLoginUseCase(authService *auth.AuthService, userProfileRepo repository.UserProfileRepository) *LoginUseCase {
 	return &LoginUseCase{
-		authService: authService,
+		authService:     authService,
+		userProfileRepo: userProfileRepo,
 	}
 }
 
@@ -56,35 +53,7 @@ func (uc *LoginUseCase) Execute(ctx context.Context, req *dto.LoginRequest, meta
 		return nil, err
 	}
 
-	return &dto.LoginResponse{
-		AccessToken:      tokenPair.AccessToken,
-		TokenType:        tokenPair.TokenType,
-		ExpiresIn:        tokenPair.ExpiresIn,
-		RefreshToken:     tokenPair.RefreshToken,
-		RefreshExpiresIn: tokenPair.RefreshExpiresIn,
-		SessionID:        tokenPair.SessionID,
-		User: &dto.UserInfo{
-			ID:       user.ID,
-			Username: user.Username,
-			Email:    user.Email,
-			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
-			Role:     string(user.Role),
-			Status:   string(user.Status),
-		},
-	}, nil
-}
-
-type RefreshUseCase struct {
-	authService *auth.AuthService
-}
-
-func NewRefreshUseCase(authService *auth.AuthService) *RefreshUseCase {
-	return &RefreshUseCase{authService: authService}
-}
-
-func (uc *RefreshUseCase) Execute(ctx context.Context, req *dto.RefreshRequest) (*dto.LoginResponse, error) {
-	tokenPair, user, err := uc.authService.Refresh(ctx, req.SessionID, req.RefreshToken)
+	userInfo, err := uc.buildUserInfo(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +65,41 @@ func (uc *RefreshUseCase) Execute(ctx context.Context, req *dto.RefreshRequest) 
 		RefreshToken:     tokenPair.RefreshToken,
 		RefreshExpiresIn: tokenPair.RefreshExpiresIn,
 		SessionID:        tokenPair.SessionID,
-		User:             entityToUserInfo(user),
+		User:             userInfo,
+	}, nil
+}
+
+type RefreshUseCase struct {
+	authService     *auth.AuthService
+	userProfileRepo repository.UserProfileRepository
+}
+
+func NewRefreshUseCase(authService *auth.AuthService, userProfileRepo repository.UserProfileRepository) *RefreshUseCase {
+	return &RefreshUseCase{
+		authService:     authService,
+		userProfileRepo: userProfileRepo,
+	}
+}
+
+func (uc *RefreshUseCase) Execute(ctx context.Context, req *dto.RefreshRequest) (*dto.LoginResponse, error) {
+	tokenPair, user, err := uc.authService.Refresh(ctx, req.SessionID, req.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := uc.buildUserInfo(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.LoginResponse{
+		AccessToken:      tokenPair.AccessToken,
+		TokenType:        tokenPair.TokenType,
+		ExpiresIn:        tokenPair.ExpiresIn,
+		RefreshToken:     tokenPair.RefreshToken,
+		RefreshExpiresIn: tokenPair.RefreshExpiresIn,
+		SessionID:        tokenPair.SessionID,
+		User:             userInfo,
 	}, nil
 }
 
@@ -124,14 +127,65 @@ func (uc *LogoutAllUseCase) Execute(ctx context.Context, userID uint) error {
 	return uc.authService.LogoutAll(ctx, userID)
 }
 
-func entityToUserInfo(user *entity.User) *dto.UserInfo {
-	return &dto.UserInfo{
+// buildUserInfo builds UserInfo DTO from user entity and profile
+func (uc *RegisterUseCase) buildUserInfo(ctx context.Context, user *entity.User) (*dto.UserInfo, error) {
+	userInfo := &dto.UserInfo{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
-		Nickname: user.Nickname,
-		Avatar:   user.Avatar,
 		Role:     string(user.Role),
 		Status:   string(user.Status),
 	}
+
+	// Fetch profile data
+	profile, err := uc.userProfileRepo.GetByUserID(ctx, user.ID)
+	if err == nil {
+		userInfo.Nickname = profile.Nickname
+		userInfo.Avatar = profile.Avatar
+	}
+	// Ignore profile not found error - nickname/avatar will be empty
+
+	return userInfo, nil
+}
+
+// buildUserInfo builds UserInfo DTO from user entity and profile
+func (uc *LoginUseCase) buildUserInfo(ctx context.Context, user *entity.User) (*dto.UserInfo, error) {
+	userInfo := &dto.UserInfo{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Role:     string(user.Role),
+		Status:   string(user.Status),
+	}
+
+	// Fetch profile data
+	profile, err := uc.userProfileRepo.GetByUserID(ctx, user.ID)
+	if err == nil {
+		userInfo.Nickname = profile.Nickname
+		userInfo.Avatar = profile.Avatar
+	}
+	// Ignore profile not found error - nickname/avatar will be empty
+
+	return userInfo, nil
+}
+
+// buildUserInfo builds UserInfo DTO from user entity and profile
+func (uc *RefreshUseCase) buildUserInfo(ctx context.Context, user *entity.User) (*dto.UserInfo, error) {
+	userInfo := &dto.UserInfo{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Role:     string(user.Role),
+		Status:   string(user.Status),
+	}
+
+	// Fetch profile data
+	profile, err := uc.userProfileRepo.GetByUserID(ctx, user.ID)
+	if err == nil {
+		userInfo.Nickname = profile.Nickname
+		userInfo.Avatar = profile.Avatar
+	}
+	// Ignore profile not found error - nickname/avatar will be empty
+
+	return userInfo, nil
 }

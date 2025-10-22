@@ -78,31 +78,31 @@ services:
     networks:
       - fly-network
 
-  hermes-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-    container_name: hermes-service-prod
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - "18080:8080"
-      - "19080:9080"
-    environment:
-      DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
-      PORT: "8080"
-      GRPC_PORT: "9080"
-      REDIS_URL: redis:6379
-      OBSERVABILITY_ENDPOINT: http://jaeger:4317
-      OBSERVABILITY_SERVICE_NAME: hermes
-    volumes:
-      - ./configs:/root/configs:ro
-    restart: unless-stopped
-    networks:
-      - fly-network
+  # hermes-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.prod
+  #   container_name: hermes-service-prod
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   ports:
+  #     - "18080:8080"
+  #     - "19080:9080"
+  #   environment:
+  #     DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
+  #     PORT: "8080"
+  #     GRPC_PORT: "9080"
+  #     REDIS_URL: redis:6379
+  #     OBSERVABILITY_ENDPOINT: http://jaeger:4317
+  #     OBSERVABILITY_SERVICE_NAME: hermes
+  #   volumes:
+  #     - ./configs:/root/configs:ro
+  #   restart: unless-stopped
+  #   networks:
+  #     - fly-network
 
 volumes:
   mysql_data:

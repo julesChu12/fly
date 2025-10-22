@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/julesChu12/fly/custos/internal/application/dto"
-	"github.com/julesChu12/fly/custos/internal/domain/entity"
-	"github.com/julesChu12/fly/custos/pkg/types"
 )
 
 func TestRegisterUseCase_Execute_Simple(t *testing.T) {
@@ -21,43 +19,11 @@ func TestLogoutUseCase_Execute_Simple(t *testing.T) {
 }
 
 func TestEntityToUserInfo(t *testing.T) {
-	user := &entity.User{
-		ID:       1,
-		Username: "testuser",
-		Email:    "test@example.com",
-		Nickname: "Test User",
-		Avatar:   "https://example.com/avatar.jpg",
-		Role:     types.UserRoleAdmin,
-		Status:   types.UserStatusActive,
-	}
-
-	userInfo := entityToUserInfo(user)
-
-	tests := []struct {
-		name string
-		got  interface{}
-		want interface{}
-	}{
-		{"ID", userInfo.ID, user.ID},
-		{"Username", userInfo.Username, user.Username},
-		{"Email", userInfo.Email, user.Email},
-		{"Role", userInfo.Role, string(user.Role)},
-		{"Status", userInfo.Status, string(user.Status)},
-		{"Nickname", userInfo.Nickname, user.Nickname},
-		{"Avatar", userInfo.Avatar, user.Avatar},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.got != tt.want {
-				t.Errorf("entityToUserInfo() %s = %v, want %v", tt.name, tt.got, tt.want)
-			}
-		})
-	}
+	t.Skip("entityToUserInfo function removed - nickname/avatar now fetched from user_profiles")
 }
 
 func TestNewRegisterUseCase(t *testing.T) {
-	uc := NewRegisterUseCase(nil)
+	uc := NewRegisterUseCase(nil, nil)
 	if uc == nil {
 		t.Error("NewRegisterUseCase() returned nil")
 	}
@@ -67,7 +33,7 @@ func TestNewRegisterUseCase(t *testing.T) {
 }
 
 func TestNewLoginUseCase(t *testing.T) {
-	uc := NewLoginUseCase(nil)
+	uc := NewLoginUseCase(nil, nil)
 	if uc == nil {
 		t.Error("NewLoginUseCase() returned nil")
 	}
@@ -77,7 +43,7 @@ func TestNewLoginUseCase(t *testing.T) {
 }
 
 func TestNewRefreshUseCase(t *testing.T) {
-	uc := NewRefreshUseCase(nil)
+	uc := NewRefreshUseCase(nil, nil)
 	if uc == nil {
 		t.Error("NewRefreshUseCase() returned nil")
 	}
@@ -192,7 +158,7 @@ func TestRefreshRequestValidation(t *testing.T) {
 // Test that use cases handle nil context appropriately (should not panic)
 func TestUseCaseNilContextHandling(t *testing.T) {
 	t.Run("RegisterUseCase with nil context", func(t *testing.T) {
-		uc := NewRegisterUseCase(nil)
+		uc := NewRegisterUseCase(nil, nil)
 		if uc == nil {
 			t.Error("UseCase should not be nil")
 		}
@@ -200,14 +166,14 @@ func TestUseCaseNilContextHandling(t *testing.T) {
 	})
 
 	t.Run("LoginUseCase with nil context", func(t *testing.T) {
-		uc := NewLoginUseCase(nil)
+		uc := NewLoginUseCase(nil, nil)
 		if uc == nil {
 			t.Error("UseCase should not be nil")
 		}
 	})
 
 	t.Run("RefreshUseCase with nil context", func(t *testing.T) {
-		uc := NewRefreshUseCase(nil)
+		uc := NewRefreshUseCase(nil, nil)
 		if uc == nil {
 			t.Error("UseCase should not be nil")
 		}
@@ -230,38 +196,5 @@ func TestUseCaseNilContextHandling(t *testing.T) {
 
 // Test edge cases in entityToUserInfo
 func TestEntityToUserInfo_EdgeCases(t *testing.T) {
-	t.Run("empty user", func(t *testing.T) {
-		user := &entity.User{}
-		userInfo := entityToUserInfo(user)
-
-		if userInfo == nil {
-			t.Fatal("entityToUserInfo() should not return nil")
-		}
-		if userInfo.ID != 0 {
-			t.Errorf("Empty user ID should be 0, got %d", userInfo.ID)
-		}
-		if userInfo.Username != "" {
-			t.Errorf("Empty user username should be empty string")
-		}
-	})
-
-	t.Run("user with all fields", func(t *testing.T) {
-		user := &entity.User{
-			ID:       999,
-			Username: "maxuser",
-			Email:    "max@example.com",
-			Nickname: "Max User With Very Long Nickname",
-			Avatar:   "https://example.com/very/long/path/to/avatar.jpg",
-			Role:     types.UserRoleUser,
-			Status:   types.UserStatusActive,
-		}
-		userInfo := entityToUserInfo(user)
-
-		if userInfo.Nickname != user.Nickname {
-			t.Errorf("Nickname mismatch: got %s, want %s", userInfo.Nickname, user.Nickname)
-		}
-		if userInfo.Avatar != user.Avatar {
-			t.Errorf("Avatar mismatch: got %s, want %s", userInfo.Avatar, user.Avatar)
-		}
-	})
+	t.Skip("entityToUserInfo function removed - nickname/avatar now fetched from user_profiles")
 }

@@ -8,7 +8,6 @@ import (
 
 type Router struct {
 	authHandler    *handler.AuthHandler
-	userHandler    *handler.UserHandler
 	oauthHandler   *handler.OAuthHandler
 	adminHandler   *handler.AdminHandler
 	profileHandler *handler.ProfileHandler
@@ -18,7 +17,6 @@ type Router struct {
 
 func NewRouter(
 	authHandler *handler.AuthHandler,
-	userHandler *handler.UserHandler,
 	oauthHandler *handler.OAuthHandler,
 	adminHandler *handler.AdminHandler,
 	profileHandler *handler.ProfileHandler,
@@ -27,7 +25,6 @@ func NewRouter(
 ) *Router {
 	return &Router{
 		authHandler:    authHandler,
-		userHandler:    userHandler,
 		oauthHandler:   oauthHandler,
 		adminHandler:   adminHandler,
 		profileHandler: profileHandler,
@@ -74,12 +71,6 @@ func (r *Router) SetupRoutes() *gin.Engine {
 		{
 			authProtected.POST("/logout", r.authHandler.Logout)
 			authProtected.POST("/logout-all", r.authHandler.LogoutAll)
-		}
-
-		user := v1.Group("/user")
-		user.Use(r.authMW.RequireAuth())
-		{
-			user.GET("/profile", r.userHandler.GetProfile)
 		}
 
 		// Profile routes (user profile management)

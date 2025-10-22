@@ -8,14 +8,14 @@ require (
 	github.com/julesChu12/fly/mora v0.0.0-20250927132029-2fc7e0feac28
 	github.com/prometheus/client_golang v1.23.2
 	github.com/sony/gobreaker v1.0.0
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.27.0
 	golang.org/x/time v0.13.0
-	google.golang.org/grpc v1.75.0
+	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.9
 )
 
@@ -98,6 +98,6 @@ require (
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools v0.37.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250825161204-c5933d9347a5 // indirect
 )

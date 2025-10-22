@@ -205,11 +205,14 @@ func createTestProfile() *entity.UserProfile {
 		Avatar:   "https://example.com/avatar.jpg",
 		Gender:   "male",
 		Birthday: &birthday,
-		Extra:    `{"interests": ["coding", "reading"]}`,
+		Extra:    ptrString(`{"interests": ["coding", "reading"]}`),
 	}
 }
 
-// Tests for GetProfile
+// Helper to convert string to *string
+func ptrString(s string) *string {
+	return &s
+}
 func TestUserProfileService_GetProfile_Success(t *testing.T) {
 	mockUserRepo := new(MockUserRepository)
 	mockProfileRepo := new(MockUserProfileRepository)
@@ -495,7 +498,8 @@ func TestUserProfileService_ApplyProfileUpdates_AllFields(t *testing.T) {
 	assert.Equal(t, "https://example.com/avatar.jpg", profile.Avatar)
 	assert.Equal(t, "female", profile.Gender)
 	assert.NotNil(t, profile.Birthday)
-	assert.Equal(t, `{"key": "value"}`, profile.Extra)
+	assert.NotNil(t, profile.Extra)
+	assert.Equal(t, `{"key": "value"}`, *profile.Extra)
 }
 
 func TestUserProfileService_ApplyProfileUpdates_PartialFields(t *testing.T) {

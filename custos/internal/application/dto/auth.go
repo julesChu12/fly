@@ -33,12 +33,12 @@ type LoginResponse struct {
 
 type UserInfo struct {
 	ID       uint   `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Nickname string `json:"nickname"`
-	Avatar   string `json:"avatar"`
-	Role     string `json:"role"`
-	Status   string `json:"status"`
+	Username string `json:"username,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
+	Avatar   string `json:"avatar,omitempty"`
+	Role     string `json:"role,omitempty"`
+	Status   string `json:"status,omitempty"`
 }
 
 type ErrorResponse struct {

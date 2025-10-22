@@ -71,7 +71,7 @@ func RequestIDMiddleware() gin.HandlerFunc {
 		c.Set("request_id", requestID)
 
 		// Add to Go context for downstream services
-		ctx := context.WithValue(c.Request.Context(), "trace_id", requestID)
+		ctx := context.WithValue(c.Request.Context(), TenantContextKey, requestID)
 		c.Request = c.Request.WithContext(ctx)
 
 		// Add response header

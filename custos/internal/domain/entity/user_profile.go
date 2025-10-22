@@ -12,7 +12,7 @@ type UserProfile struct {
 	Avatar    string     `json:"avatar" gorm:"size:255"`
 	Gender    string     `json:"gender" gorm:"type:enum('male','female','other');default:'other'"`
 	Birthday  *time.Time `json:"birthday,omitempty" gorm:"type:date"`
-	Extra     string     `json:"extra,omitempty" gorm:"type:json"` // JSON for additional fields
+	Extra     *string    `json:"extra,omitempty" gorm:"type:json"` // JSON for additional fields (pointer to support NULL)
 	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 
@@ -67,16 +67,17 @@ func (up *UserProfile) SetExtra(data interface{}) error {
 	if err != nil {
 		return err
 	}
-	up.Extra = string(jsonData)
+	jsonStr := string(jsonData)
+	up.Extra = &jsonStr
 	return nil
 }
 
 // GetExtra retrieves extra data from JSON
 func (up *UserProfile) GetExtra(v interface{}) error {
-	if up.Extra == "" {
+	if up.Extra == nil || *up.Extra == "" {
 		return nil
 	}
-	return json.Unmarshal([]byte(up.Extra), v)
+	return json.Unmarshal([]byte(*up.Extra), v)
 }
 
 // IsComplete checks if the profile has all basic information filled

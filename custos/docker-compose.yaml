@@ -41,12 +41,13 @@ services:
 
   custos-dev:
     build:
-      context: .
-      dockerfile: Dockerfile.dev
+      context: ..  # 使用父目录作为上下文,以便访问 mora
+      dockerfile: custos/Dockerfile.dev
     ports:
       - "8081:8081"
     volumes:
       - .:/app
+      - ../mora:/mora  # 挂载 mora 以支持热更新
       - go-modules:/go/pkg/mod
     environment:
       - GIN_MODE=debug
@@ -60,22 +61,22 @@ services:
       redis:
         condition: service_started
 
-  custos-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-    ports:
-      - "8881:8881"
-    environment:
-      - GIN_MODE=release
-      - GO_ENV=production
-    networks:
-      - fly-network
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
+  # custos-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.prod
+  #   ports:
+  #     - "8881:8881"
+  #   environment:
+  #     - GIN_MODE=release
+  #     - GO_ENV=production
+  #   networks:
+  #     - fly-network
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_started
 volumes:
   go-modules:
 

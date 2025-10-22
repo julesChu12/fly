@@ -15,21 +15,35 @@ import (
 )
 
 type AdminHandler struct {
-	userRepo    repository.UserRepository
-	sessionRepo repository.SessionRepository
-	rbacSvc     *rbac.RBACService
+	userRepo        repository.UserRepository
+	userProfileRepo repository.UserProfileRepository
+	sessionRepo     repository.SessionRepository
+	rbacSvc         *rbac.RBACService
 }
 
-func NewAdminHandler(userRepo repository.UserRepository, sessionRepo repository.SessionRepository, rbacSvc *rbac.RBACService) *AdminHandler {
+func NewAdminHandler(userRepo repository.UserRepository, userProfileRepo repository.UserProfileRepository, sessionRepo repository.SessionRepository, rbacSvc *rbac.RBACService) *AdminHandler {
 	return &AdminHandler{
-		userRepo:    userRepo,
-		sessionRepo: sessionRepo,
-		rbacSvc:     rbacSvc,
+		userRepo:        userRepo,
+		userProfileRepo: userProfileRepo,
+		sessionRepo:     sessionRepo,
+		rbacSvc:         rbacSvc,
 	}
 }
 
 // AssignRole assigns a role to a user
-// POST /api/v1/admin/users/:id/roles
+// @Summary 分配角色
+// @Description 为指定用户分配角色（需要管理员权限）
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Param request body object{role=string} true "角色信息"
+// @Success 200 {object} object{message=string}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id}/roles [post]
 func (h *AdminHandler) AssignRole(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
@@ -43,7 +57,7 @@ func (h *AdminHandler) AssignRole(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -79,7 +93,17 @@ func (h *AdminHandler) AssignRole(c *gin.Context) {
 }
 
 // GetUserRoles gets all roles for a user
-// GET /api/v1/admin/users/:id/roles
+// @Summary 获取用户角色
+// @Description 获取指定用户的所有角色和权限（需要管理员权限）
+// @Tags 管理员
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Success 200 {object} object{user_id=int,roles=[]string,permissions=[]string}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id}/roles [get]
 func (h *AdminHandler) GetUserRoles(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
@@ -113,7 +137,17 @@ func (h *AdminHandler) GetUserRoles(c *gin.Context) {
 }
 
 // AddPolicy adds a new policy rule
-// POST /api/v1/admin/policies
+// @Summary 添加策略规则
+// @Description 添加新的RBAC策略规则（需要管理员权限）
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object{subject=string,object=string,action=string} true "策略规则"
+// @Success 200 {object} object{message=string}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/policies [post]
 func (h *AdminHandler) AddPolicy(c *gin.Context) {
 	var req struct {
 		Subject string `json:"subject" binding:"required"`
@@ -122,7 +156,7 @@ func (h *AdminHandler) AddPolicy(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -136,7 +170,17 @@ func (h *AdminHandler) AddPolicy(c *gin.Context) {
 }
 
 // RemovePolicy removes a policy rule
-// DELETE /api/v1/admin/policies
+// @Summary 删除策略规则
+// @Description 删除指定的RBAC策略规则（需要管理员权限）
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body object{subject=string,object=string,action=string} true "策略规则"
+// @Success 200 {object} object{message=string}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/policies [delete]
 func (h *AdminHandler) RemovePolicy(c *gin.Context) {
 	var req struct {
 		Subject string `json:"subject" binding:"required"`
@@ -145,7 +189,7 @@ func (h *AdminHandler) RemovePolicy(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -159,7 +203,22 @@ func (h *AdminHandler) RemovePolicy(c *gin.Context) {
 }
 
 // ListUsers lists all users with pagination and filtering (admin only)
-// GET /api/v1/admin/users
+// @Summary 用户列表
+// @Description 获取用户列表，支持分页和筛选（需要管理员权限）
+// @Tags 管理员
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(20)
+// @Param status query string false "用户状态"
+// @Param role query string false "用户角色"
+// @Param user_type query string false "用户类型"
+// @Param tenant_id query int false "租户ID"
+// @Param keyword query string false "关键词搜索（用户名、邮箱）"
+// @Success 200 {object} dto.ListUsersResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users [get]
 func (h *AdminHandler) ListUsers(c *gin.Context) {
 	var req dto.ListUsersRequest
 
@@ -207,12 +266,10 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 	// Convert to DTO
 	userInfos := make([]*dto.AdminUserInfo, len(users))
 	for i, user := range users {
-		userInfos[i] = &dto.AdminUserInfo{
+		userInfo := &dto.AdminUserInfo{
 			ID:               user.ID,
 			Username:         user.Username,
 			Email:            user.Email,
-			Nickname:         user.Nickname,
-			Avatar:           user.Avatar,
 			Status:           string(user.Status),
 			Role:             string(user.Role),
 			UserType:         string(user.UserType),
@@ -223,6 +280,15 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 			CreatedAt:        user.CreatedAt,
 			UpdatedAt:        user.UpdatedAt,
 		}
+
+		// Fetch profile data
+		profile, err := h.userProfileRepo.GetByUserID(c.Request.Context(), user.ID)
+		if err == nil {
+			userInfo.Nickname = profile.Nickname
+			userInfo.Avatar = profile.Avatar
+		}
+
+		userInfos[i] = userInfo
 	}
 
 	// Calculate total pages
@@ -240,7 +306,17 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 }
 
 // GetUser gets a single user by ID (admin only)
-// GET /api/v1/admin/users/:id
+// @Summary 获取用户详情
+// @Description 获取指定用户的详细信息（需要管理员权限）
+// @Tags 管理员
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Success 200 {object} object{user=dto.AdminUserInfo,roles=[]string,active_sessions=int}
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id} [get]
 func (h *AdminHandler) GetUser(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
@@ -269,8 +345,6 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 		ID:               user.ID,
 		Username:         user.Username,
 		Email:            user.Email,
-		Nickname:         user.Nickname,
-		Avatar:           user.Avatar,
 		Status:           string(user.Status),
 		Role:             string(user.Role),
 		UserType:         string(user.UserType),
@@ -282,6 +356,13 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 		UpdatedAt:        user.UpdatedAt,
 	}
 
+	// Fetch profile data
+	profile, err := h.userProfileRepo.GetByUserID(c.Request.Context(), user.ID)
+	if err == nil {
+		userInfo.Nickname = profile.Nickname
+		userInfo.Avatar = profile.Avatar
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"user":           userInfo,
 		"roles":          roles,
@@ -290,7 +371,19 @@ func (h *AdminHandler) GetUser(c *gin.Context) {
 }
 
 // UpdateUserStatus updates user status (admin only)
-// PATCH /api/v1/admin/users/:id/status
+// @Summary 更新用户状态
+// @Description 更新用户状态（active/inactive/locked/deleted）（需要管理员权限）
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Param request body dto.UpdateUserStatusRequest true "状态信息"
+// @Success 200 {object} dto.UpdateUserStatusResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id}/status [patch]
 func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
@@ -301,7 +394,7 @@ func (h *AdminHandler) UpdateUserStatus(c *gin.Context) {
 
 	var req dto.UpdateUserStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -350,7 +443,19 @@ func (h *AdminHandler) UpdateUserRole(c *gin.Context) {
 }
 
 // ForceLogoutUser force logout a user (admin only)
-// POST /api/v1/admin/users/:id/force-logout
+// @Summary 强制用户登出
+// @Description 强制指定用户登出（单个会话或全部会话）（需要管理员权限）
+// @Tags 管理员
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Param request body dto.ForceLogoutUserRequest false "会话信息（不传则登出所有会话）"
+// @Success 200 {object} dto.ForceLogoutUserResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/users/{id}/force-logout [post]
 func (h *AdminHandler) ForceLogoutUser(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
@@ -418,7 +523,14 @@ func (h *AdminHandler) ForceLogoutUser(c *gin.Context) {
 }
 
 // GetSystemStats gets system statistics (admin only)
-// GET /api/v1/admin/stats
+// @Summary 获取系统统计
+// @Description 获取系统统计信息（用户数、会话数等）（需要管理员权限）
+// @Tags 管理员
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SystemStatsResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /admin/stats [get]
 func (h *AdminHandler) GetSystemStats(c *gin.Context) {
 	ctx := c.Request.Context()
 

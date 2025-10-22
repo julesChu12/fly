@@ -59,7 +59,11 @@ func (s *UserProfileService) GetProfile(ctx context.Context, userID uint) (*dto.
 		Nickname: profile.Nickname,
 		Avatar:   profile.Avatar,
 		Gender:   profile.Gender,
-		Extra:    profile.Extra,
+	}
+
+	// Include extra if present
+	if profile.Extra != nil {
+		response.Extra = *profile.Extra
 	}
 
 	// Include user basic info
@@ -193,7 +197,7 @@ func (s *UserProfileService) applyProfileUpdates(profile *entity.UserProfile, re
 	}
 
 	if req.Extra != "" {
-		profile.Extra = req.Extra
+		profile.Extra = &req.Extra
 	}
 
 	return nil

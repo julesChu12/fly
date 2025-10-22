@@ -7,24 +7,35 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/custos/internal/application/dto"
+	"github.com/julesChu12/fly/custos/internal/domain/repository"
 	oauthService "github.com/julesChu12/fly/custos/internal/domain/service/oauth"
 	"github.com/julesChu12/fly/custos/internal/domain/service/token"
 )
 
 type OAuthHandler struct {
-	oauthService *oauthService.Service
-	tokenService *token.TokenService
+	oauthService    *oauthService.Service
+	userProfileRepo repository.UserProfileRepository
+	tokenService    *token.TokenService
 }
 
-func NewOAuthHandler(oauthService *oauthService.Service, tokenService *token.TokenService) *OAuthHandler {
+func NewOAuthHandler(oauthService *oauthService.Service, userProfileRepo repository.UserProfileRepository, tokenService *token.TokenService) *OAuthHandler {
 	return &OAuthHandler{
-		oauthService: oauthService,
-		tokenService: tokenService,
+		oauthService:    oauthService,
+		userProfileRepo: userProfileRepo,
+		tokenService:    tokenService,
 	}
 }
 
 // GetOAuthURL generates OAuth authorization URL
-// GET /api/v1/oauth/{provider}/login
+// @Summary 获取OAuth授权URL
+// @Description 生成指定OAuth提供商的授权URL（支持Google、GitHub）
+// @Tags OAuth
+// @Produce json
+// @Param provider path string true "OAuth提供商（google/github）"
+// @Param redirect_url query string true "回调地址"
+// @Success 200 {object} object{auth_url=string,state=string}
+// @Failure 400 {object} object{error=string}
+// @Router /oauth/{provider}/login [get]
 func (h *OAuthHandler) GetOAuthURL(c *gin.Context) {
 	provider := c.Param("provider")
 	redirectURL := c.Query("redirect_url")
@@ -67,7 +78,18 @@ func (h *OAuthHandler) GetOAuthURL(c *gin.Context) {
 }
 
 // HandleOAuthCallback handles OAuth callback from provider
-// GET /api/v1/oauth/{provider}/callback
+// @Summary 处理OAuth回调
+// @Description 处理OAuth提供商的回调并完成登录
+// @Tags OAuth
+// @Produce json
+// @Param provider path string true "OAuth提供商（google/github）"
+// @Param code query string true "授权码"
+// @Param state query string true "状态码"
+// @Param redirect_url query string false "回调地址"
+// @Success 200 {object} dto.LoginResponse
+// @Failure 400 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
+// @Router /oauth/{provider}/callback [get]
 func (h *OAuthHandler) HandleOAuthCallback(c *gin.Context) {
 	provider := c.Param("provider")
 	code := c.Query("code")
@@ -143,16 +165,24 @@ func (h *OAuthHandler) HandleOAuthCallback(c *gin.Context) {
 		return
 	}
 
+	// Create response
+	userInfo := &dto.UserInfo{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Status:   string(user.Status),
+		Role:     string(user.Role),
+	}
+
+	// Fetch profile data
+	profile, err := h.userProfileRepo.GetByUserID(c.Request.Context(), user.ID)
+	if err == nil {
+		userInfo.Nickname = profile.Nickname
+		userInfo.Avatar = profile.Avatar
+	}
+
 	response := dto.LoginResponse{
-		User: &dto.UserInfo{
-			ID:       user.ID,
-			Username: user.Username,
-			Email:    user.Email,
-			Nickname: user.Nickname,
-			Avatar:   user.Avatar,
-			Status:   string(user.Status),
-			Role:     string(user.Role),
-		},
+		User:             userInfo,
 		AccessToken:      tokenPair.AccessToken,
 		RefreshToken:     tokenPair.RefreshToken,
 		ExpiresIn:        900,    // 15 minutes in seconds
@@ -165,7 +195,20 @@ func (h *OAuthHandler) HandleOAuthCallback(c *gin.Context) {
 }
 
 // BindOAuthProvider binds OAuth provider to existing authenticated user
-// POST /api/v1/oauth/{provider}/bind
+// @Summary 绑定OAuth账号
+// @Description 将OAuth提供商账号绑定到当前登录用户
+// @Tags OAuth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param provider path string true "OAuth提供商（google/github）"
+// @Param request body dto.OAuthBindRequest true "绑定信息"
+// @Success 200 {object} dto.OAuthBindResponse
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 409 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
+// @Router /oauth/{provider}/bind [post]
 func (h *OAuthHandler) BindOAuthProvider(c *gin.Context) {
 	provider := c.Param("provider")
 
@@ -188,9 +231,7 @@ func (h *OAuthHandler) BindOAuthProvider(c *gin.Context) {
 
 	var req dto.OAuthBindRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body",
-		})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -273,7 +314,17 @@ func (h *OAuthHandler) BindOAuthProvider(c *gin.Context) {
 }
 
 // UnbindOAuthProvider unbinds OAuth provider from authenticated user
-// DELETE /api/v1/oauth/{provider}/unbind
+// @Summary 解绑OAuth账号
+// @Description 将OAuth提供商账号从当前登录用户解绑
+// @Tags OAuth
+// @Produce json
+// @Security BearerAuth
+// @Param provider path string true "OAuth提供商（google/github）"
+// @Success 200 {object} dto.OAuthUnbindResponse
+// @Failure 400 {object} object{error=string}
+// @Failure 401 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
+// @Router /oauth/{provider}/unbind [delete]
 func (h *OAuthHandler) UnbindOAuthProvider(c *gin.Context) {
 	provider := c.Param("provider")
 
@@ -322,7 +373,15 @@ func (h *OAuthHandler) UnbindOAuthProvider(c *gin.Context) {
 }
 
 // GetUserOAuthBindings gets all OAuth bindings for authenticated user
-// GET /api/v1/oauth/bindings
+// @Summary 获取OAuth绑定列表
+// @Description 获取当前登录用户的所有OAuth账号绑定
+// @Tags OAuth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.OAuthBindingsResponse
+// @Failure 401 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
+// @Router /oauth/bindings [get]
 func (h *OAuthHandler) GetUserOAuthBindings(c *gin.Context) {
 	// Get authenticated user ID from context (set by auth middleware)
 	userID, exists := c.Get("user_id")

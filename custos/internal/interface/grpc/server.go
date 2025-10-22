@@ -19,22 +19,25 @@ import (
 // CustosGRPCServer implements the gRPC server for Custos service
 type CustosGRPCServer struct {
 	custosv1.UnimplementedCustosServiceServer
-	userRepo     repository.UserRepository
-	sessionRepo  repository.SessionRepository
-	tokenService *token.TokenService
-	grpcServer   *grpc.Server
+	userRepo        repository.UserRepository
+	userProfileRepo repository.UserProfileRepository
+	sessionRepo     repository.SessionRepository
+	tokenService    *token.TokenService
+	grpcServer      *grpc.Server
 }
 
 // NewCustosGRPCServer creates a new gRPC server instance
 func NewCustosGRPCServer(
 	userRepo repository.UserRepository,
+	userProfileRepo repository.UserProfileRepository,
 	sessionRepo repository.SessionRepository,
 	tokenService *token.TokenService,
 ) *CustosGRPCServer {
 	return &CustosGRPCServer{
-		userRepo:     userRepo,
-		sessionRepo:  sessionRepo,
-		tokenService: tokenService,
+		userRepo:        userRepo,
+		userProfileRepo: userProfileRepo,
+		sessionRepo:     sessionRepo,
+		tokenService:    tokenService,
 	}
 }
 
@@ -48,14 +51,22 @@ func (s *CustosGRPCServer) GetUser(ctx context.Context, req *custosv1.GetUserReq
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
+	// Get profile data
+	var firstName, avatar string
+	profile, err := s.userProfileRepo.GetByUserID(ctx, user.ID)
+	if err == nil {
+		firstName = profile.Nickname
+		avatar = profile.Avatar
+	}
+
 	// Convert entity to gRPC message
 	grpcUser := &custosv1.User{
 		Id:        int64(user.ID),
 		Username:  user.Username,
 		Email:     user.Email,
-		FirstName: user.Nickname, // Use Nickname as FirstName
-		LastName:  "",            // LastName not available in entity
-		Avatar:    user.Avatar,
+		FirstName: firstName, // Use Nickname as FirstName
+		LastName:  "",        // LastName not available in entity
+		Avatar:    avatar,
 		Bio:       "", // Bio not available in entity
 		Phone:     "", // Phone not available in entity
 		Location:  "", // Location not available in entity
@@ -95,14 +106,22 @@ func (s *CustosGRPCServer) ValidateToken(ctx context.Context, req *custosv1.Vali
 		}, nil
 	}
 
+	// Get profile data
+	var firstName, avatar string
+	profile, err := s.userProfileRepo.GetByUserID(ctx, user.ID)
+	if err == nil {
+		firstName = profile.Nickname
+		avatar = profile.Avatar
+	}
+
 	// Convert entity to gRPC message
 	grpcUser := &custosv1.User{
 		Id:        int64(user.ID),
 		Username:  user.Username,
 		Email:     user.Email,
-		FirstName: user.Nickname, // Use Nickname as FirstName
-		LastName:  "",            // LastName not available in entity
-		Avatar:    user.Avatar,
+		FirstName: firstName, // Use Nickname as FirstName
+		LastName:  "",        // LastName not available in entity
+		Avatar:    avatar,
 		Bio:       "", // Bio not available in entity
 		Phone:     "", // Phone not available in entity
 		Location:  "", // Location not available in entity

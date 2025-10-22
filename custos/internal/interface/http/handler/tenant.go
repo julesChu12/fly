@@ -44,10 +44,22 @@ type TenantResponse struct {
 }
 
 // CreateTenant creates a new tenant
+// @Summary 创建租户
+// @Description 创建新的租户（需要管理员权限）
+// @Tags 租户
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateTenantRequest true "租户信息"
+// @Success 201 {object} TenantResponse
+// @Failure 400 {object} object{error=string}
+// @Failure 409 {object} object{error=string}
+// @Failure 500 {object} object{error=string}
+// @Router /tenants [post]
 func (h *TenantHandler) CreateTenant(c *gin.Context) {
 	var req CreateTenantRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -112,6 +124,16 @@ func (h *TenantHandler) CreateTenant(c *gin.Context) {
 }
 
 // GetTenant retrieves tenant information
+// @Summary 获取租户信息
+// @Description 根据ID获取租户详细信息
+// @Tags 租户
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "租户ID"
+// @Success 200 {object} TenantResponse
+// @Failure 400 {object} object{error=string}
+// @Failure 404 {object} object{error=string}
+// @Router /tenants/{id} [get]
 func (h *TenantHandler) GetTenant(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -146,6 +168,15 @@ func (h *TenantHandler) GetTenant(c *gin.Context) {
 }
 
 // GetCurrentTenant retrieves current tenant from context
+// @Summary 获取当前租户
+// @Description 获取当前上下文中的租户信息
+// @Tags 租户
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} TenantResponse
+// @Failure 400 {object} object{error=string}
+// @Failure 404 {object} object{error=string}
+// @Router /tenants/current [get]
 func (h *TenantHandler) GetCurrentTenant(c *gin.Context) {
 	tenantID, exists := middleware.GetTenantIDFromGin(c)
 	if !exists {
@@ -179,6 +210,16 @@ func (h *TenantHandler) GetCurrentTenant(c *gin.Context) {
 }
 
 // ListTenants lists all tenants (admin only)
+// @Summary 租户列表
+// @Description 获取所有租户列表，支持分页（需要管理员权限）
+// @Tags 租户
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "每页数量（1-100）" default(20)
+// @Param offset query int false "偏移量" default(0)
+// @Success 200 {object} object{tenants=[]TenantResponse,limit=int,offset=int}
+// @Failure 500 {object} object{error=string}
+// @Router /tenants [get]
 func (h *TenantHandler) ListTenants(c *gin.Context) {
 	limit := 20
 	offset := 0

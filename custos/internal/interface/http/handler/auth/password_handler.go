@@ -8,6 +8,7 @@ import (
 	"github.com/julesChu12/fly/custos/internal/application/dto"
 	"github.com/julesChu12/fly/custos/internal/domain/service/password"
 	"github.com/julesChu12/fly/custos/internal/domain/repository"
+	"github.com/julesChu12/fly/custos/internal/interface/http/handler"
 )
 
 // PasswordHandler handles password-related HTTP requests
@@ -67,10 +68,7 @@ type PasswordPolicyResponse struct {
 func (h *PasswordHandler) ValidatePassword(c *gin.Context) {
 	var req ValidatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, &dto.ErrorResponse{
-			Code:    "INVALID_REQUEST",
-			Message: err.Error(),
-		})
+		handler.HandleValidationError(c, err)
 		return
 	}
 
@@ -122,10 +120,7 @@ func (h *PasswordHandler) ChangePassword(c *gin.Context) {
 
 	var req ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, &dto.ErrorResponse{
-			Code:    "INVALID_REQUEST",
-			Message: err.Error(),
-		})
+		handler.HandleValidationError(c, err)
 		return
 	}
 
@@ -252,10 +247,7 @@ func (h *PasswordHandler) CheckPasswordStrength(c *gin.Context) {
 
 	var req ValidatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, &dto.ErrorResponse{
-			Code:    "INVALID_REQUEST",
-			Message: err.Error(),
-		})
+		handler.HandleValidationError(c, err)
 		return
 	}
 

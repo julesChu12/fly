@@ -1,0 +1,1449 @@
+basePath: /api/v1
+definitions:
+  github_com_julesChu12_fly_custos_internal_application_dto.AdminUserInfo:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      last_login_at:
+        type: string
+      merged_into_user_id:
+        type: integer
+      nickname:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      tenant_id:
+        type: integer
+      token_version:
+        type: integer
+      updated_at:
+        type: string
+      user_type:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse:
+    properties:
+      code:
+        type: string
+      fields:
+        additionalProperties: true
+        type: object
+      message:
+        type: string
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.ForceLogoutUserRequest:
+    properties:
+      reason:
+        maxLength: 500
+        type: string
+      session_id:
+        description: If empty, logout all sessions
+        type: string
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.ForceLogoutUserResponse:
+    properties:
+      message:
+        type: string
+      sessions_revoked:
+        type: integer
+      token_version_new:
+        type: integer
+      token_version_old:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.GetProfileResponse:
+    properties:
+      avatar:
+        type: string
+      birthday:
+        description: 'Format: "2006-01-02"'
+        type: string
+      email:
+        type: string
+      extra:
+        type: string
+      gender:
+        type: string
+      nickname:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.ListUsersResponse:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.AdminUserInfo'
+        type: array
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.UserInfo'
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindRequest:
+    properties:
+      code:
+        type: string
+      redirect_url:
+        type: string
+      state:
+        type: string
+    required:
+    - code
+    - redirect_url
+    - state
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindingInfo:
+    properties:
+      bound_at:
+        type: string
+      id:
+        type: integer
+      provider:
+        type: string
+      provider_uid:
+        type: string
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindingsResponse:
+    properties:
+      bindings:
+        items:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindingInfo'
+        type: array
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.OAuthUnbindResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+    required:
+    - refresh_token
+    - session_id
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 128
+        minLength: 8
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse:
+    properties:
+      data: {}
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.SystemStatsResponse:
+    properties:
+      active_sessions:
+        type: integer
+      active_users:
+        type: integer
+      deleted_users:
+        type: integer
+      frozen_users:
+        type: integer
+      inactive_users:
+        type: integer
+      new_users_this_week:
+        type: integer
+      new_users_today:
+        type: integer
+      total_sessions:
+        type: integer
+      total_users:
+        type: integer
+      users_by_role:
+        additionalProperties:
+          type: integer
+        type: object
+      users_by_type:
+        additionalProperties:
+          type: integer
+        type: object
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.UpdateProfileRequest:
+    properties:
+      avatar:
+        maxLength: 255
+        type: string
+      birthday:
+        description: 'Format: "2006-01-02"'
+        type: string
+      extra:
+        type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        type: string
+      nickname:
+        maxLength: 64
+        type: string
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.UpdateProfileResponse:
+    properties:
+      message:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.UpdateUserStatusRequest:
+    properties:
+      reason:
+        description: Optional reason for audit
+        maxLength: 500
+        type: string
+      status:
+        enum:
+        - active
+        - inactive
+        - frozen
+        - disabled
+        - locked
+        - deleted
+        type: string
+    required:
+    - status
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.UpdateUserStatusResponse:
+    properties:
+      message:
+        type: string
+      new_status:
+        type: string
+      old_status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_julesChu12_fly_custos_internal_application_dto.UserInfo:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_interface_http_handler.CreateTenantRequest:
+    properties:
+      domain:
+        type: string
+      max_users:
+        type: integer
+      name:
+        type: string
+      plan:
+        type: string
+      slug:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  internal_interface_http_handler.HealthResponse:
+    properties:
+      service:
+        example: custos-user-service
+        type: string
+      status:
+        example: healthy
+        type: string
+      version:
+        example: 1.0.0
+        type: string
+    type: object
+  internal_interface_http_handler.TenantResponse:
+    properties:
+      created_at:
+        type: string
+      domain:
+        type: string
+      id:
+        type: integer
+      max_users:
+        type: integer
+      name:
+        type: string
+      plan:
+        type: string
+      slug:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_count:
+        type: integer
+    type: object
+  internal_interface_http_handler_auth.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  internal_interface_http_handler_auth.PasswordPolicyResponse:
+    properties:
+      forbid_common_passwords:
+        type: boolean
+      max_repeating_chars:
+        type: integer
+      min_length:
+        type: integer
+      require_lowercase:
+        type: boolean
+      require_numbers:
+        type: boolean
+      require_special_chars:
+        type: boolean
+      require_uppercase:
+        type: boolean
+    type: object
+  internal_interface_http_handler_auth.ValidatePasswordRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  internal_interface_http_handler_auth.ValidatePasswordResponse:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      is_valid:
+        type: boolean
+      score:
+        type: integer
+      strength_message:
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: support@fly.com
+    name: API Support
+    url: http://www.fly.com/support
+  description: 用户认证和授权服务API文档，提供用户注册、登录、OAuth、RBAC等功能
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Custos User & Authentication Service API
+  version: "1.0"
+paths:
+  /admin/policies:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的RBAC策略规则（需要管理员权限）
+      parameters:
+      - description: 策略规则
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            action:
+              type: string
+            object:
+              type: string
+            subject:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除策略规则
+      tags:
+      - 管理员
+    post:
+      consumes:
+      - application/json
+      description: 添加新的RBAC策略规则（需要管理员权限）
+      parameters:
+      - description: 策略规则
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            action:
+              type: string
+            object:
+              type: string
+            subject:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 添加策略规则
+      tags:
+      - 管理员
+  /admin/stats:
+    get:
+      description: 获取系统统计信息（用户数、会话数等）（需要管理员权限）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SystemStatsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取系统统计
+      tags:
+      - 管理员
+  /admin/users:
+    get:
+      description: 获取用户列表，支持分页和筛选（需要管理员权限）
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户状态
+        in: query
+        name: status
+        type: string
+      - description: 用户角色
+        in: query
+        name: role
+        type: string
+      - description: 用户类型
+        in: query
+        name: user_type
+        type: string
+      - description: 租户ID
+        in: query
+        name: tenant_id
+        type: integer
+      - description: 关键词搜索（用户名、邮箱）
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ListUsersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 用户列表
+      tags:
+      - 管理员
+  /admin/users/{id}:
+    get:
+      description: 获取指定用户的详细信息（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              active_sessions:
+                type: integer
+              roles:
+                items:
+                  type: string
+                type: array
+              user:
+                $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.AdminUserInfo'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取用户详情
+      tags:
+      - 管理员
+  /admin/users/{id}/force-logout:
+    post:
+      consumes:
+      - application/json
+      description: 强制指定用户登出（单个会话或全部会话）（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 会话信息（不传则登出所有会话）
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ForceLogoutUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ForceLogoutUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 强制用户登出
+      tags:
+      - 管理员
+  /admin/users/{id}/roles:
+    get:
+      description: 获取指定用户的所有角色和权限（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              permissions:
+                items:
+                  type: string
+                type: array
+              roles:
+                items:
+                  type: string
+                type: array
+              user_id:
+                type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取用户角色
+      tags:
+      - 管理员
+    post:
+      consumes:
+      - application/json
+      description: 为指定用户分配角色（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 角色信息
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            role:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              message:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 分配角色
+      tags:
+      - 管理员
+  /admin/users/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: 更新用户状态（active/inactive/locked/deleted）（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.UpdateUserStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.UpdateUserStatusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新用户状态
+      tags:
+      - 管理员
+  /api/v1/admin/users/{user_id}/password/check:
+    post:
+      consumes:
+      - application/json
+      description: Checks the password strength for a specific user (admin access
+        required)
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Password to check
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler_auth.ValidatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler_auth.ValidatePasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Check password strength for user
+      tags:
+      - password
+  /api/v1/password/change:
+    post:
+      consumes:
+      - application/json
+      description: Changes the authenticated user's password
+      parameters:
+      - description: Password change details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler_auth.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - password
+  /api/v1/password/policy:
+    get:
+      description: Returns the current password security policy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler_auth.PasswordPolicyResponse'
+      summary: Get password policy
+      tags:
+      - password
+  /api/v1/password/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validates a password against the current security policy
+      parameters:
+      - description: Password to validate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler_auth.ValidatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler_auth.ValidatePasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      summary: Validate password strength
+      tags:
+      - password
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名/邮箱和密码登录
+      parameters:
+      - description: 登录凭证
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      summary: 用户登录
+      tags:
+      - 认证
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 使用刷新令牌获取新的访问令牌
+      parameters:
+      - description: 刷新令牌
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      summary: 刷新访问令牌
+      tags:
+      - 认证
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 创建新用户账户
+      parameters:
+      - description: 注册信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      summary: 用户注册
+      tags:
+      - 认证
+  /health:
+    get:
+      description: 检查服务健康状态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler.HealthResponse'
+      summary: 健康检查
+      tags:
+      - 健康检查
+  /oauth/{provider}/bind:
+    post:
+      consumes:
+      - application/json
+      description: 将OAuth提供商账号绑定到当前登录用户
+      parameters:
+      - description: OAuth提供商（google/github）
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 绑定信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 绑定OAuth账号
+      tags:
+      - OAuth
+  /oauth/{provider}/callback:
+    get:
+      description: 处理OAuth提供商的回调并完成登录
+      parameters:
+      - description: OAuth提供商（google/github）
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 授权码
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: 状态码
+        in: query
+        name: state
+        required: true
+        type: string
+      - description: 回调地址
+        in: query
+        name: redirect_url
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: 处理OAuth回调
+      tags:
+      - OAuth
+  /oauth/{provider}/login:
+    get:
+      description: 生成指定OAuth提供商的授权URL（支持Google、GitHub）
+      parameters:
+      - description: OAuth提供商（google/github）
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: 回调地址
+        in: query
+        name: redirect_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              auth_url:
+                type: string
+              state:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      summary: 获取OAuth授权URL
+      tags:
+      - OAuth
+  /oauth/{provider}/unbind:
+    delete:
+      description: 将OAuth提供商账号从当前登录用户解绑
+      parameters:
+      - description: OAuth提供商（google/github）
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.OAuthUnbindResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 解绑OAuth账号
+      tags:
+      - OAuth
+  /oauth/bindings:
+    get:
+      description: 获取当前登录用户的所有OAuth账号绑定
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.OAuthBindingsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 获取OAuth绑定列表
+      tags:
+      - OAuth
+  /profile:
+    get:
+      description: 获取当前登录用户的个人资料信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.GetProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取个人资料
+      tags:
+      - 用户配置
+    put:
+      consumes:
+      - application/json
+      description: 更新当前登录用户的个人资料信息
+      parameters:
+      - description: 资料信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.UpdateProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新个人资料
+      tags:
+      - 用户配置
+  /tenants:
+    get:
+      description: 获取所有租户列表，支持分页（需要管理员权限）
+      parameters:
+      - default: 20
+        description: 每页数量（1-100）
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              limit:
+                type: integer
+              offset:
+                type: integer
+              tenants:
+                items:
+                  $ref: '#/definitions/internal_interface_http_handler.TenantResponse'
+                type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 租户列表
+      tags:
+      - 租户
+    post:
+      consumes:
+      - application/json
+      description: 创建新的租户（需要管理员权限）
+      parameters:
+      - description: 租户信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.CreateTenantRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler.TenantResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 创建租户
+      tags:
+      - 租户
+  /tenants/{id}:
+    get:
+      description: 根据ID获取租户详细信息
+      parameters:
+      - description: 租户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler.TenantResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 获取租户信息
+      tags:
+      - 租户
+  /tenants/current:
+    get:
+      description: 获取当前上下文中的租户信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler.TenantResponse'
+        "400":
+          description: Bad Request
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            properties:
+              error:
+                type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 获取当前租户
+      tags:
+      - 租户
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: 用户认证相关接口（注册、登录、刷新令牌等）
+  name: 认证
+- description: 密码相关接口（验证、修改密码等）
+  name: 密码管理
+- description: OAuth 第三方登录相关接口
+  name: OAuth
+- description: 用户个人配置管理接口
+  name: 用户配置
+- description: 管理员功能相关接口（需要管理员权限）
+  name: 管理员
+- description: 多租户管理相关接口
+  name: 租户
+- description: 服务健康检查接口
+  name: 健康检查

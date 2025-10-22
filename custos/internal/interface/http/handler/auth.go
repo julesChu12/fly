@@ -42,10 +42,7 @@ func NewAuthHandler(registerUC *auth.RegisterUseCase, loginUC *auth.LoginUseCase
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, &dto.ErrorResponse{
-			Code:    "INVALID_REQUEST",
-			Message: "Invalid request format",
-		})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -74,10 +71,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, &dto.ErrorResponse{
-			Code:    "INVALID_REQUEST",
-			Message: "Invalid request format",
-		})
+		HandleValidationError(c, err)
 		return
 	}
 
@@ -111,10 +105,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req dto.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, &dto.ErrorResponse{
-			Code:    "INVALID_REQUEST",
-			Message: "Invalid request format",
-		})
+		HandleValidationError(c, err)
 		return
 	}
 

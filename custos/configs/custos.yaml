@@ -11,8 +11,8 @@ database:
   charset: "utf8mb4"
 
 jwt:
-  secretKey: "dev-secret-change-me"
-  accessTokenTTL: "15m"
+  secretKey: "1HS%qUl60.,lGwd.N$"
+  accessTokenTTL: "150m"
   refreshTokenTTL: "168h"
 
 log:
@@ -27,7 +27,7 @@ log:
   enableFile: true           # output to file (for persistent storage)
 
 oauth:
-  state_key: "dev-oauth-state-key-change-me"
+  state_key: "VZL54s27JH%jeX;Y+;"
   state_ttl: 600  # 10 minutes in seconds
 
   google:

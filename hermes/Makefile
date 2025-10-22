@@ -1,5 +1,12 @@
 .PHONY: proto build test clean swagger
 
+# Module configuration
+MAIN_PACKAGE := cmd/hermes/main.go
+SWAGGER_OUTPUT := docs
+
+# Include shared Swagger targets
+include ../scripts/makefile-swagger.mk
+
 # 生成protobuf代码
 proto:
 	@echo "Generating protobuf code for Hermes..."
@@ -8,13 +15,8 @@ proto:
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		api/proto/hermes.proto
 
-# 生成Swagger文档
-swagger:
-	@echo "Generating Swagger docs for Hermes..."
-	@swag init -g cmd/hermes/main.go --output docs
-
 # 构建应用
-build:
+build: pre-build-swagger
 	@echo "Building Hermes service..."
 	@go build -o bin/hermes cmd/hermes/main.go
 
@@ -24,9 +26,9 @@ test:
 	@go test ./...
 
 # 清理生成文件
-clean:
+clean: swagger-clean
 	@echo "Cleaning generated files..."
-	@rm -rf bin/ docs/ api/proto/hermes/
+	@rm -rf bin/ api/proto/hermes/
 
 # 安装依赖
 deps:
@@ -35,7 +37,7 @@ deps:
 	@go mod download
 
 # 运行服务
-run:
+run: pre-build-swagger
 	@echo "Running Hermes service..."
 	@go run cmd/hermes/main.go
 

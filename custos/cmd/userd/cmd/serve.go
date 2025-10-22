@@ -28,7 +28,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "github.com/julesChu12/fly/custos/api/swagger" // Swagger docs
+	_ "github.com/julesChu12/fly/custos/docs" // Swagger docs
 )
 
 var serveCmd = &cobra.Command{
@@ -126,7 +126,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	tokenService := token.NewTokenService(cfg.JWT.SecretKey, cfg.JWT.AccessTokenTTL, cfg.JWT.RefreshTokenTTL)
 	authSvc := authService.NewAuthService(userRepo, sessionRepo, refreshTokenRepo, tokenService, passwordService)
-	oauthSvc := oauth.NewService(cfg, userRepo, userOAuthRepo)
+	oauthSvc := oauth.NewService(cfg, userRepo, userOAuthRepo, userProfileRepo)
 
 	// Initialize RBAC service
 	rbacModelPath := "configs/rbac_model.conf"
@@ -135,22 +135,21 @@ func runServer(cmd *cobra.Command, args []string) {
 		l.Fatalf("Failed to initialize RBAC service: %v", err)
 	}
 
-	registerUC := auth.NewRegisterUseCase(authSvc)
-	loginUC := auth.NewLoginUseCase(authSvc)
-	refreshUC := auth.NewRefreshUseCase(authSvc)
+	registerUC := auth.NewRegisterUseCase(authSvc, userProfileRepo)
+	loginUC := auth.NewLoginUseCase(authSvc, userProfileRepo)
+	refreshUC := auth.NewRefreshUseCase(authSvc, userProfileRepo)
 	logoutUC := auth.NewLogoutUseCase(authSvc)
 	logoutAllUC := auth.NewLogoutAllUseCase(authSvc)
 
 	authHandlerMain := handler.NewAuthHandler(registerUC, loginUC, refreshUC, logoutUC, logoutAllUC)
 	passwordHandler := authHandler.NewPasswordHandler(passwordService, userRepo)
-	userHandler := handler.NewUserHandler()
-	oauthHandler := handler.NewOAuthHandler(oauthSvc, tokenService)
-	adminHandler := handler.NewAdminHandler(userRepo, sessionRepo, rbacSvc)
+	oauthHandler := handler.NewOAuthHandler(oauthSvc, userProfileRepo, tokenService)
+	adminHandler := handler.NewAdminHandler(userRepo, userProfileRepo, sessionRepo, rbacSvc)
 	profileHandler := handler.NewProfileHandler(userRepo, userProfileRepo)
 	healthHandler := handler.NewHealthHandler()
 	authMW := middleware.NewAuthMiddleware(tokenService, sessionRepo)
 
-	routerHandler := router.NewRouter(authHandlerMain, userHandler, oauthHandler, adminHandler, profileHandler, healthHandler, authMW)
+	routerHandler := router.NewRouter(authHandlerMain, oauthHandler, adminHandler, profileHandler, healthHandler, authMW)
 	ginEngine := routerHandler.SetupRoutes()
 
 	// Register password routes
@@ -161,7 +160,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	ginEngine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Initialize gRPC server
-	grpcServer := grpcInterface.NewCustosGRPCServer(userRepo, sessionRepo, tokenService)
+	grpcServer := grpcInterface.NewCustosGRPCServer(userRepo, userProfileRepo, sessionRepo, tokenService)
 
 	// Override gRPC port if provided
 	grpcPortStr := "9001"

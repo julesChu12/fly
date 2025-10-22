@@ -1,12 +1,19 @@
-.PHONY: build test clean run dev help migrate swagger
+.PHONY: build test clean run dev help migrate
+
+# Module configuration
+MAIN_PACKAGE := cmd/userd/main.go
+SWAGGER_OUTPUT := docs
+
+# Include shared Swagger targets
+include ../scripts/makefile-swagger.mk
 
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  build        - Build the application"
+	@echo "  build        - Build the application (auto-generates Swagger docs)"
 	@echo "  test         - Run tests with coverage"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  run          - Run the application"
+	@echo "  clean        - Clean build artifacts and generated docs"
+	@echo "  run          - Run the application (auto-generates Swagger docs)"
 	@echo "  dev          - Setup development environment"
 	@echo "  lint         - Run linter (if available)"
 	@echo "  swagger      - Generate Swagger documentation"
@@ -16,7 +23,7 @@ help:
 	@echo "  migrate-new  - Create new migration (use NAME=migration_name)"
 	@echo "  help         - Show this help message"
 
-build:
+build: pre-build-swagger
 	@chmod +x ./scripts/build.sh
 	@./scripts/build.sh
 
@@ -24,12 +31,12 @@ test:
 	@chmod +x ./scripts/test.sh
 	@./scripts/test.sh
 
-clean:
+clean: swagger-clean
 	@rm -rf ./bin
 	@rm -f coverage.out coverage.html
-	@echo "Clean completed!"
+	@echo "✅ Clean completed!"
 
-run: build
+run: pre-build-swagger build
 	@./bin/userd
 
 dev:
@@ -42,12 +49,6 @@ lint:
 	else \
 		echo "golangci-lint not installed, skipping..."; \
 	fi
-
-# Generate Swagger documentation
-swagger:
-	@echo "Generating Swagger docs for Custos..."
-	@swag init -g cmd/userd/main.go --output api/swagger
-	@echo "Swagger documentation generated in api/swagger/"
 
 migrate:
 	@chmod +x ./scripts/migrate.sh
