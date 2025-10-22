@@ -58,31 +58,27 @@ func (r *Router) SetupRoutes() *gin.Engine {
 			oauth.GET("/:provider/callback", r.oauthHandler.HandleOAuthCallback)
 		}
 
-		oauthProtected := v1.Group("/oauth")
-		oauthProtected.Use(r.authMW.RequireAuth())
+		oauthProtected := v1.Group("/oauth", r.authMW.RequireAuth())
 		{
 			oauthProtected.POST("/:provider/bind", r.oauthHandler.BindOAuthProvider)
 			oauthProtected.DELETE("/:provider/unbind", r.oauthHandler.UnbindOAuthProvider)
 			oauthProtected.GET("/bindings", r.oauthHandler.GetUserOAuthBindings)
 		}
 
-		authProtected := v1.Group("/auth")
-		authProtected.Use(r.authMW.RequireAuth())
+		authProtected := v1.Group("/auth", r.authMW.RequireAuth())
 		{
 			authProtected.POST("/logout", r.authHandler.Logout)
 			authProtected.POST("/logout-all", r.authHandler.LogoutAll)
 		}
 
 		// Profile routes (user profile management)
-		profile := v1.Group("/profile")
-		profile.Use(r.authMW.RequireAuth())
+		profile := v1.Group("/profile", r.authMW.RequireAuth())
 		{
 			profile.GET("", r.profileHandler.GetProfile)
 			profile.PUT("", r.profileHandler.UpdateProfile)
 		}
 
-		admin := v1.Group("/admin")
-		admin.Use(r.authMW.RequireAuth())
+		admin := v1.Group("/admin", r.authMW.RequireAuth())
 		admin.Use(r.authMW.RequireRole("admin"))
 		{
 			// User management

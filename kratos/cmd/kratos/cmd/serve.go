@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -11,21 +10,21 @@ import (
 	"syscall"
 	"time"
 
+	orderv1 "github.com/julesChu12/fly/kratos/api/proto/order/v1"
 	_ "github.com/julesChu12/fly/kratos/docs" // Import swagger docs
-	"github.com/julesChu12/fly/kratos/api/proto/order/v1"
 	"github.com/julesChu12/fly/kratos/internal/application/service"
 	cacheinfra "github.com/julesChu12/fly/kratos/internal/infrastructure/cache"
 	"github.com/julesChu12/fly/kratos/internal/infrastructure/custos"
 	"github.com/julesChu12/fly/kratos/internal/infrastructure/database"
 	grpcInterface "github.com/julesChu12/fly/kratos/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/kratos/internal/interface/http"
+	"github.com/julesChu12/fly/mora/pkg/config"
+	moraDB "github.com/julesChu12/fly/mora/pkg/db"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 var serveCmd = &cobra.Command{
@@ -53,7 +52,8 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Load configuration
 	config, err := loadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		fmt.Printf("Failed to load config: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Override with command line flags
@@ -67,17 +67,51 @@ func runServer(cmd *cobra.Command, args []string) {
 		config.Database.DSN = dbDSN
 	}
 
-	// Initialize database
-	db, err := initDatabase(config)
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	// Initialize logger using mora logger
+	loggerCfg := logger.Config{
+		Level:        config.Logger.Level,
+		Format:       config.Logger.Format,
+		OutputPath:   config.Logger.OutputPath,
+		MaxSize:      config.Logger.MaxSize,
+		MaxBackups:   config.Logger.MaxBackups,
+		MaxAge:       config.Logger.MaxAge,
+		Compress:     config.Logger.Compress,
+		EnableStdout: config.Logger.EnableStdout,
+		EnableFile:   config.Logger.EnableFile,
 	}
 
+	l, err := logger.New(loggerCfg)
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+
+	l.Infof("Starting Kratos Order Service...")
+	l.Infof("Server configuration - HTTP:%d, gRPC:%d", config.Server.HTTPPort, config.Server.GRPCPort)
+
+	// Initialize database using mora db client
+	dbConfig := moraDB.Config{
+		Driver:          config.Database.Driver,
+		DSN:             config.Database.DSN,
+		MaxOpenConns:    config.Database.MaxOpenConns,
+		MaxIdleConns:    config.Database.MaxIdleConns,
+		ConnMaxLifetime: config.Database.ConnMaxLifetime,
+		LogLevel:        config.Database.LogLevel,
+	}
+
+	dbClient, err := moraDB.New(dbConfig)
+	if err != nil {
+		l.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer dbClient.Close()
+
+	l.Info("Database connected successfully")
+
 	// Initialize repositories
-	orderRepo := database.NewOrderRepository(db)
-	orderItemRepo := database.NewOrderItemRepository(db)
-	statusLogRepo := database.NewOrderStatusLogRepository(db)
-	auditRepo := database.NewOrderAuditRepository(db)
+	orderRepo := database.NewOrderRepository(dbClient.DB())
+	orderItemRepo := database.NewOrderItemRepository(dbClient.DB())
+	statusLogRepo := database.NewOrderStatusLogRepository(dbClient.DB())
+	auditRepo := database.NewOrderAuditRepository(dbClient.DB())
 
 	// Initialize optional cache
 	var serviceOpts []service.Option
@@ -85,10 +119,11 @@ func runServer(cmd *cobra.Command, args []string) {
 	if config.Cache.Enabled {
 		orderCache, err := cacheinfra.NewOrderCache(config.Cache.Address, config.Cache.DB)
 		if err != nil {
-			log.Printf("Warning: failed to connect to cache: %v", err)
+			l.Warnf("Failed to connect to cache: %v", err)
 		} else {
 			serviceOpts = append(serviceOpts, service.WithOrderCache(orderCache, config.Cache.TTL))
 			cacheCloser = orderCache.Close
+			l.Info("Cache connected successfully")
 		}
 	}
 
@@ -104,23 +139,23 @@ func runServer(cmd *cobra.Command, args []string) {
 	if config.Auth.CustosEndpoint != "" {
 		custosClient, err = custos.NewClient(config.Auth.CustosEndpoint)
 		if err != nil {
-			log.Printf("Warning: failed to connect to Custos at %s: %v", config.Auth.CustosEndpoint, err)
-			log.Println("Running without authentication middleware")
+			l.Warnf("Failed to connect to Custos at %s: %v", config.Auth.CustosEndpoint, err)
+			l.Warn("Running without authentication middleware")
 		} else {
-			log.Printf("Successfully connected to Custos at %s", config.Auth.CustosEndpoint)
+			l.Infof("Successfully connected to Custos at %s", config.Auth.CustosEndpoint)
 			defer custosClient.Close()
 		}
 	}
 
 	// Start servers
-	httpServer, grpcServer := startServers(config, orderService, custosClient)
+	httpServer, grpcServer := startServers(config, orderService, custosClient, l)
 
 	// Wait for interrupt signal to gracefully shutdown the servers
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down servers...")
+	l.Info("Shutting down servers...")
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -128,9 +163,9 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	// Shutdown HTTP server
 	if err := httpServer.Shutdown(ctx); err != nil {
-		log.Printf("HTTP server forced to shutdown: %v", err)
+		l.Errorf("HTTP server forced to shutdown: %v", err)
 	} else {
-		log.Println("HTTP server stopped gracefully")
+		l.Info("HTTP server stopped gracefully")
 	}
 
 	// Graceful stop gRPC server
@@ -142,16 +177,16 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	select {
 	case <-ctx.Done():
-		log.Println("gRPC server shutdown timeout, forcing stop")
+		l.Warn("gRPC server shutdown timeout, forcing stop")
 		grpcServer.Stop()
 	case <-stopped:
-		log.Println("gRPC server stopped gracefully")
+		l.Info("gRPC server stopped gracefully")
 	}
 
-	log.Println("Servers exited")
+	l.Info("Servers exited")
 }
 
-func startServers(config *Config, orderService service.OrderService, custosClient *custos.Client) (*http.Server, *grpc.Server) {
+func startServers(config *Config, orderService service.OrderService, custosClient *custos.Client, l *logger.Logger) (*http.Server, *grpc.Server) {
 	// HTTP router with auth and rate-limit configuration
 	routerCfg := httpInterface.RouterConfig{
 		CustosClient:     custosClient,
@@ -170,9 +205,9 @@ func startServers(config *Config, orderService service.OrderService, custosClien
 	}
 
 	go func() {
-		log.Printf("Starting HTTP server on %s", httpAddr)
+		l.Infof("Starting HTTP server on %s", httpAddr)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server failed: %v", err)
+			l.Fatalf("HTTP server failed: %v", err)
 		}
 	}()
 
@@ -180,7 +215,7 @@ func startServers(config *Config, orderService service.OrderService, custosClien
 	grpcAddr := fmt.Sprintf(":%d", config.Server.GRPCPort)
 	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
-		log.Fatalf("Failed to listen on %s: %v", grpcAddr, err)
+		l.Fatalf("Failed to listen on %s: %v", grpcAddr, err)
 	}
 
 	var grpcLimiter *rate.Limiter
@@ -225,9 +260,9 @@ func startServers(config *Config, orderService service.OrderService, custosClien
 	reflection.Register(grpcServer)
 
 	go func() {
-		log.Printf("Starting gRPC server on %s", grpcAddr)
+		l.Infof("Starting gRPC server on %s", grpcAddr)
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("gRPC server failed: %v", err)
+			l.Fatalf("gRPC server failed: %v", err)
 		}
 	}()
 
@@ -243,8 +278,12 @@ type Config struct {
 		GRPCPort int `mapstructure:"grpc_port"`
 	} `mapstructure:"server"`
 	Database struct {
-		Driver string `mapstructure:"driver"`
-		DSN    string `mapstructure:"dsn"`
+		Driver          string `mapstructure:"driver"`
+		DSN             string `mapstructure:"dsn"`
+		MaxOpenConns    int    `mapstructure:"max_open_conns"`
+		MaxIdleConns    int    `mapstructure:"max_idle_conns"`
+		ConnMaxLifetime int    `mapstructure:"conn_max_lifetime"`
+		LogLevel        string `mapstructure:"log_level"`
 	} `mapstructure:"database"`
 	Cache struct {
 		Enabled bool          `mapstructure:"enabled"`
@@ -262,6 +301,17 @@ type Config struct {
 		RequestsPerSecond float64 `mapstructure:"requests_per_second"`
 		Burst             int     `mapstructure:"burst"`
 	} `mapstructure:"rate_limit"`
+	Logger struct {
+		Level        string `mapstructure:"level"`
+		Format       string `mapstructure:"format"`
+		OutputPath   string `mapstructure:"output_path"`
+		MaxSize      int    `mapstructure:"max_size"`
+		MaxBackups   int    `mapstructure:"max_backups"`
+		MaxAge       int    `mapstructure:"max_age"`
+		Compress     bool   `mapstructure:"compress"`
+		EnableStdout bool   `mapstructure:"enable_stdout"`
+		EnableFile   bool   `mapstructure:"enable_file"`
+	} `mapstructure:"logger"`
 	Observability struct {
 		ServiceName string `mapstructure:"service_name"`
 		Endpoint    string `mapstructure:"endpoint"`
@@ -269,56 +319,43 @@ type Config struct {
 }
 
 func loadConfig() (*Config, error) {
-	viper.SetConfigName("kratos")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./configs")
-	viper.AddConfigPath("../configs")
-	viper.AddConfigPath("../../configs")
+	v := config.New().
+		WithYAML(configPath).
+		WithEnvPrefix("KRATOS").
+		MustLoad()
 
 	// Set defaults
-	viper.SetDefault("server.http_port", 8082)
-	viper.SetDefault("server.grpc_port", 9092)
-	viper.SetDefault("database.driver", "mysql")
-	viper.SetDefault("database.dsn", "root:password@tcp(localhost:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local")
-	viper.SetDefault("cache.enabled", false)
-	viper.SetDefault("cache.address", "localhost:6379")
-	viper.SetDefault("cache.db", 0)
-	viper.SetDefault("cache.ttl", "5m")
-	viper.SetDefault("auth.jwt_secret", "")
-	viper.SetDefault("auth.custos_endpoint", "localhost:50051")
-	viper.SetDefault("auth.skip_paths", []string{"/health", "/ready", "/metrics"})
-	viper.SetDefault("rate_limit.enabled", false)
-	viper.SetDefault("rate_limit.requests_per_second", 1000.0)
-	viper.SetDefault("rate_limit.burst", 2000)
+	v.SetDefault("server.http_port", 8082)
+	v.SetDefault("server.grpc_port", 9092)
+	v.SetDefault("database.driver", "mysql")
+	v.SetDefault("database.dsn", "root:password@tcp(localhost:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local")
+	v.SetDefault("database.max_open_conns", 10)
+	v.SetDefault("database.max_idle_conns", 5)
+	v.SetDefault("database.conn_max_lifetime", 3600)
+	v.SetDefault("database.log_level", "warn")
+	v.SetDefault("cache.enabled", false)
+	v.SetDefault("cache.address", "localhost:6379")
+	v.SetDefault("cache.db", 0)
+	v.SetDefault("cache.ttl", "5m")
+	v.SetDefault("auth.jwt_secret", "")
+	v.SetDefault("auth.custos_endpoint", "localhost:50051")
+	v.SetDefault("auth.skip_paths", []string{"/health", "/ready", "/metrics"})
+	v.SetDefault("rate_limit.enabled", false)
+	v.SetDefault("rate_limit.requests_per_second", 1000.0)
+	v.SetDefault("rate_limit.burst", 2000)
+	v.SetDefault("logger.level", "info")
+	v.SetDefault("logger.format", "json")
+	v.SetDefault("logger.enable_stdout", true)
+	v.SetDefault("logger.enable_file", false)
+	v.SetDefault("logger.max_size", 100)
+	v.SetDefault("logger.max_backups", 10)
+	v.SetDefault("logger.max_age", 30)
+	v.SetDefault("logger.compress", false)
 
-	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Warning: Could not read config file: %v. Using defaults.", err)
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
-}
-
-func initDatabase(config *Config) (*gorm.DB, error) {
-	db, err := gorm.Open(mysql.Open(config.Database.DSN), &gorm.Config{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	// Test connection
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get underlying sql.DB: %w", err)
-	}
-
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	log.Println("Database connection established successfully")
-	return db, nil
+	return &cfg, nil
 }

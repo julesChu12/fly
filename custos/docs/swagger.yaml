@@ -223,10 +223,12 @@ definitions:
         type: integer
       users_by_role:
         additionalProperties:
+          format: int64
           type: integer
         type: object
       users_by_type:
         additionalProperties:
+          format: int64
           type: integer
         type: object
     type: object
@@ -931,6 +933,48 @@ paths:
           schema:
             $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
       summary: 用户登录
+      tags:
+      - 认证
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: 使当前会话失效
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 用户登出
+      tags:
+      - 认证
+  /auth/logout-all:
+    post:
+      consumes:
+      - application/json
+      description: 使用户的所有会话失效
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_julesChu12_fly_custos_internal_application_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 登出所有会话
       tags:
       - 认证
   /auth/refresh:

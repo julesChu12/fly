@@ -18,4 +18,12 @@ const (
 const (
 	HeaderTenantID = "X-Tenant-ID"
 	HeaderUserID   = "X-User-ID"
+	HeaderTraceID  = "X-Trace-ID"
+)
+
+// Context keys
+const (
+	ContextKeyTenantID = "tenant_id"
+	ContextKeyUserID   = "user_id"
+	ContextKeyTraceID  = "trace_id"
 )

@@ -118,6 +118,16 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	c.JSON(http.StatusOK, &dto.SuccessResponse{Data: resp})
 }
 
+// Logout godoc
+// @Summary 用户登出
+// @Description 使当前会话失效
+// @Tags 认证
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	sessionID := middleware.GetSessionID(c)
 	if sessionID == "" {
@@ -136,6 +146,16 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, &dto.SuccessResponse{Data: gin.H{"status": "logged_out"}})
 }
 
+// LogoutAll godoc
+// @Summary 登出所有会话
+// @Description 使用户的所有会话失效
+// @Tags 认证
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Router /auth/logout-all [post]
 func (h *AuthHandler) LogoutAll(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	if userID == 0 {

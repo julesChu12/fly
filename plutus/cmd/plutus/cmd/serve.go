@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -17,11 +16,11 @@ import (
 	grpcInterface "github.com/julesChu12/fly/plutus/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/plutus/internal/interface/http"
 	"github.com/julesChu12/fly/plutus/pkg/observability"
+	"github.com/julesChu12/fly/mora/pkg/config"
+	moraDB "github.com/julesChu12/fly/mora/pkg/db"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 var serveCmd = &cobra.Command{
@@ -49,7 +48,8 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Load configuration
 	config, err := loadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		fmt.Printf("Failed to load config: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Override with command line flags
@@ -63,29 +63,63 @@ func runServer(cmd *cobra.Command, args []string) {
 		config.Database.DSN = dbDSN
 	}
 
-	// Initialize database
-	db, err := initDatabase(config)
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	// Initialize logger using mora logger
+	loggerCfg := logger.Config{
+		Level:        config.Logger.Level,
+		Format:       config.Logger.Format,
+		OutputPath:   config.Logger.OutputPath,
+		MaxSize:      config.Logger.MaxSize,
+		MaxBackups:   config.Logger.MaxBackups,
+		MaxAge:       config.Logger.MaxAge,
+		Compress:     config.Logger.Compress,
+		EnableStdout: config.Logger.EnableStdout,
+		EnableFile:   config.Logger.EnableFile,
 	}
 
+	l, err := logger.New(loggerCfg)
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+
+	l.Infof("Starting Plutus Payment Service...")
+	l.Infof("Server configuration - HTTP:%d, gRPC:%d", config.Server.HTTPPort, config.Server.GRPCPort)
+
+	// Initialize database using mora db client
+	dbConfig := moraDB.Config{
+		Driver:          config.Database.Driver,
+		DSN:             config.Database.DSN,
+		MaxOpenConns:    config.Database.MaxOpenConns,
+		MaxIdleConns:    config.Database.MaxIdleConns,
+		ConnMaxLifetime: config.Database.ConnMaxLifetime,
+		LogLevel:        config.Database.LogLevel,
+	}
+
+	dbClient, err := moraDB.New(dbConfig)
+	if err != nil {
+		l.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer dbClient.Close()
+
+	l.Info("Database connected successfully")
+
 	// Initialize repositories
-	walletRepo := database.NewWalletRepository(db)
-	transactionRepo := database.NewTransactionRepository(db)
-	channelRepo := database.NewPaymentChannelRepository(db)
+	walletRepo := database.NewWalletRepository(dbClient.DB())
+	transactionRepo := database.NewTransactionRepository(dbClient.DB())
+	channelRepo := database.NewPaymentChannelRepository(dbClient.DB())
 
 	// Initialize services
-	walletService := service.NewWalletService(db, walletRepo, transactionRepo, channelRepo)
+	walletService := service.NewWalletService(dbClient.DB(), walletRepo, transactionRepo, channelRepo)
 
 	// Initialize HTTP router
 	router := httpInterface.NewRouter(walletService)
 	engine := router.SetupRoutes()
 
 	// Start health check server
-	healthServer := observability.NewHealthCheckServer(db, 8081)
+	healthServer := observability.NewHealthCheckServer(dbClient.DB(), 8081)
 	go func() {
 		if err := healthServer.Start(); err != nil {
-			log.Printf("Health check server error: %v", err)
+			l.Warnf("Health check server error: %v", err)
 		}
 	}()
 
@@ -93,19 +127,19 @@ func runServer(cmd *cobra.Command, args []string) {
 	metricsServer := observability.NewMetricsServer(9090)
 	go func() {
 		if err := metricsServer.Start(); err != nil {
-			log.Printf("Metrics server error: %v", err)
+			l.Warnf("Metrics server error: %v", err)
 		}
 	}()
 
 	// Start servers
-	httpServer, grpcServerInstance, grpcListener := startServers(config, engine, walletService)
+	httpServer, grpcServerInstance, grpcListener := startServers(config, engine, walletService, l)
 
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down Plutus server...")
+	l.Info("Shutting down Plutus server...")
 
 	// Graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -113,9 +147,9 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	// Shutdown HTTP server
 	if err := httpServer.Shutdown(ctx); err != nil {
-		log.Printf("HTTP server forced to shutdown: %v", err)
+		l.Errorf("HTTP server forced to shutdown: %v", err)
 	} else {
-		log.Println("HTTP server stopped gracefully")
+		l.Info("HTTP server stopped gracefully")
 	}
 
 	// Shutdown gRPC server
@@ -128,13 +162,13 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	select {
 	case <-ctx.Done():
-		log.Println("gRPC server shutdown timeout, forcing stop")
+		l.Warn("gRPC server shutdown timeout, forcing stop")
 		grpcServerInstance.Stop()
 	case <-stopped:
-		log.Println("gRPC server stopped gracefully")
+		l.Info("gRPC server stopped gracefully")
 	}
 
-	log.Println("Plutus server stopped")
+	l.Info("Plutus server stopped")
 }
 
 type Config struct {
@@ -143,57 +177,59 @@ type Config struct {
 		GRPCPort int `mapstructure:"grpc_port"`
 	} `mapstructure:"server"`
 	Database struct {
-		Driver string `mapstructure:"driver"`
-		DSN    string `mapstructure:"dsn"`
+		Driver          string `mapstructure:"driver"`
+		DSN             string `mapstructure:"dsn"`
+		MaxOpenConns    int    `mapstructure:"max_open_conns"`
+		MaxIdleConns    int    `mapstructure:"max_idle_conns"`
+		ConnMaxLifetime int    `mapstructure:"conn_max_lifetime"`
+		LogLevel        string `mapstructure:"log_level"`
 	} `mapstructure:"database"`
+	Logger struct {
+		Level        string `mapstructure:"level"`
+		Format       string `mapstructure:"format"`
+		OutputPath   string `mapstructure:"output_path"`
+		MaxSize      int    `mapstructure:"max_size"`
+		MaxBackups   int    `mapstructure:"max_backups"`
+		MaxAge       int    `mapstructure:"max_age"`
+		Compress     bool   `mapstructure:"compress"`
+		EnableStdout bool   `mapstructure:"enable_stdout"`
+		EnableFile   bool   `mapstructure:"enable_file"`
+	} `mapstructure:"logger"`
 }
 
 func loadConfig() (*Config, error) {
-	viper.SetConfigName("plutus")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./configs")
-	viper.AddConfigPath("../configs")
-	viper.AddConfigPath("../../configs")
+	v := config.New().
+		WithYAML(configPath).
+		WithEnvPrefix("PLUTUS").
+		MustLoad()
 
 	// Set defaults
-	viper.SetDefault("server.http_port", 8085)
-	viper.SetDefault("server.grpc_port", 9085)
-	viper.SetDefault("database.driver", "mysql")
-	viper.SetDefault("database.dsn", "root:password@tcp(localhost:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local")
+	v.SetDefault("server.http_port", 8085)
+	v.SetDefault("server.grpc_port", 9085)
+	v.SetDefault("database.driver", "mysql")
+	v.SetDefault("database.dsn", "root:password@tcp(localhost:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local")
+	v.SetDefault("database.max_open_conns", 100)
+	v.SetDefault("database.max_idle_conns", 10)
+	v.SetDefault("database.conn_max_lifetime", 3600)
+	v.SetDefault("database.log_level", "info")
+	v.SetDefault("logger.level", "info")
+	v.SetDefault("logger.format", "json")
+	v.SetDefault("logger.enable_stdout", true)
+	v.SetDefault("logger.enable_file", false)
+	v.SetDefault("logger.max_size", 100)
+	v.SetDefault("logger.max_backups", 10)
+	v.SetDefault("logger.max_age", 30)
+	v.SetDefault("logger.compress", false)
 
-	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Warning: Could not read config file: %v. Using defaults.", err)
+	var cfg Config
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
+	return &cfg, nil
 }
 
-func initDatabase(config *Config) (*gorm.DB, error) {
-	db, err := gorm.Open(mysql.Open(config.Database.DSN), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-
-	// Test connection
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := sqlDB.Ping(); err != nil {
-		return nil, err
-	}
-
-	log.Println("Database connection established successfully")
-	return db, nil
-}
-
-func startServers(config *Config, engine http.Handler, walletService service.WalletService) (*http.Server, *grpc.Server, net.Listener) {
+func startServers(config *Config, engine http.Handler, walletService service.WalletService, l *logger.Logger) (*http.Server, *grpc.Server, net.Listener) {
 	// Start HTTP server
 	httpServer := &http.Server{
 		Addr:         formatPort(config.Server.HTTPPort),
@@ -203,16 +239,16 @@ func startServers(config *Config, engine http.Handler, walletService service.Wal
 	}
 
 	go func() {
-		log.Printf("Starting Plutus HTTP server on port %d", config.Server.HTTPPort)
+		l.Infof("Starting Plutus HTTP server on port %d", config.Server.HTTPPort)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server failed: %v", err)
+			l.Fatalf("HTTP server failed: %v", err)
 		}
 	}()
 
 	// Start gRPC server
 	lis, err := net.Listen("tcp", formatPort(config.Server.GRPCPort))
 	if err != nil {
-		log.Fatalf("Failed to listen on port %d: %v", config.Server.GRPCPort, err)
+		l.Fatalf("Failed to listen on port %d: %v", config.Server.GRPCPort, err)
 	}
 
 	grpcServer := grpc.NewServer()
@@ -220,9 +256,9 @@ func startServers(config *Config, engine http.Handler, walletService service.Wal
 	pb.RegisterWalletServiceServer(grpcServer, walletHandler)
 
 	go func() {
-		log.Printf("Starting gRPC server on port %d", config.Server.GRPCPort)
+		l.Infof("Starting gRPC server on port %d", config.Server.GRPCPort)
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("gRPC server failed: %v", err)
+			l.Fatalf("gRPC server failed: %v", err)
 		}
 	}()
 

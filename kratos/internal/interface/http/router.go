@@ -57,6 +57,7 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	engine.Use(gin.Logger())
 	engine.Use(gin.Recovery())
 	engine.Use(r.corsMiddleware())
+	engine.Use(middleware.TraceIDMiddleware())
 
 	if r.rateLimiter != nil {
 		engine.Use(r.rateLimitMiddleware())

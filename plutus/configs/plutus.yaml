@@ -15,7 +15,7 @@ database:
   dsn: "root:rootpassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local"
   max_open_conns: 100
   max_idle_conns: 10
-  conn_max_lifetime: 3600s
+  conn_max_lifetime: 3600
   log_level: "info"
 
 # 缓存配置
@@ -34,12 +34,13 @@ cache:
 logger:
   level: "info"
   format: "json"
-  output: "stdout"
-  file_config:
-    filename: "logs/plutus.log"
-    max_size: 100
-    max_backups: 10
-    max_age: 30
+  output_path: "logs/plutus.log"
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+  compress: false
+  enable_stdout: true
+  enable_file: false
 
 # 可观测性配置
 observability:
