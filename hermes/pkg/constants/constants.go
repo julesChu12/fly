@@ -21,9 +21,12 @@ const (
 	HeaderTraceID  = "X-Trace-ID"
 )
 
+// Context key types to avoid collisions (SA1029)
+type contextKey string
+
 // Context keys
-const (
-	ContextKeyTenantID = "tenant_id"
-	ContextKeyUserID   = "user_id"
-	ContextKeyTraceID  = "trace_id"
+var (
+	ContextKeyTenantID = contextKey("tenant_id")
+	ContextKeyUserID   = contextKey("user_id")
+	ContextKeyTraceID  = contextKey("trace_id")
 )

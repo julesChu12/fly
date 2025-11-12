@@ -111,7 +111,7 @@ func RateLimitInterceptor(limiter *rate.Limiter) grpc.UnaryServerInterceptor {
 	}
 }
 
-func injectUintFromMetadata(ctx context.Context, md metadata.MD, key string, aliases ...string) context.Context {
+func injectUintFromMetadata(ctx context.Context, md metadata.MD, key constants.ContextKey, aliases ...string) context.Context {
 	for _, alias := range aliases {
 		if values := md.Get(alias); len(values) > 0 {
 			if id, err := strconv.ParseUint(values[0], 10, 32); err == nil {

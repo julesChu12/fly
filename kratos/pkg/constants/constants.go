@@ -12,11 +12,14 @@ const (
 	OrderNoPrefix   = "ORD"
 )
 
+// ContextKey type to avoid collisions (SA1029)
+type ContextKey string
+
 // Context keys
-const (
-	ContextKeyTenantID = "tenant_id"
-	ContextKeyUserID   = "user_id"
-	ContextKeyTraceID  = "trace_id"
+var (
+	ContextKeyTenantID = ContextKey("tenant_id")
+	ContextKeyUserID   = ContextKey("user_id")
+	ContextKeyTraceID  = ContextKey("trace_id")
 )
 
 // HTTP headers

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/kratos/internal/domain/entity"
+	"github.com/julesChu12/fly/kratos/pkg/errors"
 	"github.com/julesChu12/fly/kratos/pkg/types"
 )
 
@@ -363,5 +364,285 @@ func TestListOrders(t *testing.T) {
 	}
 	if listData["total"] == nil {
 		t.Error("Expected total field in list response")
+	}
+}
+
+// 新增测试用例
+
+func TestCreateOrder_InvalidRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	// Test with invalid JSON
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("POST", "/api/orders", bytes.NewBuffer([]byte("{invalid json")))
+	c.Request.Header.Set("Content-Type", "application/json")
+
+	handler.CreateOrder(c)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestCreateOrder_MissingHeaders(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	req := &types.CreateOrderRequest{
+		OrderNo:     "ORD001",
+		CustomerID:  1,
+		TotalAmount: 100.0,
+		Currency:    "CNY",
+	}
+
+	reqBody, _ := json.Marshal(req)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("POST", "/api/orders", bytes.NewBuffer(reqBody))
+	c.Request.Header.Set("Content-Type", "application/json")
+	// Missing X-Tenant-ID header
+
+	handler.CreateOrder(c)
+
+	// Should still work, as context will be empty
+	if w.Code != http.StatusCreated {
+		t.Errorf("Expected status code %d, got %d", http.StatusCreated, w.Code)
+	}
+}
+
+func TestUpdateOrderStatus_InvalidID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	req := &types.UpdateOrderStatusRequest{
+		Status: entity.OrderStatusPaid,
+	}
+
+	reqBody, _ := json.Marshal(req)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("PATCH", "/api/orders/invalid/status", bytes.NewBuffer(reqBody))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid"}}
+
+	handler.UpdateOrderStatus(c)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestUpdateOrderStatus_InvalidRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("PATCH", "/api/orders/1/status", bytes.NewBuffer([]byte("{invalid json")))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	handler.UpdateOrderStatus(c)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestDeleteOrder_InvalidID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("DELETE", "/api/orders/invalid", nil)
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid"}}
+
+	handler.DeleteOrder(c)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestGetOrderLogs_InvalidID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/api/orders/invalid/logs", nil)
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid"}}
+
+	handler.GetOrderLogs(c)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestListOrders_InvalidQueryParams(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = httptest.NewRequest("GET", "/api/orders?page=invalid", nil)
+
+	handler.ListOrders(c)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestAddContextFromHeaders_VariousFormats(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	tests := []struct {
+		name           string
+		headers        map[string]string
+		expectedTenant uint
+		expectedUser   uint
+	}{
+		{
+			name: "string headers",
+			headers: map[string]string{
+				"X-Tenant-ID": "1",
+				"X-User-ID":   "2",
+			},
+			expectedTenant: 1,
+			expectedUser:   2,
+		},
+		{
+			name: "with trace ID",
+			headers: map[string]string{
+				"X-Tenant-ID": "1",
+				"X-User-ID":   "2",
+				"X-Trace-ID":  "trace-123",
+			},
+			expectedTenant: 1,
+			expectedUser:   2,
+		},
+		{
+			name:           "no headers",
+			headers:        map[string]string{},
+			expectedTenant: 0,
+			expectedUser:   0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", "/api/orders/1", nil)
+
+			for key, value := range tt.headers {
+				c.Request.Header.Set(key, value)
+			}
+
+			ctx := handler.addContextFromHeaders(c)
+
+			// Verify context values
+			if tt.expectedTenant != 0 {
+				if tenantID := ctx.Value("tenant_id"); tenantID == nil {
+					t.Error("Expected tenant_id in context")
+				}
+			}
+
+			if tt.expectedUser != 0 {
+				if userID := ctx.Value("user_id"); userID == nil {
+					t.Error("Expected user_id in context")
+				}
+			}
+
+			if tt.headers["X-Trace-ID"] != "" {
+				if traceID := ctx.Value("trace_id"); traceID == nil {
+					t.Error("Expected trace_id in context")
+				}
+			}
+		})
+	}
+}
+
+func TestHandleError_VariousErrorCodes(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+
+	tests := []struct {
+		name           string
+		err            error
+		expectedStatus int
+		expectedCode   int
+	}{
+		{
+			name:           "internal server error",
+			err:            errors.ErrInternalError,
+			expectedStatus: http.StatusInternalServerError,
+			expectedCode:   errors.CodeInternal,
+		},
+		{
+			name:           "not found error",
+			err:            errors.ErrOrderNotFound,
+			expectedStatus: http.StatusNotFound,
+			expectedCode:   errors.CodeNotFound,
+		},
+		{
+			name:           "duplicate error",
+			err:            errors.ErrDuplicateOrderNo,
+			expectedStatus: http.StatusConflict,
+			expectedCode:   errors.CodeDuplicate,
+		},
+		{
+			name:           "business error",
+			err:            errors.ErrOrderCannotBeModified,
+			expectedStatus: http.StatusUnprocessableEntity,
+			expectedCode:   errors.CodeBusiness,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", "/api/orders/1", nil)
+
+			handler.handleError(c, tt.err)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status code %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			var response types.Response
+			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+				t.Fatalf("Failed to unmarshal response: %v", err)
+			}
+
+			if response.Code != tt.expectedCode {
+				t.Errorf("Expected error code %d, got %d", tt.expectedCode, response.Code)
+			}
+		})
 	}
 }
