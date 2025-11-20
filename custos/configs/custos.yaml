@@ -3,7 +3,7 @@ app:
   env: "development"
 
 database:
-  host: "localhost"
+  host: "mysql"
   port: "3306"
   user: "custos"
   password: "custospassword"
@@ -14,6 +14,11 @@ jwt:
   secretKey: "1HS%qUl60.,lGwd.N$"
   accessTokenTTL: "150m"
   refreshTokenTTL: "168h"
+
+redis:
+  host: "redis"
+  port: "6379"
+  db: 0
 
 log:
   level: "info"              # debug, info, warn, error

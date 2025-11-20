@@ -64,7 +64,13 @@ clotho/
 │   └── validation/
 │       └── profile.go      # 请求参数校验
 ├── docs/
-│   └── swagger.yaml        # API 文档
+│   ├── API.md             # API 详细文档
+│   ├── STRUCTURE.md       # 项目架构文档
+│   ├── OBSERVABILITY.md   # 可观测性指南
+│   ├── swagger.yaml       # API 文档
+│   ├── swagger.json       # API 规范
+│   ├── doc.go             # Swagger 元数据
+│   └── docs.go            # Swagger 生成器
 ├── main.go                 # 应用入口
 ├── Makefile                # 构建工具
 └── go.mod
@@ -272,6 +278,11 @@ open http://localhost:8080/swagger/index.html
 
 # 查看指标
 curl http://localhost:8080/metrics
+
+# 查看完整文档
+# API 文档: http://localhost:8080/swagger/index.html
+# 架构文档: ./docs/STRUCTURE.md
+# 可观测性指南: ./docs/OBSERVABILITY.md
 ```
 
 ---

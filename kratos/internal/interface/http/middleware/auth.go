@@ -30,14 +30,19 @@ const (
 	EmailKey    = "email"
 )
 
+// CustosClient interface defines the methods we need from Custos client
+type CustosClient interface {
+	ValidateToken(ctx context.Context, token string) (*custos.TokenValidationResult, error)
+}
+
 // AuthMiddleware handles JWT authentication via Custos
 type AuthMiddleware struct {
-	custosClient *custos.Client
+	custosClient CustosClient
 	skipPaths    []string
 }
 
 // NewAuthMiddleware creates a new authentication middleware
-func NewAuthMiddleware(custosClient *custos.Client, skipPaths []string) *AuthMiddleware {
+func NewAuthMiddleware(custosClient CustosClient, skipPaths []string) *AuthMiddleware {
 	return &AuthMiddleware{
 		custosClient: custosClient,
 		skipPaths:    skipPaths,

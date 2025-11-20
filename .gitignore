@@ -37,3 +37,4 @@ go.work.sum
 logs/
 *.log
 **/logs/
+AGENTS.md

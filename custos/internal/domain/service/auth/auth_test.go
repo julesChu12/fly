@@ -234,7 +234,12 @@ func (r *fakeSessionRepo) UpdateLastSeen(_ context.Context, sessionID string, la
 }
 
 func (r *fakeSessionRepo) CleanupExpired(_ context.Context, olderThan time.Time) error {
-	// TODO: Implement proper cleanup logic when RefreshToken entity is integrated
+	// Remove sessions that haven't been updated since olderThan
+	for id, session := range r.sessions {
+		if session.LastSeenAt.Before(olderThan) {
+			delete(r.sessions, id)
+		}
+	}
 	return nil
 }
 
