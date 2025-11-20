@@ -1,0 +1,121 @@
+# 应用健康检查告警
+groups:
+  - name: application_health
+    interval: 30s
+    rules:
+      # 服务宕机告警
+      - alert: ServiceDown
+        expr: up{job=~"custos|clotho|hermes|kratos|plutus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "{{ $labels.job }} 服务宕机"
+          description: "{{ $labels.job }} 服务已离线超过 1 分钟"
+
+      # HTTP 错误率告警
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) by (job) /
+           sum(rate(http_requests_total[5m])) by (job)) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "{{ $labels.job }} 错误率过高"
+          description: "{{ $labels.job }} 在过去 5 分钟内错误率超过 5%"
+
+      # 响应时间过长告警
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "{{ $labels.job }} 响应时间过长"
+          description: "{{ $labels.job }} P95 响应时间超过 1 秒"
+
+# 基础设施监控告警
+groups:
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # MySQL 连接数告警
+      - alert: MySQLHighConnections
+        expr: mysql_global_status_threads_connected > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: mysql
+        annotations:
+          summary: "MySQL 连接数过多"
+          description: "MySQL 当前连接数: {{ $value }}"
+
+      # MySQL 慢查询告警
+      - alert: MySQLSlowQueries
+        expr: rate(mysql_global_status_slow_queries[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: mysql
+        annotations:
+          summary: "MySQL 检测到慢查询"
+          description: "过去 5 分钟内有 {{ $value }} 个慢查询"
+
+      # Redis 连接数告警
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis 连接数过多"
+          description: "Redis 当前连接数: {{ $value }}"
+
+      # Redis 内存使用率告警
+      - alert: RedisHighMemoryUsage
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "Redis 内存使用率过高"
+          description: "Redis 内存使用率: {{ $value | humanizePercentage }}"
+
+# 分布式追踪告警
+groups:
+  - name: tracing
+    interval: 30s
+    rules:
+      # Jaeger 采样率告警
+      - alert: JaegerLowSamplingRate
+        expr: |
+          jaeger_spans_received_total < 100
+        for: 5m
+        labels:
+          severity: info
+          component: jaeger
+        annotations:
+          summary: "Jaeger 采样率过低"
+          description: "最近采样的 Span 数过少，可能影响追踪效果"
+
+      # Jaeger 存储容量告警
+      - alert: JaegerHighStorageUsage
+        expr: |
+          (jaeger_storage_used_bytes / jaeger_storage_max_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: jaeger
+        annotations:
+          summary: "Jaeger 存储容量使用率过高"
+          description: "Jaeger 存储使用率: {{ $value | humanizePercentage }}"

@@ -1,0 +1,73 @@
+{
+  "template": "logs-*",
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "30s",
+      "codec": "best_compression"
+    }
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": {
+        "type": "date"
+      },
+      "message": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "service": {
+        "type": "keyword"
+      },
+      "level": {
+        "type": "keyword"
+      },
+      "environment": {
+        "type": "keyword"
+      },
+      "cluster": {
+        "type": "keyword"
+      },
+      "host": {
+        "type": "keyword"
+      },
+      "container_id": {
+        "type": "keyword"
+      },
+      "container_name": {
+        "type": "keyword"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "request_id": {
+        "type": "keyword"
+      },
+      "trace_id": {
+        "type": "keyword"
+      },
+      "user_id": {
+        "type": "keyword"
+      },
+      "method": {
+        "type": "keyword"
+      },
+      "path": {
+        "type": "keyword"
+      },
+      "status_code": {
+        "type": "integer"
+      },
+      "response_time_ms": {
+        "type": "float"
+      },
+      "error": {
+        "type": "text"
+      },
+      "stack_trace": {
+        "type": "text"
+      }
+    }
+  }
+}

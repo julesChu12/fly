@@ -1,0 +1,54 @@
+{{ define "email.default" }}
+告警详情：
+
+告警名称: {{ .GroupLabels.alertname }}
+服务: {{ .GroupLabels.service }}
+严重等级: {{ .GroupLabels.severity }}
+
+{{ range .Alerts }}
+=====================
+告警详情: {{ .Labels.alertname }}
+==================
+实例: {{ .Labels.instance }}
+描述: {{ .Annotations.description }}
+总结: {{ .Annotations.summary }}
+状态: {{ .Status }}
+开始时间: {{ .StartsAt }}
+{{ if ne .EndsAt .StartsAt }}结束时间: {{ .EndsAt }}{{ end }}
+{{ end }}
+
+告警仪表板: http://localhost:3000
+Prometheus 查询: http://localhost:9090
+{{ end }}
+
+{{ define "email.html" }}
+<h2>告警通知</h2>
+<p><strong>告警名称:</strong> {{ .GroupLabels.alertname }}</p>
+<p><strong>服务:</strong> {{ .GroupLabels.service }}</p>
+<p><strong>严重等级:</strong> <span style="color: {{ if eq .GroupLabels.severity "critical" }}red{{ else if eq .GroupLabels.severity "warning" }}orange{{ else }}blue{{ end }}">{{ .GroupLabels.severity }}</span></p>
+
+<h3>告警列表:</h3>
+<table border="1" cellpadding="5">
+<tr>
+  <th>告警名称</th>
+  <th>实例</th>
+  <th>描述</th>
+  <th>状态</th>
+  <th>时间</th>
+</tr>
+{{ range .Alerts }}
+<tr>
+  <td>{{ .Labels.alertname }}</td>
+  <td>{{ .Labels.instance }}</td>
+  <td>{{ .Annotations.description }}</td>
+  <td>{{ .Status }}</td>
+  <td>{{ .StartsAt }}</td>
+</tr>
+{{ end }}
+</table>
+
+<p>
+  <a href="http://localhost:3000">前往 Grafana 仪表板</a> |
+  <a href="http://localhost:9090">前往 Prometheus</a>
+</p>
+{{ end }}
