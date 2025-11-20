@@ -115,13 +115,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	router := httpInterface.NewRouter(walletService)
 	engine := router.SetupRoutes()
 
-	// Start health check server
-	healthServer := observability.NewHealthCheckServer(dbClient.DB(), 8081)
-	go func() {
-		if err := healthServer.Start(); err != nil {
-			l.Warnf("Health check server error: %v", err)
-		}
-	}()
+	// Start health check server (disabled - HTTP server has /health endpoint)
+	// Temporary comment: health check runs on separate port which conflicts with other services
+	// Using HTTP server's health endpoint instead
 
 	// Start metrics server
 	metricsServer := observability.NewMetricsServer(9090)

@@ -12,7 +12,7 @@ server:
 # 数据库配置
 database:
   driver: "mysql"
-  dsn: "root:rootpassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "plutus:plutuspassword@tcp(localhost:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local"
   max_open_conns: 100
   max_idle_conns: 10
   conn_max_lifetime: 3600
@@ -21,7 +21,7 @@ database:
 # 缓存配置
 cache:
   driver: "redis"
-  address: "redis:6379"
+  address: "localhost:6379"
   password: ""
   db: 0
   pool_size: 10
@@ -61,7 +61,7 @@ observability:
   # 健康检查
   health:
     enabled: true
-    port: 8081
+    port: 8085
     path: "/health"
 
 # DTM分布式事务配置

@@ -3,7 +3,7 @@ app:
   env: "development"
 
 database:
-  host: "custos-mysql"
+  host: "localhost"
   port: "3306"
   user: "custos"
   password: "custospassword"
