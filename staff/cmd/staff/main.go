@@ -3,9 +3,9 @@
 package main
 
 import (
-	"log"
 	"os"
 
+	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/julesChu12/fly/staff/cmd/staff/cmd"
 )
 
@@ -28,8 +28,9 @@ import (
 // @tag.description 员工信息管理相关接口
 
 func main() {
+	log := logger.NewDefault()
 	if err := cmd.Execute(); err != nil {
-		log.Println(err)
+		log.Error("Staff service failed to start", "error", err)
 		os.Exit(1)
 	}
 }

@@ -3,10 +3,10 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/julesChu12/fly/appointments/cmd/appointments/cmd"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 )
 
 // @title Appointments Service API
@@ -28,8 +28,9 @@ import (
 // @tag.description 预约信息管理相关接口
 
 func main() {
+	log := logger.NewDefault()
 	if err := cmd.Execute(); err != nil {
-		log.Println(err)
+		log.Error("Appointments service failed to start", "error", err)
 		os.Exit(1)
 	}
 }

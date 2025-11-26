@@ -48,7 +48,8 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Load configuration using mora config loader
 	cfg, err := loadConfig()
 	if err != nil {
-		fmt.Printf("Failed to load config: %v\n", err)
+		log := logger.NewDefault()
+		log.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
 
@@ -78,7 +79,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	l, err := logger.New(loggerCfg)
 	if err != nil {
-		fmt.Printf("Failed to initialize logger: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
 		os.Exit(1)
 	}
 

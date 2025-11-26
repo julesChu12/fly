@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/julesChu12/fly/mora/pkg/utils"
 )
 
 // TraceIDMiddleware 追踪ID中间件
@@ -11,7 +11,7 @@ func TraceIDMiddleware() gin.HandlerFunc {
 		// 检查是否已有trace_id
 		traceID := c.GetHeader("X-Trace-ID")
 		if traceID == "" {
-			traceID = uuid.New().String()
+			traceID = utils.GenerateTraceID()
 		}
 
 		// 设置trace_id到响应头和上下文

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/julesChu12/fly/kratos/pkg/constants"
+	"github.com/julesChu12/fly/mora/pkg/utils"
 )
 
 // TraceIDMiddleware extracts or generates trace_id for request tracing
@@ -13,8 +13,8 @@ func TraceIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		traceID := c.GetHeader(constants.HeaderTraceID)
 		if traceID == "" {
-			// Generate UUID as trace ID if not provided
-			traceID = uuid.New().String()
+			// Generate trace ID if not provided
+			traceID = utils.GenerateTraceID()
 		}
 
 		// Add trace_id to context
