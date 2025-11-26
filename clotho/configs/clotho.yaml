@@ -83,6 +83,31 @@ services:
     timeout: 30s
     max_retries: 3
 
+  staff:
+    address: "http://localhost:8084"
+    timeout: 10s
+    max_retries: 3
+
+  hermes:
+    address: "http://localhost:8080"
+    timeout: 30s
+    max_retries: 3
+
+  plutus:
+    address: "http://localhost:8085"
+    timeout: 30s
+    max_retries: 3
+
+  kratos:
+    address: "http://localhost:8082"
+    timeout: 30s
+    max_retries: 3
+
+  appointments:
+    address: "http://localhost:8083"
+    timeout: 30s
+    max_retries: 3
+
 # Database (if needed for caching or session management)
 database:
   driver: "mysql"

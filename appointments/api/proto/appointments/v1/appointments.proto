@@ -1,0 +1,349 @@
+syntax = "proto3";
+
+package appointments.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/julesChu12/fly/appointments/api/proto/appointments/v1;appointmentsv1";
+
+// AppointmentService provides appointment management operations
+service AppointmentService {
+  // Appointment CRUD operations
+  rpc CreateAppointment(CreateAppointmentRequest) returns (CreateAppointmentResponse);
+  rpc GetAppointment(GetAppointmentRequest) returns (GetAppointmentResponse);
+  rpc ListAppointments(ListAppointmentsRequest) returns (ListAppointmentsResponse);
+  rpc UpdateAppointment(UpdateAppointmentRequest) returns (UpdateAppointmentResponse);
+  rpc DeleteAppointment(DeleteAppointmentRequest) returns (DeleteAppointmentResponse);
+
+  // Appointment status operations
+  rpc UpdateAppointmentStatus(UpdateAppointmentStatusRequest) returns (UpdateAppointmentStatusResponse);
+  rpc ConfirmAppointment(ConfirmAppointmentRequest) returns (ConfirmAppointmentResponse);
+  rpc CancelAppointment(CancelAppointmentRequest) returns (CancelAppointmentResponse);
+  rpc CompleteAppointment(CompleteAppointmentRequest) returns (CompleteAppointmentResponse);
+
+  // Availability and conflict checking
+  rpc CheckAvailability(CheckAvailabilityRequest) returns (CheckAvailabilityResponse);
+  rpc CheckConflict(CheckConflictRequest) returns (CheckConflictResponse);
+  rpc GetAvailableSlots(GetAvailableSlotsRequest) returns (GetAvailableSlotsResponse);
+
+  // Customer and employee specific queries
+  rpc GetAppointmentsByCustomer(GetAppointmentsByCustomerRequest) returns (GetAppointmentsByCustomerResponse);
+  rpc GetAppointmentsByEmployee(GetAppointmentsByEmployeeRequest) returns (GetAppointmentsByEmployeeResponse);
+
+  // Calendar and scheduling operations
+  rpc GetEmployeeSchedule(GetEmployeeScheduleRequest) returns (GetEmployeeScheduleResponse);
+  rpc GetDailySchedule(GetDailyScheduleRequest) returns (GetDailyScheduleResponse);
+  rpc BatchCreateAppointments(BatchCreateAppointmentsRequest) returns (BatchCreateAppointmentsResponse);
+}
+
+// AppointmentStatus represents appointment status
+enum AppointmentStatus {
+  APPOINTMENT_STATUS_UNSPECIFIED = 0;
+  APPOINTMENT_STATUS_PENDING = 1;
+  APPOINTMENT_STATUS_CONFIRMED = 2;
+  APPOINTMENT_STATUS_IN_PROGRESS = 3;
+  APPOINTMENT_STATUS_COMPLETED = 4;
+  APPOINTMENT_STATUS_CANCELLED = 5;
+  APPOINTMENT_STATUS_NO_SHOW = 6;
+}
+
+// Appointment message represents an appointment
+message Appointment {
+  string id = 1;
+  string customer_id = 2;
+  string employee_id = 3;
+  string service_id = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+  google.protobuf.StringValue notes = 7;
+  AppointmentStatus status = 8;
+  bool reminder = 9;
+  google.protobuf.Timestamp reminder_time = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+  google.protobuf.StringValue completion_notes = 13;
+  google.protobuf.StringValue cancellation_reason = 14;
+  google.protobuf.Timestamp cancelled_at = 15;
+  google.protobuf.StringValue service_name = 16;
+  google.protobuf.StringValue customer_name = 17;
+  google.protobuf.StringValue employee_name = 18;
+  google.protobuf.Duration duration = 19;
+}
+
+// AvailableSlot represents an available time slot
+message AvailableSlot {
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  bool available = 3;
+  google.protobuf.StringValue reason = 4;
+}
+
+// ServiceInfo represents service information
+message ServiceInfo {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Duration duration = 4;
+  google.protobuf.DoubleValue price = 5;
+  string category = 6;
+}
+
+// Request/Response messages for Appointment CRUD
+
+message CreateAppointmentRequest {
+  string customer_id = 1;
+  string employee_id = 2;
+  string service_id = 3;
+  google.protobuf.Timestamp start_time = 4;
+  google.protobuf.Timestamp end_time = 5;
+  google.protobuf.StringValue notes = 6;
+  bool reminder = 7;
+  google.protobuf.Timestamp reminder_time = 8;
+}
+
+message CreateAppointmentResponse {
+  Appointment appointment = 1;
+}
+
+message GetAppointmentRequest {
+  string id = 1;
+}
+
+message GetAppointmentResponse {
+  Appointment appointment = 1;
+  ServiceInfo service_info = 2;
+}
+
+message ListAppointmentsRequest {
+  google.protobuf.StringValue customer_id = 1;
+  google.protobuf.StringValue employee_id = 2;
+  google.protobuf.StringValue service_id = 3;
+  AppointmentStatus status = 4;
+  google.protobuf.Timestamp start_date = 5;
+  google.protobuf.Timestamp end_date = 6;
+  google.protobuf.Timestamp date = 7;
+  google.protobuf.Duration min_duration = 8;
+  google.protobuf.Duration max_duration = 9;
+  google.protobuf.BoolValue reminder = 10;
+  int32 page = 11;
+  int32 page_size = 12;
+  string sort = 13;
+  string order = 14;
+  google.protobuf.StringValue search = 15;
+}
+
+message ListAppointmentsResponse {
+  repeated Appointment appointments = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message UpdateAppointmentRequest {
+  string id = 1;
+  google.protobuf.StringValue customer_id = 2;
+  google.protobuf.StringValue employee_id = 3;
+  google.protobuf.StringValue service_id = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+  google.protobuf.StringValue notes = 7;
+  AppointmentStatus status = 8;
+  google.protobuf.BoolValue reminder = 9;
+  google.protobuf.Timestamp reminder_time = 10;
+}
+
+message UpdateAppointmentResponse {
+  Appointment appointment = 1;
+}
+
+message DeleteAppointmentRequest {
+  string id = 1;
+  google.protobuf.StringValue reason = 2;
+}
+
+message DeleteAppointmentResponse {
+}
+
+// Status management messages
+
+message UpdateAppointmentStatusRequest {
+  string id = 1;
+  AppointmentStatus status = 2;
+  google.protobuf.StringValue completion_notes = 3;
+  google.protobuf.StringValue cancellation_reason = 4;
+}
+
+message UpdateAppointmentStatusResponse {
+  Appointment appointment = 1;
+}
+
+message ConfirmAppointmentRequest {
+  string id = 1;
+  google.protobuf.StringValue notes = 2;
+}
+
+message ConfirmAppointmentResponse {
+  Appointment appointment = 1;
+}
+
+message CancelAppointmentRequest {
+  string id = 1;
+  google.protobuf.StringValue reason = 2;
+}
+
+message CancelAppointmentResponse {
+  Appointment appointment = 1;
+}
+
+message CompleteAppointmentRequest {
+  string id = 1;
+  google.protobuf.StringValue completion_notes = 2;
+}
+
+message CompleteAppointmentResponse {
+  Appointment appointment = 1;
+}
+
+// Availability and conflict checking messages
+
+message CheckAvailabilityRequest {
+  string employee_id = 1;
+  google.protobuf.Timestamp date = 2;
+  google.protobuf.Duration service_duration = 3;
+  repeated string exclude_appointment_ids = 4;
+}
+
+message CheckAvailabilityResponse {
+  string employee_id = 1;
+  google.protobuf.Timestamp date = 2;
+  repeated AvailableSlot slots = 3;
+  bool has_availability = 4;
+  int32 available_slots_count = 5;
+}
+
+message CheckConflictRequest {
+  string employee_id = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+  google.protobuf.StringValue exclude_appointment_id = 4;
+}
+
+message CheckConflictResponse {
+  bool has_conflict = 1;
+  repeated string conflicting_appointment_ids = 2;
+  int32 conflict_count = 3;
+  repeated google.protobuf.Timestamp suggested_times = 4;
+  repeated AvailableSlot alternative_slots = 5;
+}
+
+message GetAvailableSlotsRequest {
+  string employee_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  google.protobuf.Duration service_duration = 4;
+  repeated AvailableSlot existing_appointments = 5;
+}
+
+message GetAvailableSlotsResponse {
+  repeated AvailableSlot slots = 1;
+  string employee_id = 2;
+  google.protobuf.Timestamp query_start = 3;
+  google.protobuf.Timestamp query_end = 4;
+  int32 total_slots = 5;
+  int32 available_slots = 6;
+}
+
+// Customer and employee specific query messages
+
+message GetAppointmentsByCustomerRequest {
+  string customer_id = 1;
+  AppointmentStatus status = 2;
+  google.protobuf.Timestamp start_date = 3;
+  google.protobuf.Timestamp end_date = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message GetAppointmentsByCustomerResponse {
+  repeated Appointment appointments = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetAppointmentsByEmployeeRequest {
+  string employee_id = 1;
+  AppointmentStatus status = 2;
+  google.protobuf.Timestamp start_date = 3;
+  google.protobuf.Timestamp end_date = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message GetAppointmentsByEmployeeResponse {
+  repeated Appointment appointments = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// Calendar and scheduling messages
+
+message GetEmployeeScheduleRequest {
+  string employee_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  bool include_unavailable = 4;
+}
+
+message GetEmployeeScheduleResponse {
+  string employee_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  repeated Appointment appointments = 4;
+  repeated AvailableSlot available_slots = 5;
+  repeated AvailableSlot blocked_slots = 6;
+}
+
+message GetDailyScheduleRequest {
+  repeated string employee_ids = 1;
+  google.protobuf.Timestamp date = 2;
+  bool include_unavailable = 3;
+}
+
+message GetDailyScheduleResponse {
+  google.protobuf.Timestamp date = 1;
+  repeated DailyEmployeeSchedule employee_schedules = 2;
+}
+
+message DailyEmployeeSchedule {
+  string employee_id = 1;
+  string employee_name = 2;
+  repeated Appointment appointments = 3;
+  repeated AvailableSlot available_slots = 4;
+  repeated AvailableSlot working_hours = 5;
+}
+
+// Batch operations messages
+
+message BatchCreateAppointmentsRequest {
+  repeated CreateAppointmentRequest appointments = 1;
+  bool fail_on_error = 2;
+}
+
+message BatchCreateAppointmentsResponse {
+  repeated Appointment successful_appointments = 1;
+  repeated BatchError errors = 2;
+  int32 total_processed = 3;
+  int32 successful_count = 4;
+  int32 failed_count = 5;
+}
+
+message BatchError {
+  int32 index = 1;
+  string error_message = 2;
+  CreateAppointmentRequest appointment = 3;
+}

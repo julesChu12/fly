@@ -9,6 +9,7 @@ import (
 	"github.com/julesChu12/fly/clotho/internal/infrastructure/http/handler"
 	"github.com/julesChu12/fly/clotho/internal/middleware"
 	ginAdapter "github.com/julesChu12/fly/mora/adapters/gin"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
@@ -28,6 +29,11 @@ func setDefaults(cfg *viper.Viper) {
 
 	// Service configuration
 	cfg.SetDefault("services.custos.address", "localhost:50051")
+	cfg.SetDefault("services.hermes.address", "http://localhost:8080")
+	cfg.SetDefault("services.plutus.address", "http://localhost:8085")
+	cfg.SetDefault("services.kratos.address", "http://localhost:8082")
+	cfg.SetDefault("services.appointments.address", "http://localhost:8083")
+	cfg.SetDefault("services.staff.address", "http://localhost:8084")
 
 	// Rate limiter configuration
 	cfg.SetDefault("rate_limiter.global_rps", 1000.0)
@@ -123,6 +129,46 @@ func SetupRouter(cfg *viper.Viper) *gin.Engine {
 	profileHandler := handler.NewProfileHandler(userProxy)
 	monitoringHandler := handler.NewMiddlewareStatsHandler(rateLimiter, circuitBreaker, metricsMiddleware.GetMetricsRegistry())
 
+	// Create staff proxy with HTTP client
+	staffAddress := cfg.GetString("services.staff.address")
+	staffTimeout := 10 * time.Second
+	staffClient := client.NewStaffHTTPClient(staffAddress, staffTimeout)
+	staffLogger := logger.NewDefault()
+	staffProxy := usecase.NewStaffProxy(staffClient, staffLogger)
+	staffHandler := handler.NewStaffHandler(staffProxy)
+
+	// Create appointment proxy with HTTP client
+	appointmentsAddress := cfg.GetString("services.appointments.address")
+	appointmentsTimeout := 10 * time.Second
+	appointmentsClient := client.NewAppointmentHTTPClient(appointmentsAddress, appointmentsTimeout)
+	appointmentsLogger := logger.NewDefault()
+	appointmentsProxy := usecase.NewAppointmentProxy(appointmentsClient, appointmentsLogger)
+	appointmentsHandler := handler.NewAppointmentHandler(appointmentsProxy)
+
+	// Create customer proxy with HTTP client
+	hermesAddress := cfg.GetString("services.hermes.address")
+	hermesTimeout := 10 * time.Second
+	customerClient := client.NewCustomerHTTPClient(hermesAddress, hermesTimeout)
+	customerLogger := logger.NewDefault()
+	customerProxy := usecase.NewCustomerProxy(customerClient, customerLogger)
+	customerHandler := handler.NewCustomerHandler(customerProxy)
+
+	// Create order proxy with HTTP client
+	kratosAddress := cfg.GetString("services.kratos.address")
+	kratosTimeout := 10 * time.Second
+	orderClient := client.NewOrderHTTPClient(kratosAddress, kratosTimeout)
+	orderLogger := logger.NewDefault()
+	orderProxy := usecase.NewOrderProxy(orderClient, orderLogger)
+	orderHandler := handler.NewOrderHandler(orderProxy)
+
+	// Create payment proxy with HTTP client
+	plutusAddress := cfg.GetString("services.plutus.address")
+	plutusTimeout := 10 * time.Second
+	paymentClient := client.NewPaymentHTTPClient(plutusAddress, plutusTimeout)
+	paymentLogger := logger.NewDefault()
+	paymentProxy := usecase.NewPaymentProxy(paymentClient, paymentLogger)
+	paymentHandler := handler.NewPaymentHandler(paymentProxy)
+
 	// Create auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.GetString("jwt.secret"))
 
@@ -155,9 +201,36 @@ func SetupRouter(cfg *viper.Viper) *gin.Engine {
 			monitoring.POST("/circuit-breaker/reset", monitoringHandler.ResetCircuitBreakers) // POST /api/v1/monitoring/circuit-breaker/reset - Reset circuit breakers
 		}
 
-		// Future route groups for orders, payments, etc.
-		// orders := v1.Group("/orders")
-		// payments := v1.Group("/payments")
+		// Service route groups
+		customers := v1.Group("/customers")
+		{
+			// Customer service routes - proxy to hermes service
+			customerHandler.RegisterRoutes(customers)
+		}
+
+		appointments := v1.Group("/appointments")
+		{
+			// Appointments service routes - proxy to appointments service
+			appointmentsHandler.RegisterRoutes(appointments)
+		}
+
+		employees := v1.Group("/employees")
+		{
+			// Staff service routes - proxy to staff service
+			staffHandler.RegisterRoutes(employees)
+		}
+
+		orders := v1.Group("/orders")
+		{
+			// Order service routes - proxy to kratos service
+			orderHandler.RegisterRoutes(orders)
+		}
+
+		payments := v1.Group("/payments")
+		{
+			// Payment service routes - proxy to plutus service
+			paymentHandler.RegisterRoutes(payments)
+		}
 	}
 
 	return router

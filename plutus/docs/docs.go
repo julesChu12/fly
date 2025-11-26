@@ -80,13 +80,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.ListResponse"
+                                            "$ref": "#/definitions/types.ListResponse"
                                         }
                                     }
                                 }
@@ -96,19 +96,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -134,7 +134,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.ConsumeRequest"
+                            "$ref": "#/definitions/types.ConsumeRequest"
                         }
                     }
                 ],
@@ -144,13 +144,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse"
+                                            "$ref": "#/definitions/types.TransactionResponse"
                                         }
                                     }
                                 }
@@ -160,25 +160,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "423": {
                         "description": "Locked",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -204,7 +204,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.RechargeRequest"
+                            "$ref": "#/definitions/types.RechargeRequest"
                         }
                     }
                 ],
@@ -214,13 +214,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse"
+                                            "$ref": "#/definitions/types.TransactionResponse"
                                         }
                                     }
                                 }
@@ -230,19 +230,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -268,7 +268,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.RefundRequest"
+                            "$ref": "#/definitions/types.RefundRequest"
                         }
                     }
                 ],
@@ -278,13 +278,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse"
+                                            "$ref": "#/definitions/types.TransactionResponse"
                                         }
                                     }
                                 }
@@ -294,19 +294,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -337,13 +337,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse"
+                                            "$ref": "#/definitions/types.TransactionResponse"
                                         }
                                     }
                                 }
@@ -353,19 +353,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -409,13 +409,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.ListResponse"
+                                            "$ref": "#/definitions/types.ListResponse"
                                         }
                                     }
                                 }
@@ -425,19 +425,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -461,7 +461,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.CreateWalletRequest"
+                            "$ref": "#/definitions/types.CreateWalletRequest"
                         }
                     }
                 ],
@@ -471,13 +471,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.WalletResponse"
+                                            "$ref": "#/definitions/types.WalletResponse"
                                         }
                                     }
                                 }
@@ -487,25 +487,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -536,13 +536,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.WalletResponse"
+                                            "$ref": "#/definitions/types.WalletResponse"
                                         }
                                     }
                                 }
@@ -552,19 +552,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -595,13 +595,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                                    "$ref": "#/definitions/types.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.WalletResponse"
+                                            "$ref": "#/definitions/types.WalletResponse"
                                         }
                                     }
                                 }
@@ -611,19 +611,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_julesChu12_fly_plutus_pkg_types.Response"
+                            "$ref": "#/definitions/types.Response"
                         }
                     }
                 }
@@ -631,7 +631,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_julesChu12_fly_plutus_internal_domain_entity.PaymentChannel": {
+        "entity.PaymentChannel": {
             "type": "string",
             "enum": [
                 "wallet",
@@ -652,7 +652,7 @@ const docTemplate = `{
                 "ChannelOther"
             ]
         },
-        "github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionStatus": {
+        "entity.TransactionStatus": {
             "type": "string",
             "enum": [
                 "pending",
@@ -665,7 +665,7 @@ const docTemplate = `{
                 "TransactionStatusFailed"
             ]
         },
-        "github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionType": {
+        "entity.TransactionType": {
             "type": "string",
             "enum": [
                 "recharge",
@@ -678,7 +678,7 @@ const docTemplate = `{
                 "TransactionTypeRefund"
             ]
         },
-        "github_com_julesChu12_fly_plutus_internal_domain_entity.WalletStatus": {
+        "entity.WalletStatus": {
             "type": "string",
             "enum": [
                 "active",
@@ -689,7 +689,7 @@ const docTemplate = `{
                 "WalletStatusFrozen"
             ]
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.ConsumeRequest": {
+        "types.ConsumeRequest": {
             "type": "object",
             "required": [
                 "amount",
@@ -718,7 +718,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.CreateWalletRequest": {
+        "types.CreateWalletRequest": {
             "type": "object",
             "required": [
                 "customer_id"
@@ -732,7 +732,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.ListResponse": {
+        "types.ListResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -747,7 +747,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.RechargeRequest": {
+        "types.RechargeRequest": {
             "type": "object",
             "required": [
                 "amount",
@@ -760,7 +760,7 @@ const docTemplate = `{
                     "minimum": 0.01
                 },
                 "channel": {
-                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.PaymentChannel"
+                    "$ref": "#/definitions/entity.PaymentChannel"
                 },
                 "currency": {
                     "type": "string"
@@ -780,7 +780,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.RefundRequest": {
+        "types.RefundRequest": {
             "type": "object",
             "required": [
                 "amount",
@@ -812,7 +812,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.Response": {
+        "types.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -824,14 +824,14 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.TransactionResponse": {
+        "types.TransactionResponse": {
             "type": "object",
             "properties": {
                 "amount": {
                     "type": "number"
                 },
                 "channel": {
-                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.PaymentChannel"
+                    "$ref": "#/definitions/entity.PaymentChannel"
                 },
                 "created_at": {
                     "type": "string"
@@ -855,13 +855,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionStatus"
+                    "$ref": "#/definitions/entity.TransactionStatus"
                 },
                 "tenant_id": {
                     "type": "integer"
                 },
                 "type": {
-                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.TransactionType"
+                    "$ref": "#/definitions/entity.TransactionType"
                 },
                 "updated_at": {
                     "type": "string"
@@ -871,7 +871,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_julesChu12_fly_plutus_pkg_types.WalletResponse": {
+        "types.WalletResponse": {
             "type": "object",
             "properties": {
                 "balance": {
@@ -890,7 +890,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "$ref": "#/definitions/github_com_julesChu12_fly_plutus_internal_domain_entity.WalletStatus"
+                    "$ref": "#/definitions/entity.WalletStatus"
                 },
                 "tenant_id": {
                     "type": "integer"

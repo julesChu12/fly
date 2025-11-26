@@ -1,0 +1,909 @@
+basePath: /api
+definitions:
+  dto.AvailabilityItem:
+    properties:
+      day_of_week:
+        description: 0-6 (Sunday-Saturday)
+        maximum: 6
+        minimum: 0
+        type: integer
+      end_time:
+        description: HH:MM
+        type: string
+      is_available:
+        type: boolean
+      notes:
+        type: string
+      start_time:
+        description: HH:MM
+        type: string
+    required:
+    - day_of_week
+    - end_time
+    - start_time
+    type: object
+  dto.AvailabilityRequest:
+    properties:
+      availabilities:
+        items:
+          $ref: '#/definitions/dto.AvailabilityItem'
+        minItems: 1
+        type: array
+      staff_id:
+        type: string
+    required:
+    - availabilities
+    - staff_id
+    type: object
+  dto.AvailableStaffRequest:
+    properties:
+      date_time:
+        type: string
+      department:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+    required:
+    - date_time
+    type: object
+  dto.CreateRoleRequest:
+    properties:
+      code:
+        maxLength: 50
+        minLength: 1
+        type: string
+      description:
+        type: string
+      is_default:
+        type: boolean
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      sort_order:
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/entity.StaffStatus'
+        enum:
+        - active
+        - inactive
+    required:
+    - code
+    - name
+    type: object
+  dto.CreateStaffRequest:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      birthday:
+        type: string
+      department:
+        maxLength: 100
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      emergency_contact:
+        type: string
+      gender:
+        allOf:
+        - $ref: '#/definitions/entity.Gender'
+        enum:
+        - male
+        - female
+        - other
+      hire_date:
+        type: string
+      is_available:
+        type: boolean
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      notes:
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      position:
+        maxLength: 100
+        type: string
+      role_id:
+        type: string
+      salary:
+        type: number
+      skills:
+        items:
+          type: string
+        type: array
+      status:
+        allOf:
+        - $ref: '#/definitions/entity.StaffStatus'
+        enum:
+        - active
+        - inactive
+        - on_leave
+        - suspended
+      user_id:
+        type: string
+      working_hours:
+        $ref: '#/definitions/dto.WorkingHours'
+    required:
+    - department
+    - email
+    - name
+    - position
+    - role_id
+    type: object
+  dto.DaySchedule:
+    properties:
+      break_end:
+        description: HH:MM
+        type: string
+      break_start:
+        description: HH:MM
+        type: string
+      enabled:
+        type: boolean
+      end_time:
+        description: HH:MM
+        type: string
+      notes:
+        type: string
+      start_time:
+        description: HH:MM
+        type: string
+    type: object
+  dto.UpdateRoleRequest:
+    properties:
+      code:
+        maxLength: 50
+        minLength: 1
+        type: string
+      description:
+        type: string
+      is_default:
+        type: boolean
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      sort_order:
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/entity.StaffStatus'
+        enum:
+        - active
+        - inactive
+    type: object
+  dto.UpdateStaffRequest:
+    properties:
+      address:
+        type: string
+      avatar:
+        type: string
+      birthday:
+        type: string
+      department:
+        maxLength: 100
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      emergency_contact:
+        type: string
+      gender:
+        allOf:
+        - $ref: '#/definitions/entity.Gender'
+        enum:
+        - male
+        - female
+        - other
+      hire_date:
+        type: string
+      is_available:
+        type: boolean
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      notes:
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      position:
+        maxLength: 100
+        type: string
+      role_id:
+        type: string
+      salary:
+        type: number
+      skills:
+        items:
+          type: string
+        type: array
+      status:
+        allOf:
+        - $ref: '#/definitions/entity.StaffStatus'
+        enum:
+        - active
+        - inactive
+        - on_leave
+        - suspended
+      user_id:
+        type: string
+      working_hours:
+        $ref: '#/definitions/dto.WorkingHours'
+    type: object
+  dto.UpdateStatusRequest:
+    properties:
+      reason:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/entity.StaffStatus'
+        enum:
+        - active
+        - inactive
+        - on_leave
+        - suspended
+    required:
+    - status
+    type: object
+  dto.WorkingHours:
+    properties:
+      friday:
+        $ref: '#/definitions/dto.DaySchedule'
+      monday:
+        $ref: '#/definitions/dto.DaySchedule'
+      saturday:
+        $ref: '#/definitions/dto.DaySchedule'
+      sunday:
+        $ref: '#/definitions/dto.DaySchedule'
+      thursday:
+        $ref: '#/definitions/dto.DaySchedule'
+      tuesday:
+        $ref: '#/definitions/dto.DaySchedule'
+      wednesday:
+        $ref: '#/definitions/dto.DaySchedule'
+    type: object
+  entity.Gender:
+    enum:
+    - male
+    - female
+    - other
+    type: string
+    x-enum-comments:
+      GenderFemale: 女
+      GenderMale: 男
+      GenderOther: 其他
+    x-enum-descriptions:
+    - 男
+    - 女
+    - 其他
+    x-enum-varnames:
+    - GenderMale
+    - GenderFemale
+    - GenderOther
+  entity.StaffStatus:
+    enum:
+    - active
+    - inactive
+    - on_leave
+    - suspended
+    type: string
+    x-enum-comments:
+      StaffStatusActive: 在职
+      StaffStatusInactive: 离职
+      StaffStatusOnLeave: 休假
+      StaffStatusSuspended: 停职
+    x-enum-descriptions:
+    - 在职
+    - 离职
+    - 休假
+    - 停职
+    x-enum-varnames:
+    - StaffStatusActive
+    - StaffStatusInactive
+    - StaffStatusOnLeave
+    - StaffStatusSuspended
+host: localhost:8084
+info:
+  contact:
+    email: support@fly.com
+    name: API Support
+    url: http://www.fly.com/support
+  description: 员工管理服务API文档，支持员工信息、角色权限、可用性管理等操作
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Staff Service API
+  version: "1.0"
+paths:
+  /staff:
+    get:
+      consumes:
+      - application/json
+      description: 获取员工列表，支持分页和过滤
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - description: 部门
+        in: query
+        name: department
+        type: string
+      - description: 角色ID
+        in: query
+        name: role_id
+        type: string
+      - description: 员工状态
+        in: query
+        name: status
+        type: string
+      - description: 是否可用
+        in: query
+        name: is_available
+        type: boolean
+      - default: '"created_at"'
+        description: 排序字段
+        in: query
+        name: sort
+        type: string
+      - default: '"desc"'
+        description: 排序方向
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工列表
+      tags:
+      - 员工管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的员工
+      parameters:
+      - description: 员工信息
+        in: body
+        name: staff
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建员工
+      tags:
+      - 员工管理
+  /staff/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除员工
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除员工
+      tags:
+      - 员工管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取员工详情
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工详情
+      tags:
+      - 员工管理
+    put:
+      consumes:
+      - application/json
+      description: 更新员工信息
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 员工信息
+        in: body
+        name: staff
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新员工
+      tags:
+      - 员工管理
+  /staff/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新员工状态
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 状态信息
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新员工状态
+      tags:
+      - 员工管理
+  /staff/availability/{staff_id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取员工的可用性时间安排
+      parameters:
+      - description: 员工ID
+        in: path
+        name: staff_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工可用性
+      tags:
+      - 可用性管理
+    put:
+      consumes:
+      - application/json
+      description: 设置员工的可用性时间安排
+      parameters:
+      - description: 员工ID
+        in: path
+        name: staff_id
+        required: true
+        type: string
+      - description: 可用性信息
+        in: body
+        name: availability
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AvailabilityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 设置员工可用性
+      tags:
+      - 可用性管理
+  /staff/availability/search:
+    post:
+      consumes:
+      - application/json
+      description: 根据时间和条件查询可用员工
+      parameters:
+      - description: 查询条件
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AvailableStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 查询可用员工
+      tags:
+      - 可用性管理
+  /staff/available:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前可用的员工列表
+      parameters:
+      - description: 部门
+        in: query
+        name: department
+        type: string
+      - description: 技能列表
+        in: query
+        name: skills
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取可用员工
+      tags:
+      - 员工管理
+  /staff/roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取角色列表，支持分页和过滤
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - description: 角色状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取角色列表
+      tags:
+      - 角色管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的角色
+      parameters:
+      - description: 角色信息
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建角色
+      tags:
+      - 角色管理
+  /staff/roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除角色
+      parameters:
+      - description: 角色ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除角色
+      tags:
+      - 角色管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取角色详情
+      parameters:
+      - description: 角色ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取角色详情
+      tags:
+      - 角色管理
+    put:
+      consumes:
+      - application/json
+      description: 更新角色信息
+      parameters:
+      - description: 角色ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 角色信息
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新角色
+      tags:
+      - 角色管理
+  /staff/stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取员工统计数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取统计数据
+      tags:
+      - 员工管理
+swagger: "2.0"
+tags:
+- description: 员工信息管理相关接口
+  name: 员工管理
