@@ -101,11 +101,11 @@ func (r *appointmentRepository) GetByCustomerID(customerID string, filter *dto.A
 	return appointments, nil
 }
 
-// GetByEmployeeID 根据员工ID获取预约
-func (r *appointmentRepository) GetByEmployeeID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+// GetByStaffID 根据员工ID获取预约
+func (r *appointmentRepository) GetByStaffID(staffID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
 	var appointments []*entity.Appointment
 	query := r.buildQuery(filter)
-	query = query.Where("employee_id = ?", employeeID)
+	query = query.Where("staff_id = ?", staffID)
 
 	if err := query.Find(&appointments).Error; err != nil {
 		return nil, fmt.Errorf("获取员工预约失败: %w", err)
@@ -128,9 +128,9 @@ func (r *appointmentRepository) GetByDateRange(startDate, endDate time.Time, fil
 }
 
 // CheckConflict 检查时间冲突
-func (r *appointmentRepository) CheckConflict(employeeID string, startTime, endTime time.Time, excludeID *string) ([]*entity.Appointment, error) {
+func (r *appointmentRepository) CheckConflict(staffID string, startTime, endTime time.Time, excludeID *string) ([]*entity.Appointment, error) {
 	var conflicts []*entity.Appointment
-	query := r.db.Where("employee_id = ? AND deleted_at IS NULL", employeeID).
+	query := r.db.Where("staff_id = ? AND deleted_at IS NULL", staffID).
 		Where("((start_time < ? AND end_time > ?) OR (start_time < ? AND end_time > ?) OR (start_time >= ? AND end_time <= ?))",
 			startTime, startTime, endTime, endTime, startTime, endTime)
 
@@ -146,14 +146,14 @@ func (r *appointmentRepository) CheckConflict(employeeID string, startTime, endT
 }
 
 // GetAvailableSlots 获取可用时间段
-func (r *appointmentRepository) GetAvailableSlots(employeeID string, date time.Time, serviceDuration time.Duration) ([]*time.Time, error) {
+func (r *appointmentRepository) GetAvailableSlots(staffID string, date time.Time, serviceDuration time.Duration) ([]*time.Time, error) {
 	// 获取当天所有预约
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	var appointments []*entity.Appointment
-	if err := r.db.Where("employee_id = ? AND start_time >= ? AND end_time <= ? AND deleted_at IS NULL",
-		employeeID, startOfDay, endOfDay).
+	if err := r.db.Where("staff_id = ? AND start_time >= ? AND end_time <= ? AND deleted_at IS NULL",
+		staffID, startOfDay, endOfDay).
 		Order("start_time ASC").
 		Find(&appointments).Error; err != nil {
 		return nil, fmt.Errorf("获取预约信息失败: %w", err)
@@ -239,8 +239,8 @@ func (r *appointmentRepository) buildQuery(filter *dto.AppointmentFilter) *gorm.
 	if filter.CustomerID != nil {
 		query = query.Where("customer_id = ?", *filter.CustomerID)
 	}
-	if filter.EmployeeID != nil {
-		query = query.Where("employee_id = ?", *filter.EmployeeID)
+	if filter.StaffID != nil {
+		query = query.Where("staff_id = ?", *filter.StaffID)
 	}
 	if filter.ServiceID != nil {
 		query = query.Where("service_id = ?", *filter.ServiceID)

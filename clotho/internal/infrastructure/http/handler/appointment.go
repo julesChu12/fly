@@ -50,7 +50,7 @@ func (h *AppointmentHandler) RegisterRoutes(router *gin.RouterGroup) {
 // @Accept json
 // @Produce json
 // @Param customer_id query string false "客户ID"
-// @Param employee_id query string false "员工ID"
+// @Param staff_id query string false "员工ID"
 // @Param service_id query string false "服务ID"
 // @Param status query string false "预约状态"
 // @Param start_date query string false "开始日期"
@@ -67,7 +67,7 @@ func (h *AppointmentHandler) ListAppointments(c *gin.Context) {
 	// 构建过滤条件
 	filter := &client.AppointmentFilter{
 		CustomerID: stringPtr(c.Query("customer_id")),
-		EmployeeID: stringPtr(c.Query("employee_id")),
+		StaffID: stringPtr(c.Query("staff_id")),
 		ServiceID:  stringPtr(c.Query("service_id")),
 		Page:       parseIntQueryParam(c.Query("page"), 1),
 		Limit:      parseIntQueryParam(c.Query("limit"), 20),
@@ -338,7 +338,7 @@ func (h *AppointmentHandler) UpdateStatus(c *gin.Context) {
 // @Tags appointments
 // @Accept json
 // @Produce json
-// @Param employee_id query string true "员工ID"
+// @Param staff_id query string true "员工ID"
 // @Param date query string true "日期"
 // @Param service_duration query int true "服务时长(秒)"
 // @Success 200 {object} map[string]interface{}
@@ -346,7 +346,7 @@ func (h *AppointmentHandler) UpdateStatus(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{}
 // @Router /appointments/availability [get]
 func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
-	employeeID := c.Query("employee_id")
+	employeeID := c.Query("staff_id")
 	dateStr := c.Query("date")
 	serviceDurationStr := c.Query("service_duration")
 
@@ -379,7 +379,7 @@ func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
 	}
 
 	req := &client.AppointmentAvailabilityRequest{
-		EmployeeID:      employeeID,
+		StaffID:      employeeID,
 		Date:            date,
 		ServiceDuration: time.Duration(serviceDuration) * time.Second,
 	}

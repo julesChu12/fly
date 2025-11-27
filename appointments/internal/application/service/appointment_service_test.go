@@ -65,7 +65,7 @@ func (m *MockAppointmentRepository) GetByCustomerID(customerID string, filter *d
 	return args.Get(0).([]*entity.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) GetByEmployeeID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
 	args := m.Called(employeeID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -125,7 +125,7 @@ func TestAppointmentService_CreateAppointment(t *testing.T) {
 	now := time.Now()
 	req := &dto.CreateAppointmentRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440001",
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		ServiceID:  "550e8400-e29b-41d4-a716-446655440003",
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -133,14 +133,14 @@ func TestAppointmentService_CreateAppointment(t *testing.T) {
 	}
 
 	// Test successful creation
-	mockRepo.On("CheckConflict", req.EmployeeID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{}, nil)
+	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{}, nil)
 	mockRepo.On("Create", mock.AnythingOfType("*entity.Appointment")).Return(nil)
 
 	appointment, err := service.CreateAppointment(req)
 	assert.NoError(t, err)
 	assert.NotNil(t, appointment)
 	assert.Equal(t, uuid.MustParse(req.CustomerID), appointment.CustomerID)
-	assert.Equal(t, uuid.MustParse(req.EmployeeID), appointment.EmployeeID)
+	assert.Equal(t, uuid.MustParse(req.StaffID), appointment.StaffID)
 	assert.Equal(t, uuid.MustParse(req.ServiceID), appointment.ServiceID)
 	assert.Equal(t, entity.AppointmentStatusPending, appointment.Status)
 
@@ -154,7 +154,7 @@ func TestAppointmentService_CreateAppointment_Conflict(t *testing.T) {
 	now := time.Now()
 	req := &dto.CreateAppointmentRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440001",
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		ServiceID:  "550e8400-e29b-41d4-a716-446655440003",
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -163,13 +163,13 @@ func TestAppointmentService_CreateAppointment_Conflict(t *testing.T) {
 	// Test conflict detection
 	existingAppointment := &entity.Appointment{
 		ID:        uuid.New(),
-		EmployeeID: uuid.MustParse(req.EmployeeID),
+		StaffID: uuid.MustParse(req.StaffID),
 		StartTime: now,
 		EndTime:   now.Add(time.Hour),
 		Status:    entity.AppointmentStatusConfirmed,
 	}
 
-	mockRepo.On("CheckConflict", req.EmployeeID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{existingAppointment}, nil)
+	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{existingAppointment}, nil)
 
 	appointment, err := service.CreateAppointment(req)
 	assert.Error(t, err)
@@ -187,7 +187,7 @@ func TestAppointmentService_GetAppointmentByID(t *testing.T) {
 	expectedAppointment := &entity.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		Status:     entity.AppointmentStatusConfirmed,
 	}
 
@@ -219,7 +219,7 @@ func TestAppointmentService_UpdateAppointment(t *testing.T) {
 	existingAppointment := &entity.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		Status:     entity.AppointmentStatusPending,
 	}
 
@@ -229,7 +229,7 @@ func TestAppointmentService_UpdateAppointment(t *testing.T) {
 
 	// Test successful update
 	mockRepo.On("GetByID", appointmentID).Return(existingAppointment, nil)
-	mockRepo.On("CheckConflict", existingAppointment.EmployeeID.String(), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), mock.AnythingOfType("*string")).Return([]*entity.Appointment{}, nil)
+	mockRepo.On("CheckConflict", existingAppointment.StaffID.String(), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), mock.AnythingOfType("*string")).Return([]*entity.Appointment{}, nil)
 	mockRepo.On("Update", mock.AnythingOfType("*entity.Appointment")).Return(nil)
 
 	appointment, err := service.UpdateAppointment(appointmentID, req)
@@ -277,13 +277,13 @@ func TestAppointmentService_ListAppointments(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
 			Status:     entity.AppointmentStatusPending,
 		},
 	}
@@ -308,7 +308,7 @@ func TestAppointmentService_UpdateAppointmentStatus(t *testing.T) {
 	existingAppointment := &entity.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		Status:     entity.AppointmentStatusPending,
 	}
 
@@ -336,7 +336,7 @@ func TestAppointmentService_CancelAppointment(t *testing.T) {
 	existingAppointment := &entity.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		Status:     entity.AppointmentStatusPending,
 	}
 
@@ -366,7 +366,7 @@ func TestAppointmentService_GetCalendarView(t *testing.T) {
 	expectedAppointments := []*entity.Appointment{
 		{
 			ID:        uuid.New(),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			StartTime: req.StartDate.Add(9 * time.Hour),
 			EndTime:   req.StartDate.Add(10 * time.Hour),
 			Status:    entity.AppointmentStatusConfirmed,
@@ -390,7 +390,7 @@ func TestAppointmentService_CheckAvailability(t *testing.T) {
 
 	date := time.Now().Truncate(24 * time.Hour)
 	req := &dto.AvailabilityRequest{
-		EmployeeID:      "550e8400-e29b-41d4-a716-446655440002",
+		StaffID:      "550e8400-e29b-41d4-a716-446655440002",
 		Date:            date,
 		ServiceDuration: 30 * time.Minute,
 	}
@@ -399,12 +399,12 @@ func TestAppointmentService_CheckAvailability(t *testing.T) {
 
 	// Test availability check
 	employeeID := "550e8400-e29b-41d4-a716-446655440002"
-	mockRepo.On("GetByEmployeeID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("GetByStaffID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
 
 	response, err := service.CheckAvailability(req)
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	assert.Equal(t, req.EmployeeID, response.EmployeeID)
+	assert.Equal(t, req.StaffID, response.StaffID)
 	assert.Equal(t, date, response.Date)
 
 	mockRepo.AssertExpectations(t)
@@ -415,21 +415,21 @@ func TestAppointmentService_CheckConflict(t *testing.T) {
 	service := NewAppointmentService(mockRepo)
 
 	req := &dto.ConflictCheckRequest{
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		StartTime:  time.Now(),
 		EndTime:    time.Now().Add(time.Hour),
 	}
 
 	existingAppointment := &entity.Appointment{
 		ID:        uuid.New(),
-		EmployeeID: uuid.MustParse(req.EmployeeID),
+		StaffID: uuid.MustParse(req.StaffID),
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,
 		Status:    entity.AppointmentStatusConfirmed,
 	}
 
 	// Test conflict detection
-	mockRepo.On("CheckConflict", req.EmployeeID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{existingAppointment}, nil)
+	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{existingAppointment}, nil)
 
 	response, err := service.CheckConflict(req)
 	assert.NoError(t, err)
@@ -443,7 +443,7 @@ func TestAppointmentService_CheckConflict(t *testing.T) {
 	mockRepo2 := &MockAppointmentRepository{}
 	service2 := NewAppointmentService(mockRepo2)
 
-	mockRepo2.On("CheckConflict", req.EmployeeID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{}, nil)
+	mockRepo2.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{}, nil)
 
 	response, err = service2.CheckConflict(req)
 	assert.NoError(t, err)
@@ -467,7 +467,7 @@ func TestAppointmentService_GetAppointmentsByCustomerID(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse(customerID),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 	}
@@ -483,7 +483,7 @@ func TestAppointmentService_GetAppointmentsByCustomerID(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestAppointmentService_GetAppointmentsByEmployeeID(t *testing.T) {
+func TestAppointmentService_GetAppointmentsByStaffID(t *testing.T) {
 	mockRepo := &MockAppointmentRepository{}
 	service := NewAppointmentService(mockRepo)
 
@@ -497,18 +497,18 @@ func TestAppointmentService_GetAppointmentsByEmployeeID(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse(employeeID),
+			StaffID: uuid.MustParse(employeeID),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 	}
 
 	// Test successful retrieval by employee ID
-	mockRepo.On("GetByEmployeeID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("GetByStaffID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
 
-	appointments, err := service.GetAppointmentsByEmployeeID(employeeID, filter)
+	appointments, err := service.GetAppointmentsByStaffID(employeeID, filter)
 	assert.NoError(t, err)
 	assert.Len(t, appointments, 1)
-	assert.Equal(t, uuid.MustParse(employeeID), appointments[0].EmployeeID)
+	assert.Equal(t, uuid.MustParse(employeeID), appointments[0].StaffID)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -523,7 +523,7 @@ func TestAppointmentService_GetUpcomingAppointments(t *testing.T) {
 	expectedAppointments := []*entity.Appointment{
 		{
 			ID:         uuid.New(),
-			EmployeeID: uuid.MustParse(employeeID),
+			StaffID: uuid.MustParse(employeeID),
 			Status:     entity.AppointmentStatusConfirmed,
 			StartTime:  time.Now().Add(time.Hour),
 		},
@@ -535,7 +535,7 @@ func TestAppointmentService_GetUpcomingAppointments(t *testing.T) {
 	appointments, err := service.GetUpcomingAppointments(employeeID, limit)
 	assert.NoError(t, err)
 	assert.Len(t, appointments, 1)
-	assert.Equal(t, uuid.MustParse(employeeID), appointments[0].EmployeeID)
+	assert.Equal(t, uuid.MustParse(employeeID), appointments[0].StaffID)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -550,7 +550,7 @@ func TestAppointmentService_GetPendingReminders(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 	}

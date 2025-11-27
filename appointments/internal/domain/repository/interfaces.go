@@ -22,12 +22,12 @@ type AppointmentRepository interface {
 
 	// 业务相关查询
 	GetByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
-	GetByEmployeeID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
+	GetByStaffID(staffID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
 	GetByDateRange(startDate, endDate time.Time, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
 
 	// 冲突检测
-	CheckConflict(employeeID string, startTime, endTime time.Time, excludeID *string) ([]*entity.Appointment, error)
-	GetAvailableSlots(employeeID string, date time.Time, serviceDuration time.Duration) ([]*time.Time, error)
+	CheckConflict(staffID string, startTime, endTime time.Time, excludeID *string) ([]*entity.Appointment, error)
+	GetAvailableSlots(staffID string, date time.Time, serviceDuration time.Duration) ([]*time.Time, error)
 
 	// 状态相关
 	GetByStatus(status entity.AppointmentStatus, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)

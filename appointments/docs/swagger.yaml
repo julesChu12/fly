@@ -1,0 +1,552 @@
+basePath: /api
+definitions:
+  dto.ConflictCheckRequest:
+    properties:
+      end_time:
+        type: string
+      exclude_id:
+        type: string
+      staff_id:
+        type: string
+      start_time:
+        type: string
+    required:
+    - end_time
+    - staff_id
+    - start_time
+    type: object
+  dto.CreateAppointmentRequest:
+    properties:
+      customer_id:
+        type: string
+      end_time:
+        type: string
+      notes:
+        type: string
+      reminder:
+        type: boolean
+      reminder_time:
+        type: string
+      service_id:
+        type: string
+      staff_id:
+        type: string
+      start_time:
+        type: string
+    required:
+    - customer_id
+    - end_time
+    - service_id
+    - staff_id
+    - start_time
+    type: object
+  dto.UpdateAppointmentRequest:
+    properties:
+      customer_id:
+        type: string
+      end_time:
+        type: string
+      notes:
+        type: string
+      reminder:
+        type: boolean
+      reminder_time:
+        type: string
+      service_id:
+        type: string
+      staff_id:
+        type: string
+      start_time:
+        type: string
+      status:
+        enum:
+        - pending
+        - confirmed
+        - in_progress
+        - completed
+        - cancelled
+        - no_show
+        type: string
+    type: object
+  dto.UpdateStatusRequest:
+    properties:
+      completion_notes:
+        type: string
+      status:
+        enum:
+        - pending
+        - confirmed
+        - in_progress
+        - completed
+        - cancelled
+        - no_show
+        type: string
+    required:
+    - status
+    type: object
+host: localhost:8083
+info:
+  contact:
+    email: support@fly.com
+    name: API Support
+    url: http://www.fly.com/support
+  description: 预约管理服务API文档，支持预约的创建、查询、状态更新和日历视图操作
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Appointments Service API
+  version: "1.0"
+paths:
+  /appointments:
+    get:
+      consumes:
+      - application/json
+      description: 获取预约列表，支持分页和过滤
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 客户ID
+        in: query
+        name: customer_id
+        type: string
+      - description: 员工ID
+        in: query
+        name: staff_id
+        type: string
+      - description: 服务ID
+        in: query
+        name: service_id
+        type: string
+      - description: ��约状态
+        in: query
+        name: status
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      - default: '"start_time"'
+        description: 排序字段
+        in: query
+        name: sort
+        type: string
+      - default: '"asc"'
+        description: 排序方向
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取预约列表
+      tags:
+      - 预约管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的预约
+      parameters:
+      - description: 预约信息
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAppointmentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建预约
+      tags:
+      - 预约管理
+  /appointments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除预约
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除预约
+      tags:
+      - 预约管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取预约详情
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取预约详情
+      tags:
+      - 预约管理
+    put:
+      consumes:
+      - application/json
+      description: 更新预约信息
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 预约信息
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAppointmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新预约
+      tags:
+      - 预约管理
+  /appointments/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新预约状态
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 状态信息
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新预约状态
+      tags:
+      - 预约管理
+  /appointments/availability:
+    get:
+      consumes:
+      - application/json
+      description: 检查员工在指定日期的可用时间
+      parameters:
+      - description: 员工ID
+        in: query
+        name: staff_id
+        required: true
+        type: string
+      - description: 日期
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: 服务时长(分钟)
+        in: query
+        name: service_duration
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 检查可用时间
+      tags:
+      - 预约管理
+  /appointments/calendar:
+    get:
+      consumes:
+      - application/json
+      description: 获取日历视图
+      parameters:
+      - description: 员工ID
+        in: query
+        name: staff_id
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取日历视图
+      tags:
+      - 预约管理
+  /appointments/conflict-check:
+    post:
+      consumes:
+      - application/json
+      description: 检查预约时间冲突
+      parameters:
+      - description: 冲突检查信息
+        in: body
+        name: conflict
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConflictCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 检查时间冲突
+      tags:
+      - 预约管理
+  /appointments/customer/{customerId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取预约列表
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取客户预约
+      tags:
+      - 预约管理
+  /appointments/employee/{employeeId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据员工ID获取预约列表
+      parameters:
+      - description: 员工ID
+        in: path
+        name: employeeId
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工预约
+      tags:
+      - 预约管理
+  /appointments/employee/{employeeId}/upcoming:
+    get:
+      consumes:
+      - application/json
+      description: 获取员工即将到来的预约
+      parameters:
+      - description: 员工ID
+        in: path
+        name: employeeId
+        required: true
+        type: string
+      - default: 10
+        description: 数量限制
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取即将到来的预约
+      tags:
+      - 预约管理
+swagger: "2.0"
+tags:
+- description: 预约信息管理相关接口
+  name: 预约管理

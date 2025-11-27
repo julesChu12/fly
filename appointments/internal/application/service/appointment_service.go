@@ -22,7 +22,7 @@ type AppointmentService interface {
 	// 查询操作
 	ListAppointments(filter *dto.AppointmentFilter) ([]*entity.Appointment, int64, error)
 	GetAppointmentsByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
-	GetAppointmentsByEmployeeID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
+	GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
 
 	// 业务操作
 	UpdateAppointmentStatus(id string, req *dto.UpdateStatusRequest) (*entity.Appointment, error)
@@ -59,7 +59,7 @@ func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest
 
 	// 检查冲突
 	conflictReq := &dto.ConflictCheckRequest{
-		EmployeeID: req.EmployeeID,
+		StaffID: req.StaffID,
 		StartTime:  req.StartTime,
 		EndTime:    req.EndTime,
 	}
@@ -82,7 +82,7 @@ func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest
 	appointment := &entity.Appointment{
 		ID:           uuid.New(),
 		CustomerID:   uuid.MustParse(req.CustomerID),
-		EmployeeID:   uuid.MustParse(req.EmployeeID),
+		StaffID:   uuid.MustParse(req.StaffID),
 		ServiceID:    uuid.MustParse(req.ServiceID),
 		StartTime:    req.StartTime,
 		EndTime:      req.EndTime,
@@ -135,8 +135,8 @@ func (s *appointmentService) UpdateAppointment(id string, req *dto.UpdateAppoint
 	if req.CustomerID != nil {
 		appointment.CustomerID = uuid.MustParse(*req.CustomerID)
 	}
-	if req.EmployeeID != nil {
-		appointment.EmployeeID = uuid.MustParse(*req.EmployeeID)
+	if req.StaffID != nil {
+		appointment.StaffID = uuid.MustParse(*req.StaffID)
 	}
 	if req.ServiceID != nil {
 		appointment.ServiceID = uuid.MustParse(*req.ServiceID)
@@ -165,7 +165,7 @@ func (s *appointmentService) UpdateAppointment(id string, req *dto.UpdateAppoint
 	// 检查冲突（排除当前预约）
 	excludeID := &id
 	conflictReq := &dto.ConflictCheckRequest{
-		EmployeeID: appointment.EmployeeID.String(),
+		StaffID: appointment.StaffID.String(),
 		StartTime:  appointment.StartTime,
 		EndTime:    appointment.EndTime,
 		ExcludeID:  excludeID,
@@ -240,8 +240,8 @@ func (s *appointmentService) GetAppointmentsByCustomerID(customerID string, filt
 	return appointments, nil
 }
 
-// GetAppointmentsByEmployeeID 根据员工ID获取预约
-func (s *appointmentService) GetAppointmentsByEmployeeID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+// GetAppointmentsByStaffID 根据员工ID获取预约
+func (s *appointmentService) GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
 	if employeeID == "" {
 		return nil, errors.New("员工ID不能为空")
 	}
@@ -249,10 +249,10 @@ func (s *appointmentService) GetAppointmentsByEmployeeID(employeeID string, filt
 	if filter == nil {
 		filter = &dto.AppointmentFilter{}
 	}
-	filter.EmployeeID = &employeeID
+	filter.StaffID = &employeeID
 	filter.SetDefaults()
 
-	appointments, err := s.appointmentRepo.GetByEmployeeID(employeeID, filter)
+	appointments, err := s.appointmentRepo.GetByStaffID(employeeID, filter)
 	if err != nil {
 		return nil, fmt.Errorf("获取员工预约失败: %w", err)
 	}
@@ -318,14 +318,14 @@ func (s *appointmentService) CheckAvailability(req *dto.AvailabilityRequest) (*d
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filter := &dto.AppointmentFilter{
-		EmployeeID: &req.EmployeeID,
+		StaffID: &req.StaffID,
 		StartDate:  &startOfDay,
 		EndDate:    &endOfDay,
 		Sort:       "start_time",
 		Order:      "asc",
 	}
 
-	appointments, err := s.appointmentRepo.GetByEmployeeID(req.EmployeeID, filter)
+	appointments, err := s.appointmentRepo.GetByStaffID(req.StaffID, filter)
 	if err != nil {
 		return nil, fmt.Errorf("获取预约信息失败: %w", err)
 	}
@@ -365,7 +365,7 @@ func (s *appointmentService) CheckAvailability(req *dto.AvailabilityRequest) (*d
 	}
 
 	return &dto.AvailabilityResponse{
-		EmployeeID: req.EmployeeID,
+		StaffID: req.StaffID,
 		Date:       req.Date,
 		Slots:      slots,
 	}, nil
@@ -373,7 +373,7 @@ func (s *appointmentService) CheckAvailability(req *dto.AvailabilityRequest) (*d
 
 // CheckConflict 检查时间冲突
 func (s *appointmentService) CheckConflict(req *dto.ConflictCheckRequest) (*dto.ConflictInfo, error) {
-	conflicts, err := s.appointmentRepo.CheckConflict(req.EmployeeID, req.StartTime, req.EndTime, req.ExcludeID)
+	conflicts, err := s.appointmentRepo.CheckConflict(req.StaffID, req.StartTime, req.EndTime, req.ExcludeID)
 	if err != nil {
 		return nil, fmt.Errorf("检查冲突失败: %w", err)
 	}
@@ -401,8 +401,8 @@ func (s *appointmentService) GetCalendarView(req *dto.CalendarViewRequest) ([]*d
 		StartDate: &req.StartDate,
 		EndDate:   &req.EndDate,
 	}
-	if req.EmployeeID != nil {
-		filter.EmployeeID = req.EmployeeID
+	if req.StaffID != nil {
+		filter.StaffID = req.StaffID
 	}
 
 	appointments, err := s.appointmentRepo.GetByDateRange(req.StartDate, req.EndDate, filter)
@@ -436,7 +436,7 @@ func (s *appointmentService) GetUpcomingAppointments(employeeID string, limit in
 	now := time.Now()
 	status := entity.AppointmentStatusConfirmed
 	filter := &dto.AppointmentFilter{
-		EmployeeID: &employeeID,
+		StaffID: &employeeID,
 		StartDate:  &now,
 		Status:     &status,
 		Page:       1,

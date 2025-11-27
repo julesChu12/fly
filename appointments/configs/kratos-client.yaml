@@ -1,0 +1,45 @@
+# Kratos客户端配置
+kratos_client:
+  # Kratos订单服务基础URL
+  base_url: "http://localhost:8081"
+
+  # 请求超时时间
+  timeout: 30s
+
+  # 最大重试次数
+  max_retries: 3
+
+  # 重试延迟
+  retry_delay: 1s
+
+  # 是否启用熔断器
+  enable_circuit: true
+
+  # 熔断器超时时间
+  circuit_timeout: 60s
+
+# Plutus客户端配置（下一个任务）
+plutus_client:
+  # Plutus支付服务基础URL
+  base_url: "http://localhost:8085"
+
+  # API密钥
+  api_key: "test_api_key"
+
+  # API密钥
+  api_secret: "test_api_secret"
+
+  # 请求超时时间
+  timeout: 30s
+
+  # 最大重试次数
+  max_retries: 3
+
+  # 重试延迟
+  retry_delay: 1s
+
+  # 是否启用熔断器
+  enable_circuit: true
+
+  # 熔断器超时时间
+  circuit_timeout: 60s

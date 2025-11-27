@@ -32,7 +32,7 @@ func TestAppointmentIntegration(t *testing.T) {
 	now := time.Now()
 	req := &dto.CreateAppointmentRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440001",
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		ServiceID:  "550e8400-e29b-41d4-a716-446655440003",
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -72,7 +72,7 @@ func TestAppointmentIntegration(t *testing.T) {
 
 	// 测试冲突检查
 	conflictReq := &dto.ConflictCheckRequest{
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		StartTime:  now.Add(30 * time.Minute),
 		EndTime:    now.Add(time.Hour + 30*time.Minute),
 	}

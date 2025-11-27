@@ -54,7 +54,7 @@ enum AppointmentStatus {
 message Appointment {
   string id = 1;
   string customer_id = 2;
-  string employee_id = 3;
+  string staff_id = 3;
   string service_id = 4;
   google.protobuf.Timestamp start_time = 5;
   google.protobuf.Timestamp end_time = 6;
@@ -69,7 +69,7 @@ message Appointment {
   google.protobuf.Timestamp cancelled_at = 15;
   google.protobuf.StringValue service_name = 16;
   google.protobuf.StringValue customer_name = 17;
-  google.protobuf.StringValue employee_name = 18;
+  google.protobuf.StringValue staff_name = 18;
   google.protobuf.Duration duration = 19;
 }
 
@@ -95,7 +95,7 @@ message ServiceInfo {
 
 message CreateAppointmentRequest {
   string customer_id = 1;
-  string employee_id = 2;
+  string staff_id = 2;
   string service_id = 3;
   google.protobuf.Timestamp start_time = 4;
   google.protobuf.Timestamp end_time = 5;
@@ -119,7 +119,7 @@ message GetAppointmentResponse {
 
 message ListAppointmentsRequest {
   google.protobuf.StringValue customer_id = 1;
-  google.protobuf.StringValue employee_id = 2;
+  google.protobuf.StringValue staff_id = 2;
   google.protobuf.StringValue service_id = 3;
   AppointmentStatus status = 4;
   google.protobuf.Timestamp start_date = 5;
@@ -145,7 +145,7 @@ message ListAppointmentsResponse {
 message UpdateAppointmentRequest {
   string id = 1;
   google.protobuf.StringValue customer_id = 2;
-  google.protobuf.StringValue employee_id = 3;
+  google.protobuf.StringValue staff_id = 3;
   google.protobuf.StringValue service_id = 4;
   google.protobuf.Timestamp start_time = 5;
   google.protobuf.Timestamp end_time = 6;
@@ -210,14 +210,14 @@ message CompleteAppointmentResponse {
 // Availability and conflict checking messages
 
 message CheckAvailabilityRequest {
-  string employee_id = 1;
+  string staff_id = 1;
   google.protobuf.Timestamp date = 2;
   google.protobuf.Duration service_duration = 3;
   repeated string exclude_appointment_ids = 4;
 }
 
 message CheckAvailabilityResponse {
-  string employee_id = 1;
+  string staff_id = 1;
   google.protobuf.Timestamp date = 2;
   repeated AvailableSlot slots = 3;
   bool has_availability = 4;
@@ -225,7 +225,7 @@ message CheckAvailabilityResponse {
 }
 
 message CheckConflictRequest {
-  string employee_id = 1;
+  string staff_id = 1;
   google.protobuf.Timestamp start_time = 2;
   google.protobuf.Timestamp end_time = 3;
   google.protobuf.StringValue exclude_appointment_id = 4;
@@ -240,7 +240,7 @@ message CheckConflictResponse {
 }
 
 message GetAvailableSlotsRequest {
-  string employee_id = 1;
+  string staff_id = 1;
   google.protobuf.Timestamp start_date = 2;
   google.protobuf.Timestamp end_date = 3;
   google.protobuf.Duration service_duration = 4;
@@ -249,7 +249,7 @@ message GetAvailableSlotsRequest {
 
 message GetAvailableSlotsResponse {
   repeated AvailableSlot slots = 1;
-  string employee_id = 2;
+  string staff_id = 2;
   google.protobuf.Timestamp query_start = 3;
   google.protobuf.Timestamp query_end = 4;
   int32 total_slots = 5;
@@ -275,7 +275,7 @@ message GetAppointmentsByCustomerResponse {
 }
 
 message GetAppointmentsByEmployeeRequest {
-  string employee_id = 1;
+  string staff_id = 1;
   AppointmentStatus status = 2;
   google.protobuf.Timestamp start_date = 3;
   google.protobuf.Timestamp end_date = 4;
@@ -293,14 +293,14 @@ message GetAppointmentsByEmployeeResponse {
 // Calendar and scheduling messages
 
 message GetEmployeeScheduleRequest {
-  string employee_id = 1;
+  string staff_id = 1;
   google.protobuf.Timestamp start_date = 2;
   google.protobuf.Timestamp end_date = 3;
   bool include_unavailable = 4;
 }
 
 message GetEmployeeScheduleResponse {
-  string employee_id = 1;
+  string staff_id = 1;
   google.protobuf.Timestamp start_date = 2;
   google.protobuf.Timestamp end_date = 3;
   repeated Appointment appointments = 4;
@@ -309,7 +309,7 @@ message GetEmployeeScheduleResponse {
 }
 
 message GetDailyScheduleRequest {
-  repeated string employee_ids = 1;
+  repeated string staff_ids = 1;
   google.protobuf.Timestamp date = 2;
   bool include_unavailable = 3;
 }
@@ -320,8 +320,8 @@ message GetDailyScheduleResponse {
 }
 
 message DailyEmployeeSchedule {
-  string employee_id = 1;
-  string employee_name = 2;
+  string staff_id = 1;
+  string staff_name = 2;
   repeated Appointment appointments = 3;
   repeated AvailableSlot available_slots = 4;
   repeated AvailableSlot working_hours = 5;

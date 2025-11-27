@@ -52,7 +52,7 @@ func (p *AppointmentProxy) ListAppointments(ctx context.Context, filter *client.
 
 // CreateAppointment creates a new appointment
 func (p *AppointmentProxy) CreateAppointment(ctx context.Context, req *client.CreateAppointmentRequestHTTP) (*client.Appointment, error) {
-	p.logger.Info("Creating new appointment", "customer_id", req.CustomerID, "employee_id", req.EmployeeID, "service_id", req.ServiceID)
+	p.logger.Info("Creating new appointment", "customer_id", req.CustomerID, "staff_id", req.StaffID, "service_id", req.ServiceID)
 
 	// Validate request
 	if err := p.validateCreateAppointmentRequest(req); err != nil {
@@ -186,7 +186,7 @@ func (p *AppointmentProxy) UpdateAppointmentStatus(ctx context.Context, appointm
 
 // CheckAvailability checks availability for a given employee and date
 func (p *AppointmentProxy) CheckAvailability(ctx context.Context, req *client.AppointmentAvailabilityRequest) (*client.AvailabilityResponse, error) {
-	p.logger.Info("Checking availability", "employee_id", req.EmployeeID, "date", req.Date)
+	p.logger.Info("Checking availability", "staff_id", req.StaffID, "date", req.Date)
 
 	// Validate request
 	if err := p.validateAvailabilityRequest(req); err != nil {
@@ -199,17 +199,17 @@ func (p *AppointmentProxy) CheckAvailability(ctx context.Context, req *client.Ap
 	duration := time.Since(start)
 
 	if err != nil {
-		p.logger.Error("Failed to check availability", "employee_id", req.EmployeeID, "error", err.Error(), "duration", duration)
+		p.logger.Error("Failed to check availability", "staff_id", req.StaffID, "error", err.Error(), "duration", duration)
 		return nil, fmt.Errorf("failed to check availability: %w", err)
 	}
 
-	p.logger.Info("Successfully checked availability", "employee_id", availability.EmployeeID, "slots_count", len(availability.Slots), "duration", duration)
+	p.logger.Info("Successfully checked availability", "staff_id", availability.StaffID, "slots_count", len(availability.Slots), "duration", duration)
 	return availability, nil
 }
 
 // CheckConflict checks for appointment conflicts
 func (p *AppointmentProxy) CheckConflict(ctx context.Context, req *client.ConflictCheckRequest) (*client.ConflictInfo, error) {
-	p.logger.Info("Checking appointment conflict", "employee_id", req.EmployeeID, "start_time", req.StartTime, "end_time", req.EndTime)
+	p.logger.Info("Checking appointment conflict", "staff_id", req.StaffID, "start_time", req.StartTime, "end_time", req.EndTime)
 
 	// Validate request
 	if err := p.validateConflictCheckRequest(req); err != nil {
@@ -222,11 +222,11 @@ func (p *AppointmentProxy) CheckConflict(ctx context.Context, req *client.Confli
 	duration := time.Since(start)
 
 	if err != nil {
-		p.logger.Error("Failed to check conflict", "employee_id", req.EmployeeID, "error", err.Error(), "duration", duration)
+		p.logger.Error("Failed to check conflict", "staff_id", req.StaffID, "error", err.Error(), "duration", duration)
 		return nil, fmt.Errorf("failed to check conflict: %w", err)
 	}
 
-	p.logger.Info("Successfully checked conflict", "employee_id", req.EmployeeID, "conflict", conflictInfo.Conflict, "conflict_count", conflictInfo.ConflictCount, "duration", duration)
+	p.logger.Info("Successfully checked conflict", "staff_id", req.StaffID, "conflict", conflictInfo.Conflict, "conflict_count", conflictInfo.ConflictCount, "duration", duration)
 	return conflictInfo, nil
 }
 
@@ -253,7 +253,7 @@ func (p *AppointmentProxy) GetAppointmentsByCustomer(ctx context.Context, custom
 
 // GetAppointmentsByEmployee retrieves appointments for a specific employee
 func (p *AppointmentProxy) GetAppointmentsByEmployee(ctx context.Context, employeeID string, filter *client.AppointmentFilter) ([]client.Appointment, error) {
-	p.logger.Info("Retrieving appointments for employee", "employee_id", employeeID)
+	p.logger.Info("Retrieving appointments for employee", "staff_id", employeeID)
 
 	if employeeID == "" {
 		return nil, fmt.Errorf("employee ID is required")
@@ -264,11 +264,11 @@ func (p *AppointmentProxy) GetAppointmentsByEmployee(ctx context.Context, employ
 	duration := time.Since(start)
 
 	if err != nil {
-		p.logger.Error("Failed to retrieve appointments for employee", "employee_id", employeeID, "error", err.Error(), "duration", duration)
+		p.logger.Error("Failed to retrieve appointments for employee", "staff_id", employeeID, "error", err.Error(), "duration", duration)
 		return nil, fmt.Errorf("failed to retrieve appointments for employee: %w", err)
 	}
 
-	p.logger.Info("Successfully retrieved appointments for employee", "employee_id", employeeID, "count", len(appointments), "duration", duration)
+	p.logger.Info("Successfully retrieved appointments for employee", "staff_id", employeeID, "count", len(appointments), "duration", duration)
 	return appointments, nil
 }
 
@@ -278,7 +278,7 @@ func (p *AppointmentProxy) validateCreateAppointmentRequest(req *client.CreateAp
 	if req.CustomerID == "" {
 		return fmt.Errorf("customer ID is required")
 	}
-	if req.EmployeeID == "" {
+	if req.StaffID == "" {
 		return fmt.Errorf("employee ID is required")
 	}
 	if req.ServiceID == "" {
@@ -300,7 +300,7 @@ func (p *AppointmentProxy) validateCreateAppointmentRequest(req *client.CreateAp
 }
 
 func (p *AppointmentProxy) validateAvailabilityRequest(req *client.AppointmentAvailabilityRequest) error {
-	if req.EmployeeID == "" {
+	if req.StaffID == "" {
 		return fmt.Errorf("employee ID is required")
 	}
 	if req.Date.IsZero() {
@@ -313,7 +313,7 @@ func (p *AppointmentProxy) validateAvailabilityRequest(req *client.AppointmentAv
 }
 
 func (p *AppointmentProxy) validateConflictCheckRequest(req *client.ConflictCheckRequest) error {
-	if req.EmployeeID == "" {
+	if req.StaffID == "" {
 		return fmt.Errorf("employee ID is required")
 	}
 	if req.StartTime.IsZero() {

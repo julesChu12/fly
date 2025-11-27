@@ -55,7 +55,7 @@ func (h *AppointmentHandler) RegisterRoutes(router *gin.RouterGroup) {
 // @Param page query int false "页码" default(1)
 // @Param limit query int false "每页数量" default(20)
 // @Param customer_id query string false "客户ID"
-// @Param employee_id query string false "员工ID"
+// @Param staff_id query string false "员工ID"
 // @Param service_id query string false "服务ID"
 // @Param status query string false "��约状态"
 // @Param start_date query string false "开始日期"
@@ -80,8 +80,8 @@ func (h *AppointmentHandler) ListAppointments(c *gin.Context) {
 	if customerID := c.Query("customer_id"); customerID != "" {
 		filter.CustomerID = &customerID
 	}
-	if employeeID := c.Query("employee_id"); employeeID != "" {
-		filter.EmployeeID = &employeeID
+	if employeeID := c.Query("staff_id"); employeeID != "" {
+		filter.StaffID = &employeeID
 	}
 	if serviceID := c.Query("service_id"); serviceID != "" {
 		filter.ServiceID = &serviceID
@@ -346,7 +346,7 @@ func (h *AppointmentHandler) UpdateStatus(c *gin.Context) {
 // @Tags 预约管理
 // @Accept json
 // @Produce json
-// @Param employee_id query string false "员工ID"
+// @Param staff_id query string false "员工ID"
 // @Param start_date query string true "开始日期"
 // @Param end_date query string true "结束日期"
 // @Success 200 {object} map[string]interface{}
@@ -356,8 +356,8 @@ func (h *AppointmentHandler) GetCalendarView(c *gin.Context) {
 	var req dto.CalendarViewRequest
 
 	// 解析查询参数
-	if employeeID := c.Query("employee_id"); employeeID != "" {
-		req.EmployeeID = &employeeID
+	if employeeID := c.Query("staff_id"); employeeID != "" {
+		req.StaffID = &employeeID
 	}
 
 	if startDateStr := c.Query("start_date"); startDateStr != "" {
@@ -419,14 +419,14 @@ func (h *AppointmentHandler) GetCalendarView(c *gin.Context) {
 // @Tags 预约管理
 // @Accept json
 // @Produce json
-// @Param employee_id query string true "员工ID"
+// @Param staff_id query string true "员工ID"
 // @Param date query string true "日期"
 // @Param service_duration query int true "服务时长(分钟)"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Router /appointments/availability [get]
 func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
-	employeeID := c.Query("employee_id")
+	employeeID := c.Query("staff_id")
 	if employeeID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
@@ -472,7 +472,7 @@ func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
 	}
 
 	req := &dto.AvailabilityRequest{
-		EmployeeID:      employeeID,
+		StaffID:      employeeID,
 		Date:            date,
 		ServiceDuration: time.Duration(duration) * time.Minute,
 	}
@@ -609,7 +609,7 @@ func (h *AppointmentHandler) GetAppointmentsByEmployee(c *gin.Context) {
 		filter.Limit = limit
 	}
 
-	appointments, err := h.appointmentService.GetAppointmentsByEmployeeID(employeeID, filter)
+	appointments, err := h.appointmentService.GetAppointmentsByStaffID(employeeID, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,

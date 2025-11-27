@@ -35,7 +35,7 @@ func TestAppointmentRepository_Create(t *testing.T) {
 	appointment := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -64,7 +64,7 @@ func TestAppointmentRepository_GetByID(t *testing.T) {
 	appointment := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 		Status:     entity.AppointmentStatusConfirmed,
 	}
@@ -84,7 +84,7 @@ func TestAppointmentRepository_Update(t *testing.T) {
 	appointment := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 		Status:     entity.AppointmentStatusPending,
 	}
@@ -107,7 +107,7 @@ func TestAppointmentRepository_Delete(t *testing.T) {
 	appointment := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 	}
 	_ = repo.Create(appointment)
@@ -130,7 +130,7 @@ func TestAppointmentRepository_List(t *testing.T) {
 		appointment := &entity.Appointment{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 			Status:     entity.AppointmentStatusConfirmed,
 			StartTime:  now.Add(time.Duration(i) * time.Hour),
@@ -167,7 +167,7 @@ func TestAppointmentRepository_CheckConflict(t *testing.T) {
 	existing := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -201,7 +201,7 @@ func TestAppointmentRepository_UpdateStatus(t *testing.T) {
 	appointment := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		ServiceID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
 		Status:     entity.AppointmentStatusPending,
 	}

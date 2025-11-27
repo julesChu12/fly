@@ -1,0 +1,67 @@
+# Kratos Service Configuration (SQLite for testing)
+
+server:
+  name: "kratos"
+  http_port: 8081
+  grpc_port: 9092
+  shutdown_timeout: 30s
+
+database:
+  driver: "sqlite"
+  dsn: "./data/kratos.db"
+  max_open_conns: 10
+  max_idle_conns: 5
+  conn_max_lifetime: 3600
+  log_level: "warn"
+
+cache:
+  enabled: false
+  address: "localhost:6379"
+  db: 0
+  ttl: 5m
+
+logger:
+  level: "info"
+  format: "json"
+  output_path: "logs/kratos.log"
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+  compress: false
+  enable_stdout: true
+  enable_file: false
+
+observability:
+  tracing:
+    enabled: true
+    endpoint: "http://jaeger:4317"
+    service_name: "kratos"
+    service_version: "1.0.0"
+    sample_ratio: 0.1
+
+  metrics:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+
+  health:
+    enabled: true
+    port: 8082
+    path: "/health"
+
+distributed_transaction:
+  server: "localhost:36790"
+  timeout: 30s
+  retry_interval: 1s
+  request_timeout: 3s
+
+rate_limit:
+  enabled: true
+  requests_per_second: 1000
+  burst: 2000
+
+auth:
+  jwt_secret: "your-jwt-secret-key"
+  token_expire: 3600s
+  custos_endpoint: "localhost:9001"
+  skip_paths: ["/health", "/ready", "/metrics", "/swagger/*"]

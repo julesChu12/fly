@@ -106,7 +106,7 @@ func (m *MockAppointmentService) GetAppointmentsByCustomerID(customerID string, 
 	return args.Get(0).([]*entity.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentService) GetAppointmentsByEmployeeID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentService) GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
 	args := m.Called(employeeID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -148,7 +148,7 @@ func TestAppointmentHandler_CreateAppointment(t *testing.T) {
 	now := time.Now()
 	req := dto.CreateAppointmentRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440001",
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		ServiceID:  "550e8400-e29b-41d4-a716-446655440003",
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -158,7 +158,7 @@ func TestAppointmentHandler_CreateAppointment(t *testing.T) {
 	expectedAppointment := &entity.Appointment{
 		ID:         uuid.New(),
 		CustomerID: uuid.MustParse(req.CustomerID),
-		EmployeeID: uuid.MustParse(req.EmployeeID),
+		StaffID: uuid.MustParse(req.StaffID),
 		ServiceID:  uuid.MustParse(req.ServiceID),
 		Status:     entity.AppointmentStatusPending,
 	}
@@ -190,7 +190,7 @@ func TestAppointmentHandler_GetAppointment(t *testing.T) {
 	expectedAppointment := &entity.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 		Status:     entity.AppointmentStatusConfirmed,
 	}
 
@@ -240,7 +240,7 @@ func TestAppointmentHandler_ListAppointments(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 	}
@@ -338,7 +338,7 @@ func TestAppointmentHandler_CheckAvailability(t *testing.T) {
 	date := time.Now().Truncate(24 * time.Hour).Format("2006-01-02")
 
 	expectedResponse := &dto.AvailabilityResponse{
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		Date:       time.Now().Truncate(24 * time.Hour),
 		Slots: []dto.AvailableSlot{
 			{
@@ -351,7 +351,7 @@ func TestAppointmentHandler_CheckAvailability(t *testing.T) {
 	mockService.On("CheckAvailability", mock.AnythingOfType("*dto.AvailabilityRequest")).Return(expectedResponse, nil)
 
 	w := httptest.NewRecorder()
-	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/availability?employee_id=550e8400-e29b-41d4-a716-446655440002&date="+date+"&service_duration=30", nil)
+	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/availability?staff_id=550e8400-e29b-41d4-a716-446655440002&date="+date+"&service_duration=30", nil)
 	router.ServeHTTP(w, httpReq)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -370,7 +370,7 @@ func TestAppointmentHandler_CheckConflict(t *testing.T) {
 	router, mockService := setupTestRouter()
 
 	req := dto.ConflictCheckRequest{
-		EmployeeID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID: "550e8400-e29b-41d4-a716-446655440002",
 		StartTime:  time.Now(),
 		EndTime:    time.Now().Add(time.Hour),
 	}
@@ -409,7 +409,7 @@ func TestAppointmentHandler_GetAppointmentsByCustomer(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse(customerID),
-			EmployeeID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 	}
@@ -440,12 +440,12 @@ func TestAppointmentHandler_GetAppointmentsByEmployee(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse(employeeID),
+			StaffID: uuid.MustParse(employeeID),
 			Status:     entity.AppointmentStatusConfirmed,
 		},
 	}
 
-	mockService.On("GetAppointmentsByEmployeeID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockService.On("GetAppointmentsByStaffID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
 
 	w := httptest.NewRecorder()
 	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/employee/"+employeeID, nil)
@@ -471,7 +471,7 @@ func TestAppointmentHandler_GetUpcomingAppointments(t *testing.T) {
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			EmployeeID: uuid.MustParse(employeeID),
+			StaffID: uuid.MustParse(employeeID),
 			Status:     entity.AppointmentStatusConfirmed,
 			StartTime:  time.Now().Add(time.Hour),
 		},

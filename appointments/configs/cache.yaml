@@ -1,0 +1,121 @@
+# 预约系统缓存配置
+
+# Redis配置
+redis:
+  address: "localhost:6379"       # Redis服务器地址
+  password: ""                    # Redis密码
+  db: 2                           # 数据库编号 (0-15，DB 1用于幂等性)
+  pool_size: 10                   # 连接池大小
+  max_retries: 3                  # 最大重试次数
+  timeout: 5s                     # 超时时间
+  key_prefix: "appointments"       # 键前缀
+  idle_timeout: 5m                 # 空闲超时
+
+# 内存缓存配置
+memory:
+  enabled: true                   # 是否启用内存缓存
+  max_size: 1000                  # 最大缓存项数
+  default_ttl: 10m                # 默认TTL
+  gc_interval: 5m                 # 垃圾回收间隔
+
+# TTL策略配置
+ttl:
+  # 预约相关缓存
+  appointment_single: 15m          # 预约详情缓存时间
+  appointment_list: 10m            # 预约列表缓存时间
+
+  # 实时性缓存
+  availability_check: 2m           # 可用性检查缓存时间
+  conflict_check: 5m               # 冲突检查缓存时间
+
+  # 规则引擎缓存
+  rules_validation: 30m            # 规则验证缓存时间
+  rules_pricing: 1h                # 定价规则缓存时间
+
+  # 外部服务缓存
+  service_data: 2h                 # 服务数据缓存时间
+  config_data: 24h                 # 配置数据缓存时间
+
+  # 默认TTL
+  default: 10m                     # 默认缓存时间
+
+# 清理配置
+cleanup:
+  enabled: true                    # 是否启用自动清理
+  interval: 10m                    # 清理间隔
+  retention: 720h                  # 数据保留时间 (30天)
+  batch_size: 100                  # 批量清理大小
+
+# 监控配置
+monitoring:
+  enabled: true                    # 是否启用监控
+  metrics_interval: 1m             # 指标收集间隔
+  health_check_interval: 30s       # 健康检查间隔
+  slow_query_threshold: 100ms      # 慢查询阈值
+
+# 性能配置
+performance:
+  # 缓存预热配置
+  preload:
+    enabled: true                  # 是否启用缓存预热
+    concurrency: 5                 # 预热并发数
+    timeout: 30s                   # 预热超时时间
+    keys:
+      - "config:enum:*"           # 预热配置数据
+      - "service:price:*"         # 预热服务价格
+
+  # 缓存穿透保护
+  penetration_protection:
+    enabled: true                  # 是否启用穿透保护
+    null_ttl: 5m                  # 空值缓存TTL
+    bloom_filter_size: 1000000    # 布隆过滤器大小
+
+  # 缓存雪崩保护
+  avalanche_protection:
+    enabled: true                  # 是否启用雪崩保护
+    jitter_range: "0-10s"          # 随机延迟范围
+    retry_delay: 1s                # 重试延迟
+
+# 缓存策略配置
+strategies:
+  # 写入策略
+  write_strategy: "write_behind"   # write_through, write_behind, write_around
+
+  # 失效策略
+  eviction_policy: "lru"           # lru, lfu, fifo
+
+  # ���致性策略
+  consistency_level: "eventual"    # strong, eventual, weak
+
+# 分布式缓存配置（多实例）
+distributed:
+  enabled: false                   # 是否启用分布式缓存
+  nodes:                         # 节点列表
+    - host: "localhost"
+      port: 6379
+      db: 2
+  sharding:
+    enabled: false                 # 是否启用分片
+    algorithm: "consistent_hash"   # 分片算法
+    replicas: 1                    # 副本数
+
+# 灾难恢复配置
+disaster_recovery:
+  backup:
+    enabled: false                 # 是否启用备份
+    interval: 1h                   # 备份间隔
+    storage: "file"                # 存储类型: file, s3
+    path: "./cache_backups"        # 备份路径
+
+  replication:
+    enabled: false                 # 是否启用复制
+    master: "localhost:6379"       # 主节点
+    slaves: []                     # 从节点列表
+
+# 调试配置
+debug:
+  enabled: false                  # 是否启用调试模式
+  log_level: "info"               # 日志级别: debug, info, warn, error
+  log_keys: false                 # 是否记录缓存键
+  log_operations: false            # 是否记录缓存操作
+  trace_cache_miss: true           # 是否跟踪缓存未命中

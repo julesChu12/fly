@@ -38,7 +38,7 @@ const (
 type Appointment struct {
 	ID            string          `json:"id"`
 	CustomerID    string          `json:"customer_id"`
-	EmployeeID    string          `json:"employee_id"`
+	StaffID    string          `json:"staff_id"`
 	ServiceID     string          `json:"service_id"`
 	StartTime     time.Time       `json:"start_time"`
 	EndTime       time.Time       `json:"end_time"`
@@ -53,7 +53,7 @@ type Appointment struct {
 // CreateAppointmentRequestHTTP represents a request to create an appointment via HTTP
 type CreateAppointmentRequestHTTP struct {
 	CustomerID    string     `json:"customer_id"`
-	EmployeeID    string     `json:"employee_id"`
+	StaffID    string     `json:"staff_id"`
 	ServiceID     string     `json:"service_id"`
 	StartTime     time.Time  `json:"start_time"`
 	EndTime       time.Time  `json:"end_time"`
@@ -65,7 +65,7 @@ type CreateAppointmentRequestHTTP struct {
 // UpdateAppointmentRequestHTTP represents a request to update an appointment via HTTP
 type UpdateAppointmentRequestHTTP struct {
 	CustomerID     *string    `json:"customer_id"`
-	EmployeeID     *string    `json:"employee_id"`
+	StaffID     *string    `json:"staff_id"`
 	ServiceID      *string    `json:"service_id"`
 	StartTime      *time.Time `json:"start_time"`
 	EndTime        *time.Time `json:"end_time"`
@@ -84,7 +84,7 @@ type UpdateAppointmentStatusRequestHTTP struct {
 // AppointmentFilter represents filter parameters for appointment queries
 type AppointmentFilter struct {
 	CustomerID  *string           `json:"customer_id"`
-	EmployeeID  *string           `json:"employee_id"`
+	StaffID  *string           `json:"staff_id"`
 	ServiceID   *string           `json:"service_id"`
 	Status      *AppointmentStatus `json:"status"`
 	StartDate   *time.Time        `json:"start_date"`
@@ -101,7 +101,7 @@ type AppointmentFilter struct {
 
 // AppointmentAvailabilityRequest represents a request to check availability
 type AppointmentAvailabilityRequest struct {
-	EmployeeID      string        `json:"employee_id"`
+	StaffID      string        `json:"staff_id"`
 	Date            time.Time     `json:"date"`
 	ServiceDuration time.Duration `json:"service_duration"`
 }
@@ -115,14 +115,14 @@ type AvailableSlot struct {
 
 // AvailabilityResponse represents availability check response
 type AvailabilityResponse struct {
-	EmployeeID string          `json:"employee_id"`
+	StaffID string          `json:"staff_id"`
 	Date       time.Time       `json:"date"`
 	Slots      []AvailableSlot `json:"slots"`
 }
 
 // ConflictCheckRequest represents a request to check appointment conflicts
 type ConflictCheckRequest struct {
-	EmployeeID string    `json:"employee_id"`
+	StaffID string    `json:"staff_id"`
 	StartTime  time.Time `json:"start_time"`
 	EndTime    time.Time `json:"end_time"`
 	ExcludeID  *string   `json:"exclude_id"`
@@ -199,8 +199,8 @@ func (c *AppointmentHTTPClient) ListAppointments(ctx context.Context, filter *Ap
 	if filter.CustomerID != nil {
 		params["customer_id"] = *filter.CustomerID
 	}
-	if filter.EmployeeID != nil {
-		params["employee_id"] = *filter.EmployeeID
+	if filter.StaffID != nil {
+		params["staff_id"] = *filter.StaffID
 	}
 	if filter.ServiceID != nil {
 		params["service_id"] = *filter.ServiceID
@@ -367,7 +367,7 @@ func (c *AppointmentHTTPClient) CheckAvailability(ctx context.Context, req *Appo
 
 	err := c.doRequest(ctx, "GET", url, req, &response)
 	if err != nil {
-		c.logger.Error("Failed to check availability", "employee_id", req.EmployeeID, "error", err.Error())
+		c.logger.Error("Failed to check availability", "staff_id", req.StaffID, "error", err.Error())
 		return nil, err
 	}
 
@@ -390,7 +390,7 @@ func (c *AppointmentHTTPClient) CheckConflict(ctx context.Context, req *Conflict
 
 	err := c.doRequest(ctx, "POST", url, req, &response)
 	if err != nil {
-		c.logger.Error("Failed to check conflict", "employee_id", req.EmployeeID, "error", err.Error())
+		c.logger.Error("Failed to check conflict", "staff_id", req.StaffID, "error", err.Error())
 		return nil, err
 	}
 
@@ -416,7 +416,7 @@ func (c *AppointmentHTTPClient) GetAppointmentsByEmployee(ctx context.Context, e
 	if filter == nil {
 		filter = &AppointmentFilter{}
 	}
-	filter.EmployeeID = &employeeID
+	filter.StaffID = &employeeID
 	appointments, _, err := c.ListAppointments(ctx, filter)
 	return appointments, err
 }

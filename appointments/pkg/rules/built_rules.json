@@ -1,0 +1,329 @@
+[
+  {
+    "id": "appointment_time_business_hours",
+    "name": "工作时间预约检查",
+    "description": "预约时间必须在营业时间内（9:00-18:00）",
+    "priority": 100,
+    "conditions": [
+      {
+        "field": "start_time.hour",
+        "operator": "gte",
+        "value": 9,
+        "weight": 0.5
+      },
+      {
+        "field": "start_time.hour",
+        "operator": "lte",
+        "value": 17,
+        "weight": 0.5
+      }
+    ],
+    "action": "approve",
+    "parameters": {
+      "message": "预约时间符合营业时间要求"
+    },
+    "status": "active",
+    "tags": ["time", "business_hours"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_advanced_booking",
+    "name": "预约提前时间检查",
+    "description": "预约必须提前至少2小时",
+    "priority": 90,
+    "conditions": [
+      {
+        "field": "start_time",
+        "operator": "gte",
+        "value": "now + 2h",
+        "weight": 1.0
+      }
+    ],
+    "action": "approve",
+    "parameters": {
+      "message": "预约提前时间符合要求"
+    },
+    "status": "active",
+    "tags": ["time", "advanced_booking"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_max_advance_days",
+    "name": "最大预约天数限制",
+    "description": "预约不能提前超过30天",
+    "priority": 80,
+    "conditions": [
+      {
+        "field": "start_time",
+        "operator": "lte",
+        "value": "now + 720h",
+        "weight": 1.0
+      }
+    ],
+    "action": "approve",
+    "parameters": {
+      "message": "预约提前天数符合限制"
+    },
+    "status": "active",
+    "tags": ["time", "max_advance"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_duration_limit",
+    "name": "预约时长限制",
+    "description": "单次预约时长不能超过4小时",
+    "priority": 70,
+    "conditions": [
+      {
+        "field": "duration_minutes",
+        "operator": "lte",
+        "value": 240,
+        "weight": 1.0
+      }
+    ],
+    "action": "approve",
+    "parameters": {
+      "message": "预约时长符合要求"
+    },
+    "status": "active",
+    "tags": ["duration", "limit"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_vip_customer",
+    "name": "VIP客户优先处理",
+    "description": "VIP客户预约自动批准",
+    "priority": 110,
+    "conditions": [
+      {
+        "field": "customer.vip_level",
+        "operator": "in",
+        "value": ["gold", "platinum", "diamond"],
+        "weight": 1.0
+      }
+    ],
+    "action": "approve",
+    "parameters": {
+      "message": "VIP客户预约已自动批准",
+      "approver": "VIP自动审批系统"
+    },
+    "status": "active",
+    "tags": ["customer", "vip"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_weekend_surcharge",
+    "name": "周末预约附加费检查",
+    "description": "周末预约需要人工审核附加费",
+    "priority": 60,
+    "conditions": [
+      {
+        "field": "start_time.weekday",
+        "operator": "in",
+        "value": [0, 6],
+        "weight": 1.0
+      }
+    ],
+    "action": "review",
+    "parameters": {
+      "level": "L2",
+      "reason": "周末预约需要审核附加费",
+      "reviewers": ["财务部门", "运营部门"]
+    },
+    "status": "active",
+    "tags": ["time", "weekend", "surcharge"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_peak_hour_pricing",
+    "name": "高峰时段定价",
+    "description": "工作日17:00-20:00为高峰时段，需要加收20%服务费",
+    "priority": 100,
+    "conditions": [
+      {
+        "field": "start_time.weekday",
+        "operator": "between",
+        "value": [1, 5],
+        "weight": 0.5
+      },
+      {
+        "field": "start_time.hour",
+        "operator": "between",
+        "value": [17, 20],
+        "weight": 0.5
+      }
+    ],
+    "action": "modify",
+    "parameters": {
+      "modifications": {
+        "pricing.service_fee_multiplier": 1.2,
+        "pricing.peak_hour_surcharge": true
+      },
+      "target_field": "pricing"
+    },
+    "status": "active",
+    "tags": ["pricing", "peak_hour", "surcharge"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_holiday_pricing",
+    "name": "节假日定价",
+    "description": "法定节假日预约加收50%服务费",
+    "priority": 95,
+    "conditions": [
+      {
+        "field": "start_time.is_holiday",
+        "operator": "eq",
+        "value": true,
+        "weight": 1.0
+      }
+    ],
+    "action": "modify",
+    "parameters": {
+      "modifications": {
+        "pricing.service_fee_multiplier": 1.5,
+        "pricing.holiday_surcharge": true
+      },
+      "target_field": "pricing"
+    },
+    "status": "active",
+    "tags": ["pricing", "holiday", "surcharge"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_new_customer_discount",
+    "name": "新客户折扣",
+    "description": "首次预约的新客户享受10%折扣",
+    "priority": 85,
+    "conditions": [
+      {
+        "field": "customer.is_new",
+        "operator": "eq",
+        "value": true,
+        "weight": 0.5
+      },
+      {
+        "field": "customer.appointment_count",
+        "operator": "eq",
+        "value": 0,
+        "weight": 0.5
+      }
+    ],
+    "action": "modify",
+    "parameters": {
+      "modifications": {
+        "pricing.discount_percentage": 0.1,
+        "pricing.new_customer_discount": true
+      },
+      "target_field": "pricing"
+    },
+    "status": "active",
+    "tags": ["pricing", "discount", "new_customer"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_bulk_discount",
+    "name": "批量预约折扣",
+    "description": "一次性预约5次以上享受15%折扣",
+    "priority": 75,
+    "conditions": [
+      {
+        "field": "bulk_booking_count",
+        "operator": "gte",
+        "value": 5,
+        "weight": 1.0
+      }
+    ],
+    "action": "modify",
+    "parameters": {
+      "modifications": {
+        "pricing.discount_percentage": 0.15,
+        "pricing.bulk_discount": true
+      },
+      "target_field": "pricing"
+    },
+    "status": "active",
+    "tags": ["pricing", "discount", "bulk"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_confirmation_notification",
+    "name": "预约确认通知",
+    "description": "预约创建成功后发送确认通知",
+    "priority": 50,
+    "conditions": [
+      {
+        "field": "status",
+        "operator": "eq",
+        "value": "created",
+        "weight": 1.0
+      }
+    ],
+    "action": "notify",
+    "parameters": {
+      "title": "预约确认",
+      "message": "您的预约已创建成功",
+      "channels": ["email", "sms"],
+      "priority": "high",
+      "template": "appointment_confirmation"
+    },
+    "status": "active",
+    "tags": ["notification", "confirmation"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  },
+  {
+    "id": "appointment_reminder_notification",
+    "name": "预约提醒通知",
+    "description": "预约开始前24小时发送提醒通知",
+    "priority": 40,
+    "conditions": [
+      {
+        "field": "start_time",
+        "operator": "lte",
+        "value": "now + 24h",
+        "weight": 0.5
+      },
+      {
+        "field": "start_time",
+        "operator": "gt",
+        "value": "now + 23h",
+        "weight": 0.5
+      }
+    ],
+    "action": "notify",
+    "parameters": {
+      "title": "预约提醒",
+      "message": "您有一个预约将在明天进行",
+      "channels": ["sms", "push"],
+      "priority": "normal",
+      "template": "appointment_reminder"
+    },
+    "status": "active",
+    "tags": ["notification", "reminder"],
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+    "version": 1
+  }
+]

@@ -9,7 +9,7 @@ import (
 // AppointmentFilter 预约查询过滤器
 type AppointmentFilter struct {
 	CustomerID  *string                           `json:"customer_id"`
-	EmployeeID  *string                           `json:"employee_id"`
+	StaffID  *string                           `json:"staff_id"`
 	ServiceID   *string                           `json:"service_id"`
 	Status      *entity.AppointmentStatus         `json:"status"`
 	StartDate   *time.Time                        `json:"start_date"`
@@ -46,7 +46,7 @@ func (f *AppointmentFilter) SetDefaults() {
 // CreateAppointmentRequest 创建预约请求
 type CreateAppointmentRequest struct {
 	CustomerID   string     `json:"customer_id" binding:"required,uuid"`
-	EmployeeID   string     `json:"employee_id" binding:"required,uuid"`
+	StaffID   string     `json:"staff_id" binding:"required,uuid"`
 	ServiceID    string     `json:"service_id" binding:"required,uuid"`
 	StartTime    time.Time  `json:"start_time" binding:"required"`
 	EndTime      time.Time  `json:"end_time" binding:"required,gtfield=StartTime"`
@@ -58,7 +58,7 @@ type CreateAppointmentRequest struct {
 // UpdateAppointmentRequest 更新预约请求
 type UpdateAppointmentRequest struct {
 	CustomerID   *string    `json:"customer_id" binding:"omitempty,uuid"`
-	EmployeeID   *string    `json:"employee_id" binding:"omitempty,uuid"`
+	StaffID   *string    `json:"staff_id" binding:"omitempty,uuid"`
 	ServiceID    *string    `json:"service_id" binding:"omitempty,uuid"`
 	StartTime    *time.Time `json:"start_time" binding:"omitempty"`
 	EndTime      *time.Time `json:"end_time" binding:"omitempty,gtfield=StartTime"`
@@ -79,8 +79,8 @@ type CalendarEvent struct {
 	ID         string                   `json:"id"`
 	CustomerID string                   `json:"customer_id"`
 	CustomerName string                 `json:"customer_name"` // 从客户服务获取
-	EmployeeID string                   `json:"employee_id"`
-	EmployeeName string                 `json:"employee_name"` // 从员工服务获取
+	StaffID string                   `json:"staff_id"`
+	StaffName string                 `json:"staff_name"` // 从员工服务获取
 	ServiceID  string                   `json:"service_id"`
 	ServiceName string                  `json:"service_name"`  // 从产品服务获取
 	StartTime  time.Time                `json:"start_time"`
@@ -92,7 +92,7 @@ type CalendarEvent struct {
 
 // AvailabilityRequest 可用时间查询请求
 type AvailabilityRequest struct {
-	EmployeeID     string        `json:"employee_id" binding:"required,uuid"`
+	StaffID     string        `json:"staff_id" binding:"required,uuid"`
 	Date           time.Time     `json:"date" binding:"required"`
 	ServiceDuration time.Duration `json:"service_duration" binding:"required,gt=0"`
 }
@@ -106,7 +106,7 @@ type AvailableSlot struct {
 
 // AvailabilityResponse 可用时间响应
 type AvailabilityResponse struct {
-	EmployeeID string          `json:"employee_id"`
+	StaffID string          `json:"staff_id"`
 	Date       time.Time       `json:"date"`
 	Slots      []AvailableSlot `json:"slots"`
 }
@@ -126,7 +126,7 @@ type DailySummary struct {
 type AppointmentResponse struct {
 	ID           string                   `json:"id"`
 	CustomerID   string                   `json:"customer_id"`
-	EmployeeID   string                   `json:"employee_id"`
+	StaffID   string                   `json:"staff_id"`
 	ServiceID    string                   `json:"service_id"`
 	StartTime    time.Time                `json:"start_time"`
 	EndTime      time.Time                `json:"end_time"`
@@ -140,14 +140,14 @@ type AppointmentResponse struct {
 
 // CalendarViewRequest 日历视图请求
 type CalendarViewRequest struct {
-	EmployeeID *string   `json:"employee_id" binding:"omitempty,uuid"`
+	StaffID *string   `json:"staff_id" binding:"omitempty,uuid"`
 	StartDate  time.Time `json:"start_date" binding:"required"`
 	EndDate    time.Time `json:"end_date" binding:"required,gtfield=StartDate"`
 }
 
 // ConflictCheckRequest 冲突检查请求
 type ConflictCheckRequest struct {
-	EmployeeID    string    `json:"employee_id" binding:"required,uuid"`
+	StaffID    string    `json:"staff_id" binding:"required,uuid"`
 	StartTime     time.Time `json:"start_time" binding:"required"`
 	EndTime       time.Time `json:"end_time" binding:"required,gtfield=StartTime"`
 	ExcludeID     *string   `json:"exclude_id" binding:"omitempty,uuid"`

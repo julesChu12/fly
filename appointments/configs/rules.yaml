@@ -1,0 +1,215 @@
+# 业务规则引擎配置
+
+# 规则引擎基本配置
+rule_engine:
+  # 执行配置
+  max_concurrent_rules: 50        # 最大并发规则数
+  default_timeout: 30s           # 默认执行超时时间
+  enable_metrics: true           # 启用指标统计
+  enable_tracing: true           # 启用执行跟踪
+
+  # 缓存配置
+  cache_size: 1000              # 缓存大小
+  cache_ttl: 1h                 # 缓存TTL
+
+  # 热重载配置
+  hot_reload_enabled: true       # 启用热重载
+  reload_interval: 5m           # 重载检查间隔
+  rule_files:                   # 规则文件路径
+    - "rules/appointment_approval.json"
+    - "rules/appointment_pricing.json"
+    - "rules/appointment_resource.json"
+    - "rules/appointment_notification.json"
+
+# 规则存储配置
+rule_storage:
+  type: "file"                  # 存储类型: memory, file, database
+  file:
+    directory: "configs/rules"   # 文件存储目录
+    backup_enabled: true         # 启用备份
+    backup_interval: 1h          # 备份间隔
+
+# 动作处理器配置
+action_handlers:
+  # 批准处理器
+  approve:
+    enabled: true
+    default_message: "请求已批准"
+    default_approver: "系统自动批准"
+
+  # 拒绝处理器
+  reject:
+    enabled: true
+    default_reason: "不符合业务规则"
+    default_code: "REJECTED"
+
+  # 审核处理器
+  review:
+    enabled: true
+    default_level: "L1"
+    default_reviewers: ["管理员"]
+    default_deadline: "24h"
+
+  # 修改处理器
+  modify:
+    enabled: true
+    auto_merge: true             # 自动合并修改
+
+  # 通知处理器
+  notify:
+    enabled: true
+    default_channels: ["system"]
+    default_priority: "normal"
+    async_send: true             # 异步发送
+
+  # 延迟处理器
+  delay:
+    enabled: true
+    default_delay: "1s"
+    max_delay: "1h"              # 最大延迟时间
+
+# 预约业务规则配置
+appointment_rules:
+  # 时间规则
+  time_rules:
+    business_hours:
+      start: "09:00"
+      end: "18:00"
+      weekdays: [1, 2, 3, 4, 5]  # 周一到周五
+
+    advanced_booking:
+      min_hours: 2               # 最少提前2小时
+      max_days: 30               # 最多提前30天
+
+    duration_limits:
+      max_minutes: 240           # 最长4小时
+      min_minutes: 15            # 最短15分钟
+
+  # 定价规则
+  pricing_rules:
+    peak_hours:
+      enabled: true
+      weekdays: [1, 2, 3, 4, 5]
+      start: "17:00"
+      end: "20:00"
+      surcharge_percentage: 0.2  # 20%附加费
+
+    holiday_surcharge:
+      enabled: true
+      surcharge_percentage: 0.5  # 50%附加费
+
+    new_customer_discount:
+      enabled: true
+      discount_percentage: 0.1   # 10%折扣
+      max_appointments: 1        # 仅首次预约
+
+    bulk_discount:
+      enabled: true
+      min_appointments: 5        # 最少5次预约
+      discount_percentage: 0.15  # 15%折扣
+
+    vip_discounts:
+      gold: 0.1                   # VIP金卡10%折扣
+      platinum: 0.15              # VIP白金卡15%折扣
+      diamond: 0.2               # VIP钻石卡20%折扣
+
+  # 资源规则
+  resource_rules:
+    staff:
+      max_daily_appointments: 8   # 每人每天最多8个预约
+      required_break_time: "30m"  # 预约间最少30分钟休息
+      specialist_required_services: [] # 需要专家的服务ID列表
+
+    equipment:
+      maintenance_window: "02:00-04:00" # 设备维护时间
+      max_continuous_usage: "8h"        # 最长连续使用时间
+
+  # 通知规则
+  notification_rules:
+    confirmation:
+      enabled: true
+      channels: ["email", "sms"]
+      delay: "0s"
+      template: "appointment_confirmation"
+
+    reminder:
+      enabled: true
+      channels: ["sms", "push"]
+      advance_time: "24h"         # 提前24小时
+      template: "appointment_reminder"
+
+    cancellation:
+      enabled: true
+      channels: ["email", "sms"]
+      template: "appointment_cancellation"
+
+    reschedule:
+      enabled: true
+      channels: ["email", "sms"]
+      template: "appointment_reschedule"
+
+# 规则执行环境配置
+execution_environment:
+  # 上下文变量
+  global_variables:
+    company_name: "Fly预约系统"
+    timezone: "Asia/Shanghai"
+    currency: "CNY"
+
+  # 安全配置
+  security:
+    max_execution_time: "5m"     # 最大执行时间
+    max_rules_per_request: 100   # 每次请求最大规则数
+    enable_sandbox: true         # 启用沙箱执行
+
+  # 性能配置
+  performance:
+    enable_caching: true         # 启用缓存
+    cache_key_prefix: "rules:"
+    enable_async_execution: false # 异步执行（测试阶段关闭）
+
+# 监控和日志配置
+monitoring:
+  # 指标收集
+  metrics:
+    enabled: true
+    collection_interval: "1m"
+    retention_days: 30
+
+  # 日志配置
+  logging:
+    level: "info"
+    format: "json"
+    include_trace_id: true
+    include_execution_time: true
+
+  # 审计日志
+  audit:
+    enabled: true
+    log_all_executions: true
+    log_modifications: true
+    retention_days: 90
+
+# 集成配置
+integrations:
+  # 数据库集成
+  database:
+    enabled: false               # 文件存储时关闭
+    connection_pool_size: 10
+    query_timeout: "30s"
+
+  # Redis集成（用于缓存和分布式锁）
+  redis:
+    enabled: false               # 内存缓存时关闭
+    address: "localhost:6379"
+    password: ""
+    db: 2
+    key_prefix: "rules:"
+
+  # 消息队列集成（用于异步通知）
+  message_queue:
+    enabled: false               # 同步通知时关闭
+    type: "rabbitmq"             # rabbitmq, kafka, redis
+    connection_url: "amqp://guest:guest@localhost:5672/"
+    exchange: "rule_notifications"
+    routing_key_prefix: "rules."

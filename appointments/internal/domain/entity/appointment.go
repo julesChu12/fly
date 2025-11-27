@@ -22,7 +22,7 @@ const (
 type Appointment struct {
 	ID           uuid.UUID         `json:"id" gorm:"type:char(36);primaryKey;uniqueIndex"`
 	CustomerID   uuid.UUID         `json:"customer_id" gorm:"type:char(36);not null;index"`
-	EmployeeID   uuid.UUID         `json:"employee_id" gorm:"type:char(36);not null;index"`
+	StaffID      uuid.UUID         `json:"staff_id" gorm:"type:char(36);not null;index"`
 	ServiceID    uuid.UUID         `json:"service_id" gorm:"type:char(36);not null;index"`
 	StartTime    time.Time         `json:"start_time" gorm:"not null;index"`
 	EndTime      time.Time         `json:"end_time" gorm:"not null"`
