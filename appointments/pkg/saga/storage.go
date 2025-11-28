@@ -374,7 +374,7 @@ func (j *JSONSagaStorage) GetStats(ctx context.Context) (*SagaStats, error) {
 
 	sagas, err := j.loadSagas()
 	if err != nil {
-		return nil, fmt.Errorf("读取Saga数据失败: w", err)
+		return nil, fmt.Errorf("读取Saga数据失败: %w", err)
 	}
 
 	stats := &SagaStats{

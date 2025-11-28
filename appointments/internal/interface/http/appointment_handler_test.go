@@ -164,7 +164,14 @@ func TestAppointmentHandler_CreateAppointment(t *testing.T) {
 	}
 
 	body, _ := json.Marshal(req)
-	mockService.On("CreateAppointment", &req).Return(expectedAppointment, nil)
+	mockService.On("CreateAppointment", mock.MatchedBy(func(actualReq *dto.CreateAppointmentRequest) bool {
+		return actualReq.CustomerID == req.CustomerID &&
+			actualReq.StaffID == req.StaffID &&
+			actualReq.ServiceID == req.ServiceID &&
+			actualReq.StartTime.Equal(req.StartTime) &&
+			actualReq.EndTime.Equal(req.EndTime) &&
+			(actualReq.Notes == nil && req.Notes == nil || actualReq.Notes != nil && req.Notes != nil && *actualReq.Notes == *req.Notes)
+	})).Return(expectedAppointment, nil)
 
 	w := httptest.NewRecorder()
 	httpReq, _ := http.NewRequest("POST", "/api/v1/appointments", bytes.NewBuffer(body))
@@ -382,7 +389,12 @@ func TestAppointmentHandler_CheckConflict(t *testing.T) {
 	}
 
 	body, _ := json.Marshal(req)
-	mockService.On("CheckConflict", &req).Return(expectedResponse, nil)
+	mockService.On("CheckConflict", mock.MatchedBy(func(actualReq *dto.ConflictCheckRequest) bool {
+		return actualReq.StaffID == req.StaffID &&
+			actualReq.StartTime.Equal(req.StartTime) &&
+			actualReq.EndTime.Equal(req.EndTime) &&
+			(actualReq.ExcludeID == nil && req.ExcludeID == nil || actualReq.ExcludeID != nil && req.ExcludeID != nil && *actualReq.ExcludeID == *req.ExcludeID)
+	})).Return(expectedResponse, nil)
 
 	w := httptest.NewRecorder()
 	httpReq, _ := http.NewRequest("POST", "/api/v1/appointments/conflict-check", bytes.NewBuffer(body))
@@ -448,7 +460,7 @@ func TestAppointmentHandler_GetAppointmentsByEmployee(t *testing.T) {
 	mockService.On("GetAppointmentsByStaffID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
 
 	w := httptest.NewRecorder()
-	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/employee/"+employeeID, nil)
+	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/staff/"+employeeID, nil)
 	router.ServeHTTP(w, httpReq)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -480,7 +492,7 @@ func TestAppointmentHandler_GetUpcomingAppointments(t *testing.T) {
 	mockService.On("GetUpcomingAppointments", employeeID, 10).Return(expectedAppointments, nil)
 
 	w := httptest.NewRecorder()
-	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/employee/"+employeeID+"/upcoming?limit=10", nil)
+	httpReq, _ := http.NewRequest("GET", "/api/v1/appointments/staff/"+employeeID+"/upcoming?limit=10", nil)
 	router.ServeHTTP(w, httpReq)
 
 	assert.Equal(t, http.StatusOK, w.Code)

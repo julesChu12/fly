@@ -378,7 +378,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/appointments/employee/{employeeId}": {
+        "/appointments/staff/{staffId}": {
             "get": {
                 "description": "根据员工ID获取预约列表",
                 "consumes": [
@@ -395,7 +395,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "员工ID",
-                        "name": "employeeId",
+                        "name": "staffId",
                         "in": "path",
                         "required": true
                     },
@@ -432,7 +432,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/appointments/employee/{employeeId}/upcoming": {
+        "/appointments/staff/{staffId}/upcoming": {
             "get": {
                 "description": "获取员工即将到来的预约",
                 "consumes": [
@@ -449,7 +449,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "员工ID",
-                        "name": "employeeId",
+                        "name": "staffId",
                         "in": "path",
                         "required": true
                     },

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v6.33.1
-// source: appointments.proto
+// source: api/proto/appointments/v1/appointments.proto
 
 package appointmentsv1
 
@@ -71,11 +71,11 @@ func (x AppointmentStatus) String() string {
 }
 
 func (AppointmentStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_appointments_proto_enumTypes[0].Descriptor()
+	return file_api_proto_appointments_v1_appointments_proto_enumTypes[0].Descriptor()
 }
 
 func (AppointmentStatus) Type() protoreflect.EnumType {
-	return &file_appointments_proto_enumTypes[0]
+	return &file_api_proto_appointments_v1_appointments_proto_enumTypes[0]
 }
 
 func (x AppointmentStatus) Number() protoreflect.EnumNumber {
@@ -84,7 +84,7 @@ func (x AppointmentStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AppointmentStatus.Descriptor instead.
 func (AppointmentStatus) EnumDescriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{0}
 }
 
 // Appointment message represents an appointment
@@ -92,7 +92,7 @@ type Appointment struct {
 	state              protoimpl.MessageState  `protogen:"open.v1"`
 	Id                 string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	CustomerId         string                  `protobuf:"bytes,2,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	EmployeeId         string                  `protobuf:"bytes,3,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId            string                  `protobuf:"bytes,3,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	ServiceId          string                  `protobuf:"bytes,4,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	StartTime          *timestamppb.Timestamp  `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime            *timestamppb.Timestamp  `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
@@ -107,7 +107,7 @@ type Appointment struct {
 	CancelledAt        *timestamppb.Timestamp  `protobuf:"bytes,15,opt,name=cancelled_at,json=cancelledAt,proto3" json:"cancelled_at,omitempty"`
 	ServiceName        *wrapperspb.StringValue `protobuf:"bytes,16,opt,name=service_name,json=serviceName,proto3" json:"service_name,omitempty"`
 	CustomerName       *wrapperspb.StringValue `protobuf:"bytes,17,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
-	EmployeeName       *wrapperspb.StringValue `protobuf:"bytes,18,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	StaffName          *wrapperspb.StringValue `protobuf:"bytes,18,opt,name=staff_name,json=staffName,proto3" json:"staff_name,omitempty"`
 	Duration           *durationpb.Duration    `protobuf:"bytes,19,opt,name=duration,proto3" json:"duration,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -115,7 +115,7 @@ type Appointment struct {
 
 func (x *Appointment) Reset() {
 	*x = Appointment{}
-	mi := &file_appointments_proto_msgTypes[0]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -127,7 +127,7 @@ func (x *Appointment) String() string {
 func (*Appointment) ProtoMessage() {}
 
 func (x *Appointment) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[0]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -140,7 +140,7 @@ func (x *Appointment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Appointment.ProtoReflect.Descriptor instead.
 func (*Appointment) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Appointment) GetId() string {
@@ -157,9 +157,9 @@ func (x *Appointment) GetCustomerId() string {
 	return ""
 }
 
-func (x *Appointment) GetEmployeeId() string {
+func (x *Appointment) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -262,9 +262,9 @@ func (x *Appointment) GetCustomerName() *wrapperspb.StringValue {
 	return nil
 }
 
-func (x *Appointment) GetEmployeeName() *wrapperspb.StringValue {
+func (x *Appointment) GetStaffName() *wrapperspb.StringValue {
 	if x != nil {
-		return x.EmployeeName
+		return x.StaffName
 	}
 	return nil
 }
@@ -289,7 +289,7 @@ type AvailableSlot struct {
 
 func (x *AvailableSlot) Reset() {
 	*x = AvailableSlot{}
-	mi := &file_appointments_proto_msgTypes[1]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -301,7 +301,7 @@ func (x *AvailableSlot) String() string {
 func (*AvailableSlot) ProtoMessage() {}
 
 func (x *AvailableSlot) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[1]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -314,7 +314,7 @@ func (x *AvailableSlot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AvailableSlot.ProtoReflect.Descriptor instead.
 func (*AvailableSlot) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{1}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AvailableSlot) GetStartTime() *timestamppb.Timestamp {
@@ -360,7 +360,7 @@ type ServiceInfo struct {
 
 func (x *ServiceInfo) Reset() {
 	*x = ServiceInfo{}
-	mi := &file_appointments_proto_msgTypes[2]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -372,7 +372,7 @@ func (x *ServiceInfo) String() string {
 func (*ServiceInfo) ProtoMessage() {}
 
 func (x *ServiceInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[2]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -385,7 +385,7 @@ func (x *ServiceInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceInfo.ProtoReflect.Descriptor instead.
 func (*ServiceInfo) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{2}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ServiceInfo) GetId() string {
@@ -433,7 +433,7 @@ func (x *ServiceInfo) GetCategory() string {
 type CreateAppointmentRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	CustomerId    string                  `protobuf:"bytes,1,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	EmployeeId    string                  `protobuf:"bytes,2,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId       string                  `protobuf:"bytes,2,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	ServiceId     string                  `protobuf:"bytes,3,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	StartTime     *timestamppb.Timestamp  `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime       *timestamppb.Timestamp  `protobuf:"bytes,5,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
@@ -446,7 +446,7 @@ type CreateAppointmentRequest struct {
 
 func (x *CreateAppointmentRequest) Reset() {
 	*x = CreateAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[3]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +458,7 @@ func (x *CreateAppointmentRequest) String() string {
 func (*CreateAppointmentRequest) ProtoMessage() {}
 
 func (x *CreateAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[3]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +471,7 @@ func (x *CreateAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*CreateAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{3}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateAppointmentRequest) GetCustomerId() string {
@@ -481,9 +481,9 @@ func (x *CreateAppointmentRequest) GetCustomerId() string {
 	return ""
 }
 
-func (x *CreateAppointmentRequest) GetEmployeeId() string {
+func (x *CreateAppointmentRequest) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -539,7 +539,7 @@ type CreateAppointmentResponse struct {
 
 func (x *CreateAppointmentResponse) Reset() {
 	*x = CreateAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[4]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -551,7 +551,7 @@ func (x *CreateAppointmentResponse) String() string {
 func (*CreateAppointmentResponse) ProtoMessage() {}
 
 func (x *CreateAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[4]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +564,7 @@ func (x *CreateAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*CreateAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{4}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateAppointmentResponse) GetAppointment() *Appointment {
@@ -583,7 +583,7 @@ type GetAppointmentRequest struct {
 
 func (x *GetAppointmentRequest) Reset() {
 	*x = GetAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[5]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -595,7 +595,7 @@ func (x *GetAppointmentRequest) String() string {
 func (*GetAppointmentRequest) ProtoMessage() {}
 
 func (x *GetAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[5]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -608,7 +608,7 @@ func (x *GetAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*GetAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{5}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetAppointmentRequest) GetId() string {
@@ -628,7 +628,7 @@ type GetAppointmentResponse struct {
 
 func (x *GetAppointmentResponse) Reset() {
 	*x = GetAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[6]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -640,7 +640,7 @@ func (x *GetAppointmentResponse) String() string {
 func (*GetAppointmentResponse) ProtoMessage() {}
 
 func (x *GetAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[6]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -653,7 +653,7 @@ func (x *GetAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*GetAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{6}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetAppointmentResponse) GetAppointment() *Appointment {
@@ -673,7 +673,7 @@ func (x *GetAppointmentResponse) GetServiceInfo() *ServiceInfo {
 type ListAppointmentsRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	CustomerId    *wrapperspb.StringValue `protobuf:"bytes,1,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	EmployeeId    *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId       *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	ServiceId     *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	Status        AppointmentStatus       `protobuf:"varint,4,opt,name=status,proto3,enum=appointments.v1.AppointmentStatus" json:"status,omitempty"`
 	StartDate     *timestamppb.Timestamp  `protobuf:"bytes,5,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
@@ -693,7 +693,7 @@ type ListAppointmentsRequest struct {
 
 func (x *ListAppointmentsRequest) Reset() {
 	*x = ListAppointmentsRequest{}
-	mi := &file_appointments_proto_msgTypes[7]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -705,7 +705,7 @@ func (x *ListAppointmentsRequest) String() string {
 func (*ListAppointmentsRequest) ProtoMessage() {}
 
 func (x *ListAppointmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[7]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -718,7 +718,7 @@ func (x *ListAppointmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAppointmentsRequest.ProtoReflect.Descriptor instead.
 func (*ListAppointmentsRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{7}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ListAppointmentsRequest) GetCustomerId() *wrapperspb.StringValue {
@@ -728,9 +728,9 @@ func (x *ListAppointmentsRequest) GetCustomerId() *wrapperspb.StringValue {
 	return nil
 }
 
-func (x *ListAppointmentsRequest) GetEmployeeId() *wrapperspb.StringValue {
+func (x *ListAppointmentsRequest) GetStaffId() *wrapperspb.StringValue {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return nil
 }
@@ -838,7 +838,7 @@ type ListAppointmentsResponse struct {
 
 func (x *ListAppointmentsResponse) Reset() {
 	*x = ListAppointmentsResponse{}
-	mi := &file_appointments_proto_msgTypes[8]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +850,7 @@ func (x *ListAppointmentsResponse) String() string {
 func (*ListAppointmentsResponse) ProtoMessage() {}
 
 func (x *ListAppointmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[8]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +863,7 @@ func (x *ListAppointmentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAppointmentsResponse.ProtoReflect.Descriptor instead.
 func (*ListAppointmentsResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{8}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListAppointmentsResponse) GetAppointments() []*Appointment {
@@ -898,7 +898,7 @@ type UpdateAppointmentRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	Id            string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	CustomerId    *wrapperspb.StringValue `protobuf:"bytes,2,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	EmployeeId    *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId       *wrapperspb.StringValue `protobuf:"bytes,3,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	ServiceId     *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	StartTime     *timestamppb.Timestamp  `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime       *timestamppb.Timestamp  `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
@@ -912,7 +912,7 @@ type UpdateAppointmentRequest struct {
 
 func (x *UpdateAppointmentRequest) Reset() {
 	*x = UpdateAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[9]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -924,7 +924,7 @@ func (x *UpdateAppointmentRequest) String() string {
 func (*UpdateAppointmentRequest) ProtoMessage() {}
 
 func (x *UpdateAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[9]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -937,7 +937,7 @@ func (x *UpdateAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{9}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateAppointmentRequest) GetId() string {
@@ -954,9 +954,9 @@ func (x *UpdateAppointmentRequest) GetCustomerId() *wrapperspb.StringValue {
 	return nil
 }
 
-func (x *UpdateAppointmentRequest) GetEmployeeId() *wrapperspb.StringValue {
+func (x *UpdateAppointmentRequest) GetStaffId() *wrapperspb.StringValue {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return nil
 }
@@ -1019,7 +1019,7 @@ type UpdateAppointmentResponse struct {
 
 func (x *UpdateAppointmentResponse) Reset() {
 	*x = UpdateAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[10]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1031,7 +1031,7 @@ func (x *UpdateAppointmentResponse) String() string {
 func (*UpdateAppointmentResponse) ProtoMessage() {}
 
 func (x *UpdateAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[10]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,7 +1044,7 @@ func (x *UpdateAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{10}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateAppointmentResponse) GetAppointment() *Appointment {
@@ -1064,7 +1064,7 @@ type DeleteAppointmentRequest struct {
 
 func (x *DeleteAppointmentRequest) Reset() {
 	*x = DeleteAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[11]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1076,7 +1076,7 @@ func (x *DeleteAppointmentRequest) String() string {
 func (*DeleteAppointmentRequest) ProtoMessage() {}
 
 func (x *DeleteAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[11]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1089,7 +1089,7 @@ func (x *DeleteAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{11}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DeleteAppointmentRequest) GetId() string {
@@ -1114,7 +1114,7 @@ type DeleteAppointmentResponse struct {
 
 func (x *DeleteAppointmentResponse) Reset() {
 	*x = DeleteAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[12]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1126,7 @@ func (x *DeleteAppointmentResponse) String() string {
 func (*DeleteAppointmentResponse) ProtoMessage() {}
 
 func (x *DeleteAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[12]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1139,7 @@ func (x *DeleteAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{12}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{12}
 }
 
 type UpdateAppointmentStatusRequest struct {
@@ -1154,7 +1154,7 @@ type UpdateAppointmentStatusRequest struct {
 
 func (x *UpdateAppointmentStatusRequest) Reset() {
 	*x = UpdateAppointmentStatusRequest{}
-	mi := &file_appointments_proto_msgTypes[13]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1166,7 +1166,7 @@ func (x *UpdateAppointmentStatusRequest) String() string {
 func (*UpdateAppointmentStatusRequest) ProtoMessage() {}
 
 func (x *UpdateAppointmentStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[13]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1179,7 +1179,7 @@ func (x *UpdateAppointmentStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAppointmentStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAppointmentStatusRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{13}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UpdateAppointmentStatusRequest) GetId() string {
@@ -1219,7 +1219,7 @@ type UpdateAppointmentStatusResponse struct {
 
 func (x *UpdateAppointmentStatusResponse) Reset() {
 	*x = UpdateAppointmentStatusResponse{}
-	mi := &file_appointments_proto_msgTypes[14]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1231,7 +1231,7 @@ func (x *UpdateAppointmentStatusResponse) String() string {
 func (*UpdateAppointmentStatusResponse) ProtoMessage() {}
 
 func (x *UpdateAppointmentStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[14]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1244,7 +1244,7 @@ func (x *UpdateAppointmentStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAppointmentStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAppointmentStatusResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{14}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateAppointmentStatusResponse) GetAppointment() *Appointment {
@@ -1264,7 +1264,7 @@ type ConfirmAppointmentRequest struct {
 
 func (x *ConfirmAppointmentRequest) Reset() {
 	*x = ConfirmAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[15]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1276,7 +1276,7 @@ func (x *ConfirmAppointmentRequest) String() string {
 func (*ConfirmAppointmentRequest) ProtoMessage() {}
 
 func (x *ConfirmAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[15]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1289,7 +1289,7 @@ func (x *ConfirmAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{15}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ConfirmAppointmentRequest) GetId() string {
@@ -1315,7 +1315,7 @@ type ConfirmAppointmentResponse struct {
 
 func (x *ConfirmAppointmentResponse) Reset() {
 	*x = ConfirmAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[16]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1327,7 +1327,7 @@ func (x *ConfirmAppointmentResponse) String() string {
 func (*ConfirmAppointmentResponse) ProtoMessage() {}
 
 func (x *ConfirmAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[16]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1340,7 +1340,7 @@ func (x *ConfirmAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{16}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ConfirmAppointmentResponse) GetAppointment() *Appointment {
@@ -1360,7 +1360,7 @@ type CancelAppointmentRequest struct {
 
 func (x *CancelAppointmentRequest) Reset() {
 	*x = CancelAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[17]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1372,7 +1372,7 @@ func (x *CancelAppointmentRequest) String() string {
 func (*CancelAppointmentRequest) ProtoMessage() {}
 
 func (x *CancelAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[17]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1385,7 +1385,7 @@ func (x *CancelAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*CancelAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{17}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CancelAppointmentRequest) GetId() string {
@@ -1411,7 +1411,7 @@ type CancelAppointmentResponse struct {
 
 func (x *CancelAppointmentResponse) Reset() {
 	*x = CancelAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[18]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1423,7 +1423,7 @@ func (x *CancelAppointmentResponse) String() string {
 func (*CancelAppointmentResponse) ProtoMessage() {}
 
 func (x *CancelAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[18]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1436,7 +1436,7 @@ func (x *CancelAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*CancelAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{18}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CancelAppointmentResponse) GetAppointment() *Appointment {
@@ -1456,7 +1456,7 @@ type CompleteAppointmentRequest struct {
 
 func (x *CompleteAppointmentRequest) Reset() {
 	*x = CompleteAppointmentRequest{}
-	mi := &file_appointments_proto_msgTypes[19]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1468,7 +1468,7 @@ func (x *CompleteAppointmentRequest) String() string {
 func (*CompleteAppointmentRequest) ProtoMessage() {}
 
 func (x *CompleteAppointmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[19]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1481,7 +1481,7 @@ func (x *CompleteAppointmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteAppointmentRequest.ProtoReflect.Descriptor instead.
 func (*CompleteAppointmentRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{19}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CompleteAppointmentRequest) GetId() string {
@@ -1507,7 +1507,7 @@ type CompleteAppointmentResponse struct {
 
 func (x *CompleteAppointmentResponse) Reset() {
 	*x = CompleteAppointmentResponse{}
-	mi := &file_appointments_proto_msgTypes[20]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1519,7 +1519,7 @@ func (x *CompleteAppointmentResponse) String() string {
 func (*CompleteAppointmentResponse) ProtoMessage() {}
 
 func (x *CompleteAppointmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[20]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1532,7 +1532,7 @@ func (x *CompleteAppointmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteAppointmentResponse.ProtoReflect.Descriptor instead.
 func (*CompleteAppointmentResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{20}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CompleteAppointmentResponse) GetAppointment() *Appointment {
@@ -1544,7 +1544,7 @@ func (x *CompleteAppointmentResponse) GetAppointment() *Appointment {
 
 type CheckAvailabilityRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId            string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId               string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	Date                  *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
 	ServiceDuration       *durationpb.Duration   `protobuf:"bytes,3,opt,name=service_duration,json=serviceDuration,proto3" json:"service_duration,omitempty"`
 	ExcludeAppointmentIds []string               `protobuf:"bytes,4,rep,name=exclude_appointment_ids,json=excludeAppointmentIds,proto3" json:"exclude_appointment_ids,omitempty"`
@@ -1554,7 +1554,7 @@ type CheckAvailabilityRequest struct {
 
 func (x *CheckAvailabilityRequest) Reset() {
 	*x = CheckAvailabilityRequest{}
-	mi := &file_appointments_proto_msgTypes[21]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1566,7 +1566,7 @@ func (x *CheckAvailabilityRequest) String() string {
 func (*CheckAvailabilityRequest) ProtoMessage() {}
 
 func (x *CheckAvailabilityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[21]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1579,12 +1579,12 @@ func (x *CheckAvailabilityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAvailabilityRequest.ProtoReflect.Descriptor instead.
 func (*CheckAvailabilityRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{21}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *CheckAvailabilityRequest) GetEmployeeId() string {
+func (x *CheckAvailabilityRequest) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -1612,7 +1612,7 @@ func (x *CheckAvailabilityRequest) GetExcludeAppointmentIds() []string {
 
 type CheckAvailabilityResponse struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId          string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId             string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	Date                *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
 	Slots               []*AvailableSlot       `protobuf:"bytes,3,rep,name=slots,proto3" json:"slots,omitempty"`
 	HasAvailability     bool                   `protobuf:"varint,4,opt,name=has_availability,json=hasAvailability,proto3" json:"has_availability,omitempty"`
@@ -1623,7 +1623,7 @@ type CheckAvailabilityResponse struct {
 
 func (x *CheckAvailabilityResponse) Reset() {
 	*x = CheckAvailabilityResponse{}
-	mi := &file_appointments_proto_msgTypes[22]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1635,7 +1635,7 @@ func (x *CheckAvailabilityResponse) String() string {
 func (*CheckAvailabilityResponse) ProtoMessage() {}
 
 func (x *CheckAvailabilityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[22]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1648,12 +1648,12 @@ func (x *CheckAvailabilityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAvailabilityResponse.ProtoReflect.Descriptor instead.
 func (*CheckAvailabilityResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{22}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{22}
 }
 
-func (x *CheckAvailabilityResponse) GetEmployeeId() string {
+func (x *CheckAvailabilityResponse) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -1688,7 +1688,7 @@ func (x *CheckAvailabilityResponse) GetAvailableSlotsCount() int32 {
 
 type CheckConflictRequest struct {
 	state                protoimpl.MessageState  `protogen:"open.v1"`
-	EmployeeId           string                  `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId              string                  `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	StartTime            *timestamppb.Timestamp  `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime              *timestamppb.Timestamp  `protobuf:"bytes,3,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	ExcludeAppointmentId *wrapperspb.StringValue `protobuf:"bytes,4,opt,name=exclude_appointment_id,json=excludeAppointmentId,proto3" json:"exclude_appointment_id,omitempty"`
@@ -1698,7 +1698,7 @@ type CheckConflictRequest struct {
 
 func (x *CheckConflictRequest) Reset() {
 	*x = CheckConflictRequest{}
-	mi := &file_appointments_proto_msgTypes[23]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1710,7 +1710,7 @@ func (x *CheckConflictRequest) String() string {
 func (*CheckConflictRequest) ProtoMessage() {}
 
 func (x *CheckConflictRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[23]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1723,12 +1723,12 @@ func (x *CheckConflictRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckConflictRequest.ProtoReflect.Descriptor instead.
 func (*CheckConflictRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{23}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{23}
 }
 
-func (x *CheckConflictRequest) GetEmployeeId() string {
+func (x *CheckConflictRequest) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -1767,7 +1767,7 @@ type CheckConflictResponse struct {
 
 func (x *CheckConflictResponse) Reset() {
 	*x = CheckConflictResponse{}
-	mi := &file_appointments_proto_msgTypes[24]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1779,7 +1779,7 @@ func (x *CheckConflictResponse) String() string {
 func (*CheckConflictResponse) ProtoMessage() {}
 
 func (x *CheckConflictResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[24]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1792,7 +1792,7 @@ func (x *CheckConflictResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckConflictResponse.ProtoReflect.Descriptor instead.
 func (*CheckConflictResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{24}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CheckConflictResponse) GetHasConflict() bool {
@@ -1832,7 +1832,7 @@ func (x *CheckConflictResponse) GetAlternativeSlots() []*AvailableSlot {
 
 type GetAvailableSlotsRequest struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId           string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId              string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	StartDate            *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate              *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
 	ServiceDuration      *durationpb.Duration   `protobuf:"bytes,4,opt,name=service_duration,json=serviceDuration,proto3" json:"service_duration,omitempty"`
@@ -1843,7 +1843,7 @@ type GetAvailableSlotsRequest struct {
 
 func (x *GetAvailableSlotsRequest) Reset() {
 	*x = GetAvailableSlotsRequest{}
-	mi := &file_appointments_proto_msgTypes[25]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1855,7 +1855,7 @@ func (x *GetAvailableSlotsRequest) String() string {
 func (*GetAvailableSlotsRequest) ProtoMessage() {}
 
 func (x *GetAvailableSlotsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[25]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1868,12 +1868,12 @@ func (x *GetAvailableSlotsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailableSlotsRequest.ProtoReflect.Descriptor instead.
 func (*GetAvailableSlotsRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{25}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{25}
 }
 
-func (x *GetAvailableSlotsRequest) GetEmployeeId() string {
+func (x *GetAvailableSlotsRequest) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -1909,7 +1909,7 @@ func (x *GetAvailableSlotsRequest) GetExistingAppointments() []*AvailableSlot {
 type GetAvailableSlotsResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Slots          []*AvailableSlot       `protobuf:"bytes,1,rep,name=slots,proto3" json:"slots,omitempty"`
-	EmployeeId     string                 `protobuf:"bytes,2,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId        string                 `protobuf:"bytes,2,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	QueryStart     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=query_start,json=queryStart,proto3" json:"query_start,omitempty"`
 	QueryEnd       *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=query_end,json=queryEnd,proto3" json:"query_end,omitempty"`
 	TotalSlots     int32                  `protobuf:"varint,5,opt,name=total_slots,json=totalSlots,proto3" json:"total_slots,omitempty"`
@@ -1920,7 +1920,7 @@ type GetAvailableSlotsResponse struct {
 
 func (x *GetAvailableSlotsResponse) Reset() {
 	*x = GetAvailableSlotsResponse{}
-	mi := &file_appointments_proto_msgTypes[26]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1932,7 +1932,7 @@ func (x *GetAvailableSlotsResponse) String() string {
 func (*GetAvailableSlotsResponse) ProtoMessage() {}
 
 func (x *GetAvailableSlotsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[26]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1945,7 +1945,7 @@ func (x *GetAvailableSlotsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailableSlotsResponse.ProtoReflect.Descriptor instead.
 func (*GetAvailableSlotsResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{26}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetAvailableSlotsResponse) GetSlots() []*AvailableSlot {
@@ -1955,9 +1955,9 @@ func (x *GetAvailableSlotsResponse) GetSlots() []*AvailableSlot {
 	return nil
 }
 
-func (x *GetAvailableSlotsResponse) GetEmployeeId() string {
+func (x *GetAvailableSlotsResponse) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -2004,7 +2004,7 @@ type GetAppointmentsByCustomerRequest struct {
 
 func (x *GetAppointmentsByCustomerRequest) Reset() {
 	*x = GetAppointmentsByCustomerRequest{}
-	mi := &file_appointments_proto_msgTypes[27]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2016,7 +2016,7 @@ func (x *GetAppointmentsByCustomerRequest) String() string {
 func (*GetAppointmentsByCustomerRequest) ProtoMessage() {}
 
 func (x *GetAppointmentsByCustomerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[27]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2029,7 +2029,7 @@ func (x *GetAppointmentsByCustomerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAppointmentsByCustomerRequest.ProtoReflect.Descriptor instead.
 func (*GetAppointmentsByCustomerRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{27}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetAppointmentsByCustomerRequest) GetCustomerId() string {
@@ -2086,7 +2086,7 @@ type GetAppointmentsByCustomerResponse struct {
 
 func (x *GetAppointmentsByCustomerResponse) Reset() {
 	*x = GetAppointmentsByCustomerResponse{}
-	mi := &file_appointments_proto_msgTypes[28]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2098,7 +2098,7 @@ func (x *GetAppointmentsByCustomerResponse) String() string {
 func (*GetAppointmentsByCustomerResponse) ProtoMessage() {}
 
 func (x *GetAppointmentsByCustomerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[28]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2111,7 +2111,7 @@ func (x *GetAppointmentsByCustomerResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetAppointmentsByCustomerResponse.ProtoReflect.Descriptor instead.
 func (*GetAppointmentsByCustomerResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{28}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetAppointmentsByCustomerResponse) GetAppointments() []*Appointment {
@@ -2144,7 +2144,7 @@ func (x *GetAppointmentsByCustomerResponse) GetPageSize() int32 {
 
 type GetAppointmentsByEmployeeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId    string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId       string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	Status        AppointmentStatus      `protobuf:"varint,2,opt,name=status,proto3,enum=appointments.v1.AppointmentStatus" json:"status,omitempty"`
 	StartDate     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
@@ -2156,7 +2156,7 @@ type GetAppointmentsByEmployeeRequest struct {
 
 func (x *GetAppointmentsByEmployeeRequest) Reset() {
 	*x = GetAppointmentsByEmployeeRequest{}
-	mi := &file_appointments_proto_msgTypes[29]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2168,7 +2168,7 @@ func (x *GetAppointmentsByEmployeeRequest) String() string {
 func (*GetAppointmentsByEmployeeRequest) ProtoMessage() {}
 
 func (x *GetAppointmentsByEmployeeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[29]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2181,12 +2181,12 @@ func (x *GetAppointmentsByEmployeeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAppointmentsByEmployeeRequest.ProtoReflect.Descriptor instead.
 func (*GetAppointmentsByEmployeeRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{29}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{29}
 }
 
-func (x *GetAppointmentsByEmployeeRequest) GetEmployeeId() string {
+func (x *GetAppointmentsByEmployeeRequest) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -2238,7 +2238,7 @@ type GetAppointmentsByEmployeeResponse struct {
 
 func (x *GetAppointmentsByEmployeeResponse) Reset() {
 	*x = GetAppointmentsByEmployeeResponse{}
-	mi := &file_appointments_proto_msgTypes[30]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2250,7 +2250,7 @@ func (x *GetAppointmentsByEmployeeResponse) String() string {
 func (*GetAppointmentsByEmployeeResponse) ProtoMessage() {}
 
 func (x *GetAppointmentsByEmployeeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[30]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2263,7 +2263,7 @@ func (x *GetAppointmentsByEmployeeResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetAppointmentsByEmployeeResponse.ProtoReflect.Descriptor instead.
 func (*GetAppointmentsByEmployeeResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{30}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetAppointmentsByEmployeeResponse) GetAppointments() []*Appointment {
@@ -2296,7 +2296,7 @@ func (x *GetAppointmentsByEmployeeResponse) GetPageSize() int32 {
 
 type GetEmployeeScheduleRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId         string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId            string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	StartDate          *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate            *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
 	IncludeUnavailable bool                   `protobuf:"varint,4,opt,name=include_unavailable,json=includeUnavailable,proto3" json:"include_unavailable,omitempty"`
@@ -2306,7 +2306,7 @@ type GetEmployeeScheduleRequest struct {
 
 func (x *GetEmployeeScheduleRequest) Reset() {
 	*x = GetEmployeeScheduleRequest{}
-	mi := &file_appointments_proto_msgTypes[31]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2318,7 +2318,7 @@ func (x *GetEmployeeScheduleRequest) String() string {
 func (*GetEmployeeScheduleRequest) ProtoMessage() {}
 
 func (x *GetEmployeeScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[31]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2331,12 +2331,12 @@ func (x *GetEmployeeScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEmployeeScheduleRequest.ProtoReflect.Descriptor instead.
 func (*GetEmployeeScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{31}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{31}
 }
 
-func (x *GetEmployeeScheduleRequest) GetEmployeeId() string {
+func (x *GetEmployeeScheduleRequest) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -2364,7 +2364,7 @@ func (x *GetEmployeeScheduleRequest) GetIncludeUnavailable() bool {
 
 type GetEmployeeScheduleResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId     string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	StaffId        string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
 	StartDate      *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
 	Appointments   []*Appointment         `protobuf:"bytes,4,rep,name=appointments,proto3" json:"appointments,omitempty"`
@@ -2376,7 +2376,7 @@ type GetEmployeeScheduleResponse struct {
 
 func (x *GetEmployeeScheduleResponse) Reset() {
 	*x = GetEmployeeScheduleResponse{}
-	mi := &file_appointments_proto_msgTypes[32]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2388,7 +2388,7 @@ func (x *GetEmployeeScheduleResponse) String() string {
 func (*GetEmployeeScheduleResponse) ProtoMessage() {}
 
 func (x *GetEmployeeScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[32]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2401,12 +2401,12 @@ func (x *GetEmployeeScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEmployeeScheduleResponse.ProtoReflect.Descriptor instead.
 func (*GetEmployeeScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{32}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *GetEmployeeScheduleResponse) GetEmployeeId() string {
+func (x *GetEmployeeScheduleResponse) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
@@ -2448,7 +2448,7 @@ func (x *GetEmployeeScheduleResponse) GetBlockedSlots() []*AvailableSlot {
 
 type GetDailyScheduleRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeIds        []string               `protobuf:"bytes,1,rep,name=employee_ids,json=employeeIds,proto3" json:"employee_ids,omitempty"`
+	StaffIds           []string               `protobuf:"bytes,1,rep,name=staff_ids,json=staffIds,proto3" json:"staff_ids,omitempty"`
 	Date               *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=date,proto3" json:"date,omitempty"`
 	IncludeUnavailable bool                   `protobuf:"varint,3,opt,name=include_unavailable,json=includeUnavailable,proto3" json:"include_unavailable,omitempty"`
 	unknownFields      protoimpl.UnknownFields
@@ -2457,7 +2457,7 @@ type GetDailyScheduleRequest struct {
 
 func (x *GetDailyScheduleRequest) Reset() {
 	*x = GetDailyScheduleRequest{}
-	mi := &file_appointments_proto_msgTypes[33]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2469,7 +2469,7 @@ func (x *GetDailyScheduleRequest) String() string {
 func (*GetDailyScheduleRequest) ProtoMessage() {}
 
 func (x *GetDailyScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[33]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2482,12 +2482,12 @@ func (x *GetDailyScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDailyScheduleRequest.ProtoReflect.Descriptor instead.
 func (*GetDailyScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{33}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{33}
 }
 
-func (x *GetDailyScheduleRequest) GetEmployeeIds() []string {
+func (x *GetDailyScheduleRequest) GetStaffIds() []string {
 	if x != nil {
-		return x.EmployeeIds
+		return x.StaffIds
 	}
 	return nil
 }
@@ -2516,7 +2516,7 @@ type GetDailyScheduleResponse struct {
 
 func (x *GetDailyScheduleResponse) Reset() {
 	*x = GetDailyScheduleResponse{}
-	mi := &file_appointments_proto_msgTypes[34]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2528,7 +2528,7 @@ func (x *GetDailyScheduleResponse) String() string {
 func (*GetDailyScheduleResponse) ProtoMessage() {}
 
 func (x *GetDailyScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[34]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2541,7 +2541,7 @@ func (x *GetDailyScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDailyScheduleResponse.ProtoReflect.Descriptor instead.
 func (*GetDailyScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{34}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetDailyScheduleResponse) GetDate() *timestamppb.Timestamp {
@@ -2560,8 +2560,8 @@ func (x *GetDailyScheduleResponse) GetEmployeeSchedules() []*DailyEmployeeSchedu
 
 type DailyEmployeeSchedule struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	EmployeeId     string                 `protobuf:"bytes,1,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
-	EmployeeName   string                 `protobuf:"bytes,2,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	StaffId        string                 `protobuf:"bytes,1,opt,name=staff_id,json=staffId,proto3" json:"staff_id,omitempty"`
+	StaffName      string                 `protobuf:"bytes,2,opt,name=staff_name,json=staffName,proto3" json:"staff_name,omitempty"`
 	Appointments   []*Appointment         `protobuf:"bytes,3,rep,name=appointments,proto3" json:"appointments,omitempty"`
 	AvailableSlots []*AvailableSlot       `protobuf:"bytes,4,rep,name=available_slots,json=availableSlots,proto3" json:"available_slots,omitempty"`
 	WorkingHours   []*AvailableSlot       `protobuf:"bytes,5,rep,name=working_hours,json=workingHours,proto3" json:"working_hours,omitempty"`
@@ -2571,7 +2571,7 @@ type DailyEmployeeSchedule struct {
 
 func (x *DailyEmployeeSchedule) Reset() {
 	*x = DailyEmployeeSchedule{}
-	mi := &file_appointments_proto_msgTypes[35]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2583,7 +2583,7 @@ func (x *DailyEmployeeSchedule) String() string {
 func (*DailyEmployeeSchedule) ProtoMessage() {}
 
 func (x *DailyEmployeeSchedule) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[35]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2596,19 +2596,19 @@ func (x *DailyEmployeeSchedule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DailyEmployeeSchedule.ProtoReflect.Descriptor instead.
 func (*DailyEmployeeSchedule) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{35}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{35}
 }
 
-func (x *DailyEmployeeSchedule) GetEmployeeId() string {
+func (x *DailyEmployeeSchedule) GetStaffId() string {
 	if x != nil {
-		return x.EmployeeId
+		return x.StaffId
 	}
 	return ""
 }
 
-func (x *DailyEmployeeSchedule) GetEmployeeName() string {
+func (x *DailyEmployeeSchedule) GetStaffName() string {
 	if x != nil {
-		return x.EmployeeName
+		return x.StaffName
 	}
 	return ""
 }
@@ -2644,7 +2644,7 @@ type BatchCreateAppointmentsRequest struct {
 
 func (x *BatchCreateAppointmentsRequest) Reset() {
 	*x = BatchCreateAppointmentsRequest{}
-	mi := &file_appointments_proto_msgTypes[36]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2656,7 +2656,7 @@ func (x *BatchCreateAppointmentsRequest) String() string {
 func (*BatchCreateAppointmentsRequest) ProtoMessage() {}
 
 func (x *BatchCreateAppointmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[36]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2669,7 +2669,7 @@ func (x *BatchCreateAppointmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCreateAppointmentsRequest.ProtoReflect.Descriptor instead.
 func (*BatchCreateAppointmentsRequest) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{36}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *BatchCreateAppointmentsRequest) GetAppointments() []*CreateAppointmentRequest {
@@ -2699,7 +2699,7 @@ type BatchCreateAppointmentsResponse struct {
 
 func (x *BatchCreateAppointmentsResponse) Reset() {
 	*x = BatchCreateAppointmentsResponse{}
-	mi := &file_appointments_proto_msgTypes[37]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2711,7 +2711,7 @@ func (x *BatchCreateAppointmentsResponse) String() string {
 func (*BatchCreateAppointmentsResponse) ProtoMessage() {}
 
 func (x *BatchCreateAppointmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[37]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2724,7 +2724,7 @@ func (x *BatchCreateAppointmentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCreateAppointmentsResponse.ProtoReflect.Descriptor instead.
 func (*BatchCreateAppointmentsResponse) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{37}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *BatchCreateAppointmentsResponse) GetSuccessfulAppointments() []*Appointment {
@@ -2773,7 +2773,7 @@ type BatchError struct {
 
 func (x *BatchError) Reset() {
 	*x = BatchError{}
-	mi := &file_appointments_proto_msgTypes[38]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2785,7 +2785,7 @@ func (x *BatchError) String() string {
 func (*BatchError) ProtoMessage() {}
 
 func (x *BatchError) ProtoReflect() protoreflect.Message {
-	mi := &file_appointments_proto_msgTypes[38]
+	mi := &file_api_proto_appointments_v1_appointments_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2798,7 +2798,7 @@ func (x *BatchError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchError.ProtoReflect.Descriptor instead.
 func (*BatchError) Descriptor() ([]byte, []int) {
-	return file_appointments_proto_rawDescGZIP(), []int{38}
+	return file_api_proto_appointments_v1_appointments_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *BatchError) GetIndex() int32 {
@@ -2822,17 +2822,16 @@ func (x *BatchError) GetAppointment() *CreateAppointmentRequest {
 	return nil
 }
 
-var File_appointments_proto protoreflect.FileDescriptor
+var File_api_proto_appointments_v1_appointments_proto protoreflect.FileDescriptor
 
-const file_appointments_proto_rawDesc = "" +
+const file_api_proto_appointments_v1_appointments_proto_rawDesc = "" +
 	"\n" +
-	"\x12appointments.proto\x12\x0fappointments.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1egoogle/protobuf/duration.proto\"\x88\b\n" +
+	",api/proto/appointments/v1/appointments.proto\x12\x0fappointments.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1egoogle/protobuf/duration.proto\"\xfc\a\n" +
 	"\vAppointment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vcustomer_id\x18\x02 \x01(\tR\n" +
-	"customerId\x12\x1f\n" +
-	"\vemployee_id\x18\x03 \x01(\tR\n" +
-	"employeeId\x12\x1d\n" +
+	"customerId\x12\x19\n" +
+	"\bstaff_id\x18\x03 \x01(\tR\astaffId\x12\x1d\n" +
 	"\n" +
 	"service_id\x18\x04 \x01(\tR\tserviceId\x129\n" +
 	"\n" +
@@ -2851,8 +2850,9 @@ const file_appointments_proto_rawDesc = "" +
 	"\x13cancellation_reason\x18\x0e \x01(\v2\x1c.google.protobuf.StringValueR\x12cancellationReason\x12=\n" +
 	"\fcancelled_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\vcancelledAt\x12?\n" +
 	"\fservice_name\x18\x10 \x01(\v2\x1c.google.protobuf.StringValueR\vserviceName\x12A\n" +
-	"\rcustomer_name\x18\x11 \x01(\v2\x1c.google.protobuf.StringValueR\fcustomerName\x12A\n" +
-	"\remployee_name\x18\x12 \x01(\v2\x1c.google.protobuf.StringValueR\femployeeName\x125\n" +
+	"\rcustomer_name\x18\x11 \x01(\v2\x1c.google.protobuf.StringValueR\fcustomerName\x12;\n" +
+	"\n" +
+	"staff_name\x18\x12 \x01(\v2\x1c.google.protobuf.StringValueR\tstaffName\x125\n" +
 	"\bduration\x18\x13 \x01(\v2\x19.google.protobuf.DurationR\bduration\"\xd5\x01\n" +
 	"\rAvailableSlot\x129\n" +
 	"\n" +
@@ -2866,12 +2866,11 @@ const file_appointments_proto_rawDesc = "" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
 	"\bduration\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\bduration\x122\n" +
 	"\x05price\x18\x05 \x01(\v2\x1c.google.protobuf.DoubleValueR\x05price\x12\x1a\n" +
-	"\bcategory\x18\x06 \x01(\tR\bcategory\"\xfe\x02\n" +
+	"\bcategory\x18\x06 \x01(\tR\bcategory\"\xf8\x02\n" +
 	"\x18CreateAppointmentRequest\x12\x1f\n" +
 	"\vcustomer_id\x18\x01 \x01(\tR\n" +
-	"customerId\x12\x1f\n" +
-	"\vemployee_id\x18\x02 \x01(\tR\n" +
-	"employeeId\x12\x1d\n" +
+	"customerId\x12\x19\n" +
+	"\bstaff_id\x18\x02 \x01(\tR\astaffId\x12\x1d\n" +
 	"\n" +
 	"service_id\x18\x03 \x01(\tR\tserviceId\x129\n" +
 	"\n" +
@@ -2886,12 +2885,11 @@ const file_appointments_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x99\x01\n" +
 	"\x16GetAppointmentResponse\x12>\n" +
 	"\vappointment\x18\x01 \x01(\v2\x1c.appointments.v1.AppointmentR\vappointment\x12?\n" +
-	"\fservice_info\x18\x02 \x01(\v2\x1c.appointments.v1.ServiceInfoR\vserviceInfo\"\xf7\x05\n" +
+	"\fservice_info\x18\x02 \x01(\v2\x1c.appointments.v1.ServiceInfoR\vserviceInfo\"\xf1\x05\n" +
 	"\x17ListAppointmentsRequest\x12=\n" +
 	"\vcustomer_id\x18\x01 \x01(\v2\x1c.google.protobuf.StringValueR\n" +
-	"customerId\x12=\n" +
-	"\vemployee_id\x18\x02 \x01(\v2\x1c.google.protobuf.StringValueR\n" +
-	"employeeId\x12;\n" +
+	"customerId\x127\n" +
+	"\bstaff_id\x18\x02 \x01(\v2\x1c.google.protobuf.StringValueR\astaffId\x12;\n" +
 	"\n" +
 	"service_id\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\tserviceId\x12:\n" +
 	"\x06status\x18\x04 \x01(\x0e2\".appointments.v1.AppointmentStatusR\x06status\x129\n" +
@@ -2912,13 +2910,12 @@ const file_appointments_proto_rawDesc = "" +
 	"\fappointments\x18\x01 \x03(\v2\x1c.appointments.v1.AppointmentR\fappointments\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xc0\x04\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xba\x04\n" +
 	"\x18UpdateAppointmentRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12=\n" +
 	"\vcustomer_id\x18\x02 \x01(\v2\x1c.google.protobuf.StringValueR\n" +
-	"customerId\x12=\n" +
-	"\vemployee_id\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\n" +
-	"employeeId\x12;\n" +
+	"customerId\x127\n" +
+	"\bstaff_id\x18\x03 \x01(\v2\x1c.google.protobuf.StringValueR\astaffId\x12;\n" +
 	"\n" +
 	"service_id\x18\x04 \x01(\v2\x1c.google.protobuf.StringValueR\tserviceId\x129\n" +
 	"\n" +
@@ -2956,23 +2953,20 @@ const file_appointments_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12G\n" +
 	"\x10completion_notes\x18\x02 \x01(\v2\x1c.google.protobuf.StringValueR\x0fcompletionNotes\"]\n" +
 	"\x1bCompleteAppointmentResponse\x12>\n" +
-	"\vappointment\x18\x01 \x01(\v2\x1c.appointments.v1.AppointmentR\vappointment\"\xe9\x01\n" +
-	"\x18CheckAvailabilityRequest\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x12.\n" +
+	"\vappointment\x18\x01 \x01(\v2\x1c.appointments.v1.AppointmentR\vappointment\"\xe3\x01\n" +
+	"\x18CheckAvailabilityRequest\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x12.\n" +
 	"\x04date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x04date\x12D\n" +
 	"\x10service_duration\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\x0fserviceDuration\x126\n" +
-	"\x17exclude_appointment_ids\x18\x04 \x03(\tR\x15excludeAppointmentIds\"\x81\x02\n" +
-	"\x19CheckAvailabilityResponse\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x12.\n" +
+	"\x17exclude_appointment_ids\x18\x04 \x03(\tR\x15excludeAppointmentIds\"\xfb\x01\n" +
+	"\x19CheckAvailabilityResponse\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x12.\n" +
 	"\x04date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x04date\x124\n" +
 	"\x05slots\x18\x03 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x05slots\x12)\n" +
 	"\x10has_availability\x18\x04 \x01(\bR\x0fhasAvailability\x122\n" +
-	"\x15available_slots_count\x18\x05 \x01(\x05R\x13availableSlotsCount\"\xfd\x01\n" +
-	"\x14CheckConflictRequest\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x129\n" +
+	"\x15available_slots_count\x18\x05 \x01(\x05R\x13availableSlotsCount\"\xf7\x01\n" +
+	"\x14CheckConflictRequest\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x129\n" +
 	"\n" +
 	"start_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
 	"\bend_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12R\n" +
@@ -2982,19 +2976,17 @@ const file_appointments_proto_rawDesc = "" +
 	"\x1bconflicting_appointment_ids\x18\x02 \x03(\tR\x19conflictingAppointmentIds\x12%\n" +
 	"\x0econflict_count\x18\x03 \x01(\x05R\rconflictCount\x12C\n" +
 	"\x0fsuggested_times\x18\x04 \x03(\v2\x1a.google.protobuf.TimestampR\x0esuggestedTimes\x12K\n" +
-	"\x11alternative_slots\x18\x05 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x10alternativeSlots\"\xc8\x02\n" +
-	"\x18GetAvailableSlotsRequest\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x129\n" +
+	"\x11alternative_slots\x18\x05 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x10alternativeSlots\"\xc2\x02\n" +
+	"\x18GetAvailableSlotsRequest\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x129\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
 	"\bend_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12D\n" +
 	"\x10service_duration\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\x0fserviceDuration\x12S\n" +
-	"\x15existing_appointments\x18\x05 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x14existingAppointments\"\xb2\x02\n" +
+	"\x15existing_appointments\x18\x05 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x14existingAppointments\"\xac\x02\n" +
 	"\x19GetAvailableSlotsResponse\x124\n" +
-	"\x05slots\x18\x01 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x05slots\x12\x1f\n" +
-	"\vemployee_id\x18\x02 \x01(\tR\n" +
-	"employeeId\x12;\n" +
+	"\x05slots\x18\x01 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x05slots\x12\x19\n" +
+	"\bstaff_id\x18\x02 \x01(\tR\astaffId\x12;\n" +
 	"\vquery_start\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"queryStart\x127\n" +
 	"\tquery_end\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\bqueryEnd\x12\x1f\n" +
@@ -3014,10 +3006,9 @@ const file_appointments_proto_rawDesc = "" +
 	"\fappointments\x18\x01 \x03(\v2\x1c.appointments.v1.AppointmentR\fappointments\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xa2\x02\n" +
-	" GetAppointmentsByEmployeeRequest\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x12:\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\x9c\x02\n" +
+	" GetAppointmentsByEmployeeRequest\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x12:\n" +
 	"\x06status\x18\x02 \x01(\x0e2\".appointments.v1.AppointmentStatusR\x06status\x129\n" +
 	"\n" +
 	"start_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
@@ -3028,34 +3019,32 @@ const file_appointments_proto_rawDesc = "" +
 	"\fappointments\x18\x01 \x03(\v2\x1c.appointments.v1.AppointmentR\fappointments\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x03 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xe0\x01\n" +
-	"\x1aGetEmployeeScheduleRequest\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x129\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\"\xda\x01\n" +
+	"\x1aGetEmployeeScheduleRequest\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x129\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
 	"\bend_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12/\n" +
-	"\x13include_unavailable\x18\x04 \x01(\bR\x12includeUnavailable\"\x80\x03\n" +
-	"\x1bGetEmployeeScheduleResponse\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x129\n" +
+	"\x13include_unavailable\x18\x04 \x01(\bR\x12includeUnavailable\"\xfa\x02\n" +
+	"\x1bGetEmployeeScheduleResponse\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x129\n" +
 	"\n" +
 	"start_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tstartDate\x125\n" +
 	"\bend_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\aendDate\x12@\n" +
 	"\fappointments\x18\x04 \x03(\v2\x1c.appointments.v1.AppointmentR\fappointments\x12G\n" +
 	"\x0favailable_slots\x18\x05 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x0eavailableSlots\x12C\n" +
-	"\rblocked_slots\x18\x06 \x03(\v2\x1e.appointments.v1.AvailableSlotR\fblockedSlots\"\x9d\x01\n" +
-	"\x17GetDailyScheduleRequest\x12!\n" +
-	"\femployee_ids\x18\x01 \x03(\tR\vemployeeIds\x12.\n" +
+	"\rblocked_slots\x18\x06 \x03(\v2\x1e.appointments.v1.AvailableSlotR\fblockedSlots\"\x97\x01\n" +
+	"\x17GetDailyScheduleRequest\x12\x1b\n" +
+	"\tstaff_ids\x18\x01 \x03(\tR\bstaffIds\x12.\n" +
 	"\x04date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x04date\x12/\n" +
 	"\x13include_unavailable\x18\x03 \x01(\bR\x12includeUnavailable\"\xa1\x01\n" +
 	"\x18GetDailyScheduleResponse\x12.\n" +
 	"\x04date\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04date\x12U\n" +
-	"\x12employee_schedules\x18\x02 \x03(\v2&.appointments.v1.DailyEmployeeScheduleR\x11employeeSchedules\"\xad\x02\n" +
-	"\x15DailyEmployeeSchedule\x12\x1f\n" +
-	"\vemployee_id\x18\x01 \x01(\tR\n" +
-	"employeeId\x12#\n" +
-	"\remployee_name\x18\x02 \x01(\tR\femployeeName\x12@\n" +
+	"\x12employee_schedules\x18\x02 \x03(\v2&.appointments.v1.DailyEmployeeScheduleR\x11employeeSchedules\"\xa1\x02\n" +
+	"\x15DailyEmployeeSchedule\x12\x19\n" +
+	"\bstaff_id\x18\x01 \x01(\tR\astaffId\x12\x1d\n" +
+	"\n" +
+	"staff_name\x18\x02 \x01(\tR\tstaffName\x12@\n" +
 	"\fappointments\x18\x03 \x03(\v2\x1c.appointments.v1.AppointmentR\fappointments\x12G\n" +
 	"\x0favailable_slots\x18\x04 \x03(\v2\x1e.appointments.v1.AvailableSlotR\x0eavailableSlots\x12C\n" +
 	"\rworking_hours\x18\x05 \x03(\v2\x1e.appointments.v1.AvailableSlotR\fworkingHours\"\x93\x01\n" +
@@ -3101,20 +3090,20 @@ const file_appointments_proto_rawDesc = "" +
 	"\x17BatchCreateAppointments\x12/.appointments.v1.BatchCreateAppointmentsRequest\x1a0.appointments.v1.BatchCreateAppointmentsResponseBQZOgithub.com/julesChu12/fly/appointments/api/proto/appointments/v1;appointmentsv1b\x06proto3"
 
 var (
-	file_appointments_proto_rawDescOnce sync.Once
-	file_appointments_proto_rawDescData []byte
+	file_api_proto_appointments_v1_appointments_proto_rawDescOnce sync.Once
+	file_api_proto_appointments_v1_appointments_proto_rawDescData []byte
 )
 
-func file_appointments_proto_rawDescGZIP() []byte {
-	file_appointments_proto_rawDescOnce.Do(func() {
-		file_appointments_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_appointments_proto_rawDesc), len(file_appointments_proto_rawDesc)))
+func file_api_proto_appointments_v1_appointments_proto_rawDescGZIP() []byte {
+	file_api_proto_appointments_v1_appointments_proto_rawDescOnce.Do(func() {
+		file_api_proto_appointments_v1_appointments_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_proto_appointments_v1_appointments_proto_rawDesc), len(file_api_proto_appointments_v1_appointments_proto_rawDesc)))
 	})
-	return file_appointments_proto_rawDescData
+	return file_api_proto_appointments_v1_appointments_proto_rawDescData
 }
 
-var file_appointments_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_appointments_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
-var file_appointments_proto_goTypes = []any{
+var file_api_proto_appointments_v1_appointments_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_proto_appointments_v1_appointments_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_api_proto_appointments_v1_appointments_proto_goTypes = []any{
 	(AppointmentStatus)(0),                    // 0: appointments.v1.AppointmentStatus
 	(*Appointment)(nil),                       // 1: appointments.v1.Appointment
 	(*AvailableSlot)(nil),                     // 2: appointments.v1.AvailableSlot
@@ -3161,7 +3150,7 @@ var file_appointments_proto_goTypes = []any{
 	(*wrapperspb.DoubleValue)(nil),            // 43: google.protobuf.DoubleValue
 	(*wrapperspb.BoolValue)(nil),              // 44: google.protobuf.BoolValue
 }
-var file_appointments_proto_depIdxs = []int32{
+var file_api_proto_appointments_v1_appointments_proto_depIdxs = []int32{
 	40,  // 0: appointments.v1.Appointment.start_time:type_name -> google.protobuf.Timestamp
 	40,  // 1: appointments.v1.Appointment.end_time:type_name -> google.protobuf.Timestamp
 	41,  // 2: appointments.v1.Appointment.notes:type_name -> google.protobuf.StringValue
@@ -3174,7 +3163,7 @@ var file_appointments_proto_depIdxs = []int32{
 	40,  // 9: appointments.v1.Appointment.cancelled_at:type_name -> google.protobuf.Timestamp
 	41,  // 10: appointments.v1.Appointment.service_name:type_name -> google.protobuf.StringValue
 	41,  // 11: appointments.v1.Appointment.customer_name:type_name -> google.protobuf.StringValue
-	41,  // 12: appointments.v1.Appointment.employee_name:type_name -> google.protobuf.StringValue
+	41,  // 12: appointments.v1.Appointment.staff_name:type_name -> google.protobuf.StringValue
 	42,  // 13: appointments.v1.Appointment.duration:type_name -> google.protobuf.Duration
 	40,  // 14: appointments.v1.AvailableSlot.start_time:type_name -> google.protobuf.Timestamp
 	40,  // 15: appointments.v1.AvailableSlot.end_time:type_name -> google.protobuf.Timestamp
@@ -3189,7 +3178,7 @@ var file_appointments_proto_depIdxs = []int32{
 	1,   // 24: appointments.v1.GetAppointmentResponse.appointment:type_name -> appointments.v1.Appointment
 	3,   // 25: appointments.v1.GetAppointmentResponse.service_info:type_name -> appointments.v1.ServiceInfo
 	41,  // 26: appointments.v1.ListAppointmentsRequest.customer_id:type_name -> google.protobuf.StringValue
-	41,  // 27: appointments.v1.ListAppointmentsRequest.employee_id:type_name -> google.protobuf.StringValue
+	41,  // 27: appointments.v1.ListAppointmentsRequest.staff_id:type_name -> google.protobuf.StringValue
 	41,  // 28: appointments.v1.ListAppointmentsRequest.service_id:type_name -> google.protobuf.StringValue
 	0,   // 29: appointments.v1.ListAppointmentsRequest.status:type_name -> appointments.v1.AppointmentStatus
 	40,  // 30: appointments.v1.ListAppointmentsRequest.start_date:type_name -> google.protobuf.Timestamp
@@ -3201,7 +3190,7 @@ var file_appointments_proto_depIdxs = []int32{
 	41,  // 36: appointments.v1.ListAppointmentsRequest.search:type_name -> google.protobuf.StringValue
 	1,   // 37: appointments.v1.ListAppointmentsResponse.appointments:type_name -> appointments.v1.Appointment
 	41,  // 38: appointments.v1.UpdateAppointmentRequest.customer_id:type_name -> google.protobuf.StringValue
-	41,  // 39: appointments.v1.UpdateAppointmentRequest.employee_id:type_name -> google.protobuf.StringValue
+	41,  // 39: appointments.v1.UpdateAppointmentRequest.staff_id:type_name -> google.protobuf.StringValue
 	41,  // 40: appointments.v1.UpdateAppointmentRequest.service_id:type_name -> google.protobuf.StringValue
 	40,  // 41: appointments.v1.UpdateAppointmentRequest.start_time:type_name -> google.protobuf.Timestamp
 	40,  // 42: appointments.v1.UpdateAppointmentRequest.end_time:type_name -> google.protobuf.Timestamp
@@ -3303,27 +3292,27 @@ var file_appointments_proto_depIdxs = []int32{
 	0,   // [0:100] is the sub-list for field type_name
 }
 
-func init() { file_appointments_proto_init() }
-func file_appointments_proto_init() {
-	if File_appointments_proto != nil {
+func init() { file_api_proto_appointments_v1_appointments_proto_init() }
+func file_api_proto_appointments_v1_appointments_proto_init() {
+	if File_api_proto_appointments_v1_appointments_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_appointments_proto_rawDesc), len(file_appointments_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_appointments_v1_appointments_proto_rawDesc), len(file_api_proto_appointments_v1_appointments_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_appointments_proto_goTypes,
-		DependencyIndexes: file_appointments_proto_depIdxs,
-		EnumInfos:         file_appointments_proto_enumTypes,
-		MessageInfos:      file_appointments_proto_msgTypes,
+		GoTypes:           file_api_proto_appointments_v1_appointments_proto_goTypes,
+		DependencyIndexes: file_api_proto_appointments_v1_appointments_proto_depIdxs,
+		EnumInfos:         file_api_proto_appointments_v1_appointments_proto_enumTypes,
+		MessageInfos:      file_api_proto_appointments_v1_appointments_proto_msgTypes,
 	}.Build()
-	File_appointments_proto = out.File
-	file_appointments_proto_goTypes = nil
-	file_appointments_proto_depIdxs = nil
+	File_api_proto_appointments_v1_appointments_proto = out.File
+	file_api_proto_appointments_v1_appointments_proto_goTypes = nil
+	file_api_proto_appointments_v1_appointments_proto_depIdxs = nil
 }

@@ -41,8 +41,8 @@ func (h *AppointmentHandler) RegisterRoutes(router *gin.RouterGroup) {
 
 		// 客户和员工相关
 		appointments.GET("/customer/:customerId", h.GetAppointmentsByCustomer)
-		appointments.GET("/employee/:employeeId", h.GetAppointmentsByEmployee)
-		appointments.GET("/employee/:employeeId/upcoming", h.GetUpcomingAppointments)
+		appointments.GET("/staff/:staffId", h.GetAppointmentsByEmployee)
+		appointments.GET("/staff/:staffId/upcoming", h.GetUpcomingAppointments)
 	}
 }
 
@@ -80,8 +80,8 @@ func (h *AppointmentHandler) ListAppointments(c *gin.Context) {
 	if customerID := c.Query("customer_id"); customerID != "" {
 		filter.CustomerID = &customerID
 	}
-	if employeeID := c.Query("staff_id"); employeeID != "" {
-		filter.StaffID = &employeeID
+	if staffID := c.Query("staff_id"); staffID != "" {
+		filter.StaffID = &staffID
 	}
 	if serviceID := c.Query("service_id"); serviceID != "" {
 		filter.ServiceID = &serviceID
@@ -356,8 +356,8 @@ func (h *AppointmentHandler) GetCalendarView(c *gin.Context) {
 	var req dto.CalendarViewRequest
 
 	// 解析查询参数
-	if employeeID := c.Query("staff_id"); employeeID != "" {
-		req.StaffID = &employeeID
+	if staffID := c.Query("staff_id"); staffID != "" {
+		req.StaffID = &staffID
 	}
 
 	if startDateStr := c.Query("start_date"); startDateStr != "" {
@@ -426,8 +426,8 @@ func (h *AppointmentHandler) GetCalendarView(c *gin.Context) {
 // @Failure 400 {object} map[string]interface{}
 // @Router /appointments/availability [get]
 func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
-	employeeID := c.Query("staff_id")
-	if employeeID == "" {
+	staffID := c.Query("staff_id")
+	if staffID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
 			"message": "员工ID不能为空",
@@ -472,7 +472,7 @@ func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
 	}
 
 	req := &dto.AvailabilityRequest{
-		StaffID:      employeeID,
+		StaffID:      staffID,
 		Date:            date,
 		ServiceDuration: time.Duration(duration) * time.Minute,
 	}
@@ -585,15 +585,15 @@ func (h *AppointmentHandler) GetAppointmentsByCustomer(c *gin.Context) {
 // @Tags 预约管理
 // @Accept json
 // @Produce json
-// @Param employeeId path string true "员工ID"
+// @Param staffId path string true "员工ID"
 // @Param page query int false "页码" default(1)
 // @Param limit query int false "每页数量" default(20)
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /appointments/employee/{employeeId} [get]
+// @Router /appointments/staff/{staffId} [get]
 func (h *AppointmentHandler) GetAppointmentsByEmployee(c *gin.Context) {
-	employeeID := c.Param("employeeId")
-	if employeeID == "" {
+	staffID := c.Param("staffId")
+	if staffID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
 			"message": "员工ID不能为空",
@@ -609,7 +609,7 @@ func (h *AppointmentHandler) GetAppointmentsByEmployee(c *gin.Context) {
 		filter.Limit = limit
 	}
 
-	appointments, err := h.appointmentService.GetAppointmentsByStaffID(employeeID, filter)
+	appointments, err := h.appointmentService.GetAppointmentsByStaffID(staffID, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
@@ -632,14 +632,14 @@ func (h *AppointmentHandler) GetAppointmentsByEmployee(c *gin.Context) {
 // @Tags 预约管理
 // @Accept json
 // @Produce json
-// @Param employeeId path string true "员工ID"
+// @Param staffId path string true "员工ID"
 // @Param limit query int false "数量限制" default(10)
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
-// @Router /appointments/employee/{employeeId}/upcoming [get]
+// @Router /appointments/staff/{staffId}/upcoming [get]
 func (h *AppointmentHandler) GetUpcomingAppointments(c *gin.Context) {
-	employeeID := c.Param("employeeId")
-	if employeeID == "" {
+	staffID := c.Param("staffId")
+	if staffID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,
 			"message": "员工ID不能为空",
@@ -652,7 +652,7 @@ func (h *AppointmentHandler) GetUpcomingAppointments(c *gin.Context) {
 		limit = 10
 	}
 
-	appointments, err := h.appointmentService.GetUpcomingAppointments(employeeID, limit)
+	appointments, err := h.appointmentService.GetUpcomingAppointments(staffID, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
