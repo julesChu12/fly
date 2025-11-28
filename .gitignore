@@ -17,6 +17,10 @@
 coverage.*
 *.coverprofile
 profile.cov
+**/coverage.out
+**/*_coverage.out
+**/*_coverage_final.out
+*.coverage
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
@@ -24,6 +28,9 @@ profile.cov
 # Go workspace file
 go.work
 go.work.sum
+
+# Go sum files - exclude from version control
+*.sum
 
 # env file
 .env
@@ -92,6 +99,14 @@ go.work.sum
 *.sqlite
 *.sqlite3
 */data/*.db
+**/mysql/data/
+**/data/*.ibd
+**/data/*.dblwr
+**/data/*.pem
+**/data/*.key
+**/data/*.crt
+**/data/*.p12
+**/data/*.jks
 
 # Go module cache (outside vendor)
 **/github.com/

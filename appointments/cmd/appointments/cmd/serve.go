@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,9 +11,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	appointmentsv1 "github.com/julesChu12/fly/appointments/api/proto/appointments/v1"
 	"github.com/julesChu12/fly/appointments/internal/application/service"
 	"github.com/julesChu12/fly/appointments/internal/domain/repository"
 	"github.com/julesChu12/fly/appointments/internal/infrastructure/database"
+	grpcInterface "github.com/julesChu12/fly/appointments/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/appointments/internal/interface/http"
 	"github.com/julesChu12/fly/appointments/internal/interface/http/middleware"
 	"github.com/julesChu12/fly/mora/pkg/config"
@@ -21,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var serveCmd = &cobra.Command{
@@ -111,7 +116,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	appointmentService := service.NewAppointmentService(appointmentRepo)
 
 	// Start servers
-	httpServer := startServers(cfg, appointmentService, appointmentRepo, l)
+	httpServer, grpcServer := startServers(cfg, appointmentService, appointmentRepo, l)
 
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
@@ -120,7 +125,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	l.Info("Shutting down Appointments service...")
 
-	// Graceful shutdown
+	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -129,6 +134,20 @@ func runServer(cmd *cobra.Command, args []string) {
 		l.Errorf("HTTP server forced to shutdown: %v", err)
 	} else {
 		l.Info("HTTP server stopped gracefully")
+	}
+
+	// Graceful stop gRPC server
+	stopped := make(chan struct{})
+	go func() {
+		grpcServer.Stop()
+		close(stopped)
+	}()
+
+	select {
+	case <-ctx.Done():
+		l.Warn("gRPC server shutdown timeout, forcing stop")
+	case <-stopped:
+		l.Info("gRPC server stopped gracefully")
 	}
 
 	l.Info("Appointments service stopped")
@@ -226,13 +245,13 @@ func loadConfig() (*Config, error) {
 	return &cfg, nil
 }
 
-// startServers starts HTTP server
+// startServers starts HTTP and gRPC servers
 func startServers(
 	cfg *Config,
 	appointmentService service.AppointmentService,
 	appointmentRepo repository.AppointmentRepository,
 	l *logger.Logger,
-) *http.Server {
+) (*http.Server, *grpcInterface.Server) {
 	// Start HTTP server
 	r := gin.New()
 
@@ -280,7 +299,24 @@ func startServers(
 		WriteTimeout: 15 * time.Second,
 	}
 
-	l.Infof("HTTP server configured on %s", httpAddr)
+	// Start HTTP server
+	go func() {
+		l.Infof("Starting HTTP server on %s", httpAddr)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			l.Fatalf("HTTP server failed to start: %v", err)
+		}
+	}()
 
-	return httpServer
+	// Start gRPC server
+	grpcServer := grpcInterface.NewServer(appointmentService, fmt.Sprintf("%d", cfg.Server.GRPCPort), l)
+	go func() {
+		if err := grpcServer.Start(); err != nil {
+			l.Fatalf("Failed to start gRPC server: %v", err)
+		}
+	}()
+
+	// Give servers time to start
+	time.Sleep(100 * time.Millisecond)
+
+	return httpServer, grpcServer
 }

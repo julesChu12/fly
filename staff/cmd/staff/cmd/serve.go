@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	staffv1 "github.com/julesChu12/fly/staff/api/proto/staff/v1"
 	"github.com/julesChu12/fly/staff/internal/application/service"
 	"github.com/julesChu12/fly/staff/internal/infrastructure/database"
+	grpcInterface "github.com/julesChu12/fly/staff/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/staff/internal/interface/http"
 	"github.com/julesChu12/fly/staff/internal/interface/http/middleware"
 	"github.com/julesChu12/fly/mora/pkg/config"
@@ -20,6 +22,8 @@ import (
 	"github.com/spf13/cobra"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var serveCmd = &cobra.Command{
@@ -56,7 +60,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	if httpPort > 0 {
 		cfg.Server.HTTPPort = httpPort
 	}
-	// Note: gRPC not implemented yet, ignoring grpcPort
+	if grpcPort > 0 {
+		cfg.Server.GRPCPort = grpcPort
+	}
 	if dbDSN != "" {
 		cfg.Database.DSN = dbDSN
 	}
@@ -81,7 +87,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	l.Infof("Starting Staff Service...")
-	l.Infof("Server configuration - HTTP:%d", cfg.Server.HTTPPort)
+	l.Infof("Server configuration - HTTP:%d, gRPC:%d", cfg.Server.HTTPPort, cfg.Server.GRPCPort)
 
 	// Initialize database using mora db client
 	dbConfig := moraDB.Config{
@@ -110,7 +116,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	staffService := service.NewStaffService(staffRepo, roleRepo, availabilityRepo)
 
 	// Start servers
-	httpServer := startServers(cfg, staffService, l)
+	httpServer, grpcServer := startServers(cfg, staffService, l)
 
 	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
@@ -119,7 +125,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	l.Info("Shutting down Staff service...")
 
-	// Graceful shutdown
+	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -130,6 +136,20 @@ func runServer(cmd *cobra.Command, args []string) {
 		l.Info("HTTP server stopped gracefully")
 	}
 
+	// Graceful stop gRPC server
+	stopped := make(chan struct{})
+	go func() {
+		grpcServer.Stop()
+		close(stopped)
+	}()
+
+	select {
+	case <-ctx.Done():
+		l.Warn("gRPC server shutdown timeout, forcing stop")
+	case <-stopped:
+		l.Info("gRPC server stopped gracefully")
+	}
+
 	l.Info("Staff service stopped")
 }
 
@@ -137,6 +157,7 @@ func runServer(cmd *cobra.Command, args []string) {
 type Config struct {
 	Server struct {
 	HTTPPort int `mapstructure:"http_port"`
+		GRPCPort int `mapstructure:"grpc_port"`
 	} `mapstructure:"server"`
 	Database struct {
 		Driver          string `mapstructure:"driver"`
@@ -168,6 +189,7 @@ func loadConfig() (*Config, error) {
 
 	// Set defaults
 	v.SetDefault("server.http_port", 8084)
+	v.SetDefault("server.grpc_port", 9084)
 	v.SetDefault("database.driver", "mysql")
 	v.SetDefault("database.max_open_conns", 10)
 	v.SetDefault("database.max_idle_conns", 5)
@@ -223,12 +245,12 @@ func loadConfig() (*Config, error) {
 	return &cfg, nil
 }
 
-// startServers starts HTTP server
+// startServers starts HTTP and gRPC servers
 func startServers(
 	cfg *Config,
 	staffService service.StaffService,
 	l *logger.Logger,
-) *http.Server {
+) (*http.Server, *grpcInterface.Server) {
 	// Start HTTP server
 	r := gin.New()
 
@@ -276,15 +298,24 @@ func startServers(
 		WriteTimeout: 15 * time.Second,
 	}
 
-	l.Infof("Starting HTTP server on %s", httpAddr)
-
-	// Start HTTP server in goroutine
+	// Start HTTP server
 	go func() {
-		l.Infof("HTTP server listening on %s", httpAddr)
+		l.Infof("Starting HTTP server on %s", httpAddr)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			l.Fatalf("Failed to start HTTP server: %v", err)
+			l.Fatalf("HTTP server failed to start: %v", err)
 		}
 	}()
 
-	return httpServer
+	// Start gRPC server
+	grpcServer := grpcInterface.NewServer(staffService, fmt.Sprintf("%d", cfg.Server.GRPCPort), l)
+	go func() {
+		if err := grpcServer.Start(); err != nil {
+			l.Fatalf("Failed to start gRPC server: %v", err)
+		}
+	}()
+
+	// Give servers time to start
+	time.Sleep(100 * time.Millisecond)
+
+	return httpServer, grpcServer
 }
