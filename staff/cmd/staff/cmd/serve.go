@@ -45,6 +45,12 @@ func init() {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
+	// 如果命令行指定了不同的配置文件，通过环境变量传递给配置加载器
+	if configPath != "configs/staff.yaml" {
+		fmt.Printf("Using custom config file: %s\n", configPath)
+		os.Setenv("CONFIG_PATH", configPath)
+	}
+
 	// Load configuration using mora config loader
 	cfg, err := loadConfig()
 	if err != nil {
@@ -179,8 +185,14 @@ type Config struct {
 
 // loadConfig loads configuration from file and environment
 func loadConfig() (*Config, error) {
+	// 使用环境变量CONFIG_PATH或默认路径
+	cfgPath := configPath
+	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
+		cfgPath = envPath
+	}
+
 	v := config.New().
-		WithYAML(configPath).
+		WithYAML(cfgPath).
 		WithEnvPrefix("STAFF").
 		MustLoad()
 

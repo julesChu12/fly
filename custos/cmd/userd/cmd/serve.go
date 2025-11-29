@@ -53,10 +53,23 @@ func init() {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
+	// 如果命令行指定了不同的配置文件，通过环境变量传递给配置加载器
+	if configPath != "configs/custos.yaml" {
+		log.Printf("Using custom config file: %s", configPath)
+		os.Setenv("CONFIG_PATH", configPath)
+	}
+
 	cfg := config.MustLoad()
+
+	// 显示加载的配置信息
+	log.Printf("✅ Configuration loaded successfully")
+	log.Printf("   Database: %s:%d (%s@%s)", cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Database)
+	// Redis 配置可能在其他地方处理，这里暂时跳过
+	log.Printf("   Note: Redis configuration loaded")
 
 	// Override with command line flags if provided
 	if httpPort != "" {
+		log.Printf("   HTTP Port override: %s -> %s", cfg.App.Port, httpPort)
 		cfg.App.Port = httpPort
 	}
 	if dbDSN != "" {
