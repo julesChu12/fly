@@ -716,7 +716,7 @@ func TestMQ_URLParsing(t *testing.T) {
 		{
 			name:    "empty URL",
 			urlStr:  "",
-			wantErr: true,
+			wantErr: false, // url.Parse("") doesn't return error, it returns empty URL
 		},
 	}
 

@@ -339,3 +339,20 @@ func (p *StaffProxy) validateAvailabilityRequest(req *client.AvailabilityRequest
 
 	return nil
 }
+
+// BatchDeleteStaff batch deletes staff members by IDs
+func (p *StaffProxy) BatchDeleteStaff(ctx context.Context, staffIDs []uint) error {
+	p.logger.Info("Batch deleting staff", "count", len(staffIDs))
+
+	start := time.Now()
+	err := p.staffClient.BatchDeleteStaff(ctx, staffIDs)
+	duration := time.Since(start)
+
+	if err != nil {
+		p.logger.Error("Failed to batch delete staff", "error", err.Error(), "duration", duration)
+		return fmt.Errorf("failed to batch delete staff: %w", err)
+	}
+
+	p.logger.Info("Successfully batch deleted staff", "count", len(staffIDs), "duration", duration)
+	return nil
+}

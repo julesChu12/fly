@@ -7,6 +7,7 @@ import (
 	"github.com/julesChu12/fly/clotho/internal/application/usecase"
 	"github.com/julesChu12/fly/clotho/internal/infrastructure/client"
 	"github.com/julesChu12/fly/clotho/internal/infrastructure/http/handler"
+	"github.com/julesChu12/fly/clotho/internal/interface/http/auth"
 	"github.com/julesChu12/fly/clotho/internal/middleware"
 	ginAdapter "github.com/julesChu12/fly/mora/adapters/gin"
 	"github.com/julesChu12/fly/mora/pkg/logger"
@@ -29,11 +30,13 @@ func setDefaults(cfg *viper.Viper) {
 
 	// Service configuration
 	cfg.SetDefault("services.custos.address", "localhost:50051")
+	cfg.SetDefault("services.custos.http.address", "http://localhost:8081")
 	cfg.SetDefault("services.hermes.address", "http://localhost:8080")
 	cfg.SetDefault("services.plutus.address", "http://localhost:8085")
 	cfg.SetDefault("services.kratos.address", "http://localhost:8082")
 	cfg.SetDefault("services.appointments.address", "http://localhost:8083")
 	cfg.SetDefault("services.staff.address", "http://localhost:8084")
+	cfg.SetDefault("services.items.address", "http://localhost:8086")
 
 	// Rate limiter configuration
 	cfg.SetDefault("rate_limiter.global_rps", 1000.0)
@@ -42,6 +45,8 @@ func setDefaults(cfg *viper.Viper) {
 	cfg.SetDefault("rate_limiter.per_ip_burst", 20)
 	cfg.SetDefault("rate_limiter.per_user_rps", 100.0)
 	cfg.SetDefault("rate_limiter.per_user_burst", 200)
+	cfg.SetDefault("rate_limiter.cleanup_interval", "5m")
+	cfg.SetDefault("rate_limiter.max_idle_time", "10m")
 
 	// Circuit breaker configuration
 	cfg.SetDefault("circuit_breaker.max_requests", 5)
@@ -92,6 +97,8 @@ func SetupRouter(cfg *viper.Viper) *gin.Engine {
 		PerIPBurst:   cfg.GetInt("rate_limiter.per_ip_burst"),
 		PerUserRPS:   cfg.GetFloat64("rate_limiter.per_user_rps"),
 		PerUserBurst: cfg.GetInt("rate_limiter.per_user_burst"),
+		CleanupInterval: cfg.GetDuration("rate_limiter.cleanup_interval"),
+		MaxIdleTime:     cfg.GetDuration("rate_limiter.max_idle_time"),
 	}
 
 	rateLimiter := middleware.NewRateLimiter(rateLimiterConfig)
@@ -117,6 +124,17 @@ func SetupRouter(cfg *viper.Viper) *gin.Engine {
 	// Prometheus metrics endpoint
 	registry := metricsMiddleware.GetMetricsRegistry().GetRegistry()
 	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(registry, promhttp.HandlerOpts{})))
+
+	// Initialize logger for auth module
+	authLogger := logger.NewDefault()
+
+	// Create Custos HTTP client for auth endpoints
+	custosHTTPAddress := cfg.GetString("services.custos.http.address")
+	custosTimeout := 30 * time.Second
+	custosHTTPClient := client.NewCustosHTTPClient(custosHTTPAddress, custosTimeout, authLogger)
+
+	// Initialize auth handler
+	authHandler := auth.NewAuthHandler(custosHTTPClient, authLogger)
 
 	// Create user proxy with lazy gRPC client initialization
 	userProxy := usecase.NewUserProxyUseCase(nil, 30*time.Second)
@@ -168,6 +186,13 @@ func SetupRouter(cfg *viper.Viper) *gin.Engine {
 	paymentLogger := logger.NewDefault()
 	paymentProxy := usecase.NewPaymentProxy(paymentClient, paymentLogger)
 	paymentHandler := handler.NewPaymentHandler(paymentProxy)
+
+	// Create items proxy with HTTP client
+	itemsAddress := cfg.GetString("services.items.address")
+	itemsTimeout := 10 * time.Second
+	itemsClient := client.NewItemsHTTPClient(itemsAddress, itemsTimeout, logger.NewDefault())
+	itemsHandler := handler.NewItemsHandler(itemsClient, logger.NewDefault())
+	categoriesHandler := handler.NewCategoriesHandler(itemsClient, logger.NewDefault())
 
 	// Create auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.GetString("jwt.secret"))
@@ -231,7 +256,24 @@ func SetupRouter(cfg *viper.Viper) *gin.Engine {
 			// Payment service routes - proxy to plutus service
 			paymentHandler.RegisterRoutes(payments)
 		}
+
+		// Items service routes - proxy to items service
+		items := v1.Group("/items")
+		{
+			// Item management routes
+			itemsHandler.RegisterRoutes(items)
+		}
+
+		// Categories service routes - proxy to items service
+		categories := v1.Group("/categories")
+		{
+			// Category management routes
+			categoriesHandler.RegisterRoutes(categories)
+		}
 	}
+
+	// Register auth routes (mix of public and authenticated)
+	auth.RegisterAuthRoutes(router, authHandler, authMiddleware, authLogger)
 
 	return router
 }

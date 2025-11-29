@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	appointmentsv1 "github.com/julesChu12/fly/appointments/api/proto/appointments/v1"
 	"github.com/julesChu12/fly/appointments/internal/application/service"
 	"github.com/julesChu12/fly/appointments/internal/domain/repository"
 	"github.com/julesChu12/fly/appointments/internal/infrastructure/database"
@@ -24,8 +22,6 @@ import (
 	"github.com/spf13/cobra"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 var serveCmd = &cobra.Command{

@@ -515,3 +515,30 @@ func (c *AppointmentHTTPClient) doRequest(ctx context.Context, method, url strin
 
 	return nil
 }
+
+// BatchDeleteAppointments batch deletes appointments by IDs
+func (c *AppointmentHTTPClient) BatchDeleteAppointments(ctx context.Context, appointmentIDs []uint) error {
+	url := c.buildURL("/api/appointments/batch", nil)
+
+	requestBody := map[string][]uint{
+		"ids": appointmentIDs,
+	}
+
+	var response struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+
+	err := c.doRequest(ctx, "DELETE", url, requestBody, &response)
+	if err != nil {
+		c.logger.Error("Failed to batch delete appointments", "count", len(appointmentIDs), "error", err.Error())
+		return err
+	}
+
+	if response.Code != 200 {
+		return fmt.Errorf("appointments service error: %s", response.Message)
+	}
+
+	c.logger.Info("Successfully batch deleted appointments", "count", len(appointmentIDs))
+	return nil
+}

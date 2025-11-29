@@ -10,20 +10,17 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	staffv1 "github.com/julesChu12/fly/staff/api/proto/staff/v1"
+	"github.com/julesChu12/fly/mora/pkg/config"
+	moraDB "github.com/julesChu12/fly/mora/pkg/db"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/julesChu12/fly/staff/internal/application/service"
 	"github.com/julesChu12/fly/staff/internal/infrastructure/database"
 	grpcInterface "github.com/julesChu12/fly/staff/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/staff/internal/interface/http"
 	"github.com/julesChu12/fly/staff/internal/interface/http/middleware"
-	"github.com/julesChu12/fly/mora/pkg/config"
-	moraDB "github.com/julesChu12/fly/mora/pkg/db"
-	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/spf13/cobra"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 var serveCmd = &cobra.Command{
@@ -156,7 +153,7 @@ func runServer(cmd *cobra.Command, args []string) {
 // Config holds the application configuration
 type Config struct {
 	Server struct {
-	HTTPPort int `mapstructure:"http_port"`
+		HTTPPort int `mapstructure:"http_port"`
 		GRPCPort int `mapstructure:"grpc_port"`
 	} `mapstructure:"server"`
 	Database struct {
@@ -171,12 +168,12 @@ type Config struct {
 		Level        string `mapstructure:"level"`
 		Format       string `mapstructure:"format"`
 		OutputPath   string `mapstructure:"output_path"`
-	MaxSize      int    `mapstructure:"max_size"`
-	MaxBackups   int    `mapstructure:"max_backups"`
-	MaxAge       int    `mapstructure:"max_age"`
-	Compress     bool   `mapstructure:"compress"`
-	EnableStdout bool   `mapstructure:"enable_stdout"`
-	EnableFile   bool   `mapstructure:"enable_file"`
+		MaxSize      int    `mapstructure:"max_size"`
+		MaxBackups   int    `mapstructure:"max_backups"`
+		MaxAge       int    `mapstructure:"max_age"`
+		Compress     bool   `mapstructure:"compress"`
+		EnableStdout bool   `mapstructure:"enable_stdout"`
+		EnableFile   bool   `mapstructure:"enable_file"`
 	} `mapstructure:"logger"`
 }
 

@@ -1,5 +1,5 @@
 server:
-  port: "8080"
+  port: "8087"
   host: "0.0.0.0"
   read_timeout: 30s
   write_timeout: 30s
@@ -69,9 +69,14 @@ circuit_breaker:
 # gRPC client configurations
 services:
   custos:
-    address: "localhost:9001"
-    timeout: 30s
-    max_retries: 3
+    grpc:
+      address: "localhost:9001"
+      timeout: 30s
+      max_retries: 3
+    http:
+      address: "http://localhost:9002"
+      timeout: 30s
+      max_retries: 3
 
   orders:
     address: "localhost:9002"
@@ -106,6 +111,11 @@ services:
   appointments:
     address: "http://localhost:8083"
     timeout: 30s
+    max_retries: 3
+
+  items:
+    address: "http://localhost:8086"
+    timeout: 10s
     max_retries: 3
 
 # Database (if needed for caching or session management)

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v6.33.1
-// source: staff.proto
+// source: api/proto/staff/v1/staff.proto
 
 package staffv1
 
@@ -56,7 +56,7 @@ type Staff struct {
 
 func (x *Staff) Reset() {
 	*x = Staff{}
-	mi := &file_staff_proto_msgTypes[0]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -68,7 +68,7 @@ func (x *Staff) String() string {
 func (*Staff) ProtoMessage() {}
 
 func (x *Staff) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[0]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -81,7 +81,7 @@ func (x *Staff) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Staff.ProtoReflect.Descriptor instead.
 func (*Staff) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Staff) GetId() string {
@@ -258,7 +258,7 @@ type StaffRole struct {
 
 func (x *StaffRole) Reset() {
 	*x = StaffRole{}
-	mi := &file_staff_proto_msgTypes[1]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -270,7 +270,7 @@ func (x *StaffRole) String() string {
 func (*StaffRole) ProtoMessage() {}
 
 func (x *StaffRole) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[1]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -283,7 +283,7 @@ func (x *StaffRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StaffRole.ProtoReflect.Descriptor instead.
 func (*StaffRole) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{1}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *StaffRole) GetId() string {
@@ -381,7 +381,7 @@ type StaffAvailability struct {
 
 func (x *StaffAvailability) Reset() {
 	*x = StaffAvailability{}
-	mi := &file_staff_proto_msgTypes[2]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +393,7 @@ func (x *StaffAvailability) String() string {
 func (*StaffAvailability) ProtoMessage() {}
 
 func (x *StaffAvailability) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[2]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +406,7 @@ func (x *StaffAvailability) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StaffAvailability.ProtoReflect.Descriptor instead.
 func (*StaffAvailability) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{2}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *StaffAvailability) GetId() string {
@@ -486,7 +486,7 @@ type AvailabilityItem struct {
 
 func (x *AvailabilityItem) Reset() {
 	*x = AvailabilityItem{}
-	mi := &file_staff_proto_msgTypes[3]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -498,7 +498,7 @@ func (x *AvailabilityItem) String() string {
 func (*AvailabilityItem) ProtoMessage() {}
 
 func (x *AvailabilityItem) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[3]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -511,7 +511,7 @@ func (x *AvailabilityItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AvailabilityItem.ProtoReflect.Descriptor instead.
 func (*AvailabilityItem) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{3}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AvailabilityItem) GetDayOfWeek() int32 {
@@ -575,7 +575,7 @@ type CreateStaffRequest struct {
 
 func (x *CreateStaffRequest) Reset() {
 	*x = CreateStaffRequest{}
-	mi := &file_staff_proto_msgTypes[4]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +587,7 @@ func (x *CreateStaffRequest) String() string {
 func (*CreateStaffRequest) ProtoMessage() {}
 
 func (x *CreateStaffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[4]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -600,7 +600,7 @@ func (x *CreateStaffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStaffRequest.ProtoReflect.Descriptor instead.
 func (*CreateStaffRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{4}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateStaffRequest) GetName() string {
@@ -738,7 +738,7 @@ type CreateStaffResponse struct {
 
 func (x *CreateStaffResponse) Reset() {
 	*x = CreateStaffResponse{}
-	mi := &file_staff_proto_msgTypes[5]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -750,7 +750,7 @@ func (x *CreateStaffResponse) String() string {
 func (*CreateStaffResponse) ProtoMessage() {}
 
 func (x *CreateStaffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[5]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -763,7 +763,7 @@ func (x *CreateStaffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateStaffResponse.ProtoReflect.Descriptor instead.
 func (*CreateStaffResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{5}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateStaffResponse) GetStaff() *Staff {
@@ -782,7 +782,7 @@ type GetStaffRequest struct {
 
 func (x *GetStaffRequest) Reset() {
 	*x = GetStaffRequest{}
-	mi := &file_staff_proto_msgTypes[6]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -794,7 +794,7 @@ func (x *GetStaffRequest) String() string {
 func (*GetStaffRequest) ProtoMessage() {}
 
 func (x *GetStaffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[6]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -807,7 +807,7 @@ func (x *GetStaffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStaffRequest.ProtoReflect.Descriptor instead.
 func (*GetStaffRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{6}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetStaffRequest) GetId() string {
@@ -826,7 +826,7 @@ type GetStaffResponse struct {
 
 func (x *GetStaffResponse) Reset() {
 	*x = GetStaffResponse{}
-	mi := &file_staff_proto_msgTypes[7]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -838,7 +838,7 @@ func (x *GetStaffResponse) String() string {
 func (*GetStaffResponse) ProtoMessage() {}
 
 func (x *GetStaffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[7]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -851,7 +851,7 @@ func (x *GetStaffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStaffResponse.ProtoReflect.Descriptor instead.
 func (*GetStaffResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{7}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetStaffResponse) GetStaff() *Staff {
@@ -882,7 +882,7 @@ type ListStaffRequest struct {
 
 func (x *ListStaffRequest) Reset() {
 	*x = ListStaffRequest{}
-	mi := &file_staff_proto_msgTypes[8]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -894,7 +894,7 @@ func (x *ListStaffRequest) String() string {
 func (*ListStaffRequest) ProtoMessage() {}
 
 func (x *ListStaffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[8]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -907,7 +907,7 @@ func (x *ListStaffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStaffRequest.ProtoReflect.Descriptor instead.
 func (*ListStaffRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{8}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListStaffRequest) GetSearch() *wrapperspb.StringValue {
@@ -1013,7 +1013,7 @@ type ListStaffResponse struct {
 
 func (x *ListStaffResponse) Reset() {
 	*x = ListStaffResponse{}
-	mi := &file_staff_proto_msgTypes[9]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1025,7 +1025,7 @@ func (x *ListStaffResponse) String() string {
 func (*ListStaffResponse) ProtoMessage() {}
 
 func (x *ListStaffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[9]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1038,7 +1038,7 @@ func (x *ListStaffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListStaffResponse.ProtoReflect.Descriptor instead.
 func (*ListStaffResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{9}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListStaffResponse) GetStaff() []*Staff {
@@ -1096,7 +1096,7 @@ type UpdateStaffRequest struct {
 
 func (x *UpdateStaffRequest) Reset() {
 	*x = UpdateStaffRequest{}
-	mi := &file_staff_proto_msgTypes[10]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1108,7 @@ func (x *UpdateStaffRequest) String() string {
 func (*UpdateStaffRequest) ProtoMessage() {}
 
 func (x *UpdateStaffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[10]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1121,7 +1121,7 @@ func (x *UpdateStaffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStaffRequest.ProtoReflect.Descriptor instead.
 func (*UpdateStaffRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{10}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateStaffRequest) GetId() string {
@@ -1266,7 +1266,7 @@ type UpdateStaffResponse struct {
 
 func (x *UpdateStaffResponse) Reset() {
 	*x = UpdateStaffResponse{}
-	mi := &file_staff_proto_msgTypes[11]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1278,7 +1278,7 @@ func (x *UpdateStaffResponse) String() string {
 func (*UpdateStaffResponse) ProtoMessage() {}
 
 func (x *UpdateStaffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[11]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1291,7 +1291,7 @@ func (x *UpdateStaffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStaffResponse.ProtoReflect.Descriptor instead.
 func (*UpdateStaffResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{11}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateStaffResponse) GetStaff() *Staff {
@@ -1310,7 +1310,7 @@ type DeleteStaffRequest struct {
 
 func (x *DeleteStaffRequest) Reset() {
 	*x = DeleteStaffRequest{}
-	mi := &file_staff_proto_msgTypes[12]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1322,7 +1322,7 @@ func (x *DeleteStaffRequest) String() string {
 func (*DeleteStaffRequest) ProtoMessage() {}
 
 func (x *DeleteStaffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[12]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1335,7 +1335,7 @@ func (x *DeleteStaffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteStaffRequest.ProtoReflect.Descriptor instead.
 func (*DeleteStaffRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{12}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteStaffRequest) GetId() string {
@@ -1353,7 +1353,7 @@ type DeleteStaffResponse struct {
 
 func (x *DeleteStaffResponse) Reset() {
 	*x = DeleteStaffResponse{}
-	mi := &file_staff_proto_msgTypes[13]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1365,7 +1365,7 @@ func (x *DeleteStaffResponse) String() string {
 func (*DeleteStaffResponse) ProtoMessage() {}
 
 func (x *DeleteStaffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[13]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1378,7 +1378,7 @@ func (x *DeleteStaffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteStaffResponse.ProtoReflect.Descriptor instead.
 func (*DeleteStaffResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{13}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{13}
 }
 
 type UpdateStaffStatusRequest struct {
@@ -1392,7 +1392,7 @@ type UpdateStaffStatusRequest struct {
 
 func (x *UpdateStaffStatusRequest) Reset() {
 	*x = UpdateStaffStatusRequest{}
-	mi := &file_staff_proto_msgTypes[14]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1404,7 +1404,7 @@ func (x *UpdateStaffStatusRequest) String() string {
 func (*UpdateStaffStatusRequest) ProtoMessage() {}
 
 func (x *UpdateStaffStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[14]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1417,7 +1417,7 @@ func (x *UpdateStaffStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStaffStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateStaffStatusRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{14}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateStaffStatusRequest) GetId() string {
@@ -1450,7 +1450,7 @@ type UpdateStaffStatusResponse struct {
 
 func (x *UpdateStaffStatusResponse) Reset() {
 	*x = UpdateStaffStatusResponse{}
-	mi := &file_staff_proto_msgTypes[15]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1462,7 +1462,7 @@ func (x *UpdateStaffStatusResponse) String() string {
 func (*UpdateStaffStatusResponse) ProtoMessage() {}
 
 func (x *UpdateStaffStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[15]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1475,7 +1475,7 @@ func (x *UpdateStaffStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateStaffStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateStaffStatusResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{15}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateStaffStatusResponse) GetStaff() *Staff {
@@ -1496,7 +1496,7 @@ type GetAvailableStaffRequest struct {
 
 func (x *GetAvailableStaffRequest) Reset() {
 	*x = GetAvailableStaffRequest{}
-	mi := &file_staff_proto_msgTypes[16]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1508,7 +1508,7 @@ func (x *GetAvailableStaffRequest) String() string {
 func (*GetAvailableStaffRequest) ProtoMessage() {}
 
 func (x *GetAvailableStaffRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[16]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1521,7 +1521,7 @@ func (x *GetAvailableStaffRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailableStaffRequest.ProtoReflect.Descriptor instead.
 func (*GetAvailableStaffRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{16}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetAvailableStaffRequest) GetDepartment() *wrapperspb.StringValue {
@@ -1554,7 +1554,7 @@ type GetAvailableStaffResponse struct {
 
 func (x *GetAvailableStaffResponse) Reset() {
 	*x = GetAvailableStaffResponse{}
-	mi := &file_staff_proto_msgTypes[17]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1566,7 +1566,7 @@ func (x *GetAvailableStaffResponse) String() string {
 func (*GetAvailableStaffResponse) ProtoMessage() {}
 
 func (x *GetAvailableStaffResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[17]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1579,7 +1579,7 @@ func (x *GetAvailableStaffResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailableStaffResponse.ProtoReflect.Descriptor instead.
 func (*GetAvailableStaffResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{17}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetAvailableStaffResponse) GetStaff() []*Staff {
@@ -1600,7 +1600,7 @@ type ListRolesRequest struct {
 
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
-	mi := &file_staff_proto_msgTypes[18]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1612,7 +1612,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[18]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1625,7 +1625,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{18}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListRolesRequest) GetStatus() *wrapperspb.StringValue {
@@ -1658,7 +1658,7 @@ type ListRolesResponse struct {
 
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
-	mi := &file_staff_proto_msgTypes[19]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1670,7 +1670,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[19]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1683,7 +1683,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{19}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListRolesResponse) GetRoles() []*StaffRole {
@@ -1708,7 +1708,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_staff_proto_msgTypes[20]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1720,7 +1720,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[20]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1733,7 +1733,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{20}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateRoleRequest) GetName() string {
@@ -1794,7 +1794,7 @@ type CreateRoleResponse struct {
 
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
-	mi := &file_staff_proto_msgTypes[21]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1806,7 +1806,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[21]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1819,7 +1819,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{21}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CreateRoleResponse) GetRole() *StaffRole {
@@ -1838,7 +1838,7 @@ type GetRoleRequest struct {
 
 func (x *GetRoleRequest) Reset() {
 	*x = GetRoleRequest{}
-	mi := &file_staff_proto_msgTypes[22]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1850,7 +1850,7 @@ func (x *GetRoleRequest) String() string {
 func (*GetRoleRequest) ProtoMessage() {}
 
 func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[22]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1863,7 +1863,7 @@ func (x *GetRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleRequest.ProtoReflect.Descriptor instead.
 func (*GetRoleRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{22}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetRoleRequest) GetId() string {
@@ -1882,7 +1882,7 @@ type GetRoleResponse struct {
 
 func (x *GetRoleResponse) Reset() {
 	*x = GetRoleResponse{}
-	mi := &file_staff_proto_msgTypes[23]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1894,7 +1894,7 @@ func (x *GetRoleResponse) String() string {
 func (*GetRoleResponse) ProtoMessage() {}
 
 func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[23]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1907,7 +1907,7 @@ func (x *GetRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleResponse.ProtoReflect.Descriptor instead.
 func (*GetRoleResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{23}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetRoleResponse) GetRole() *StaffRole {
@@ -1933,7 +1933,7 @@ type UpdateRoleRequest struct {
 
 func (x *UpdateRoleRequest) Reset() {
 	*x = UpdateRoleRequest{}
-	mi := &file_staff_proto_msgTypes[24]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1945,7 +1945,7 @@ func (x *UpdateRoleRequest) String() string {
 func (*UpdateRoleRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[24]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1958,7 +1958,7 @@ func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{24}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateRoleRequest) GetId() string {
@@ -2026,7 +2026,7 @@ type UpdateRoleResponse struct {
 
 func (x *UpdateRoleResponse) Reset() {
 	*x = UpdateRoleResponse{}
-	mi := &file_staff_proto_msgTypes[25]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2038,7 +2038,7 @@ func (x *UpdateRoleResponse) String() string {
 func (*UpdateRoleResponse) ProtoMessage() {}
 
 func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[25]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2051,7 +2051,7 @@ func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{25}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdateRoleResponse) GetRole() *StaffRole {
@@ -2070,7 +2070,7 @@ type DeleteRoleRequest struct {
 
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
-	mi := &file_staff_proto_msgTypes[26]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2082,7 +2082,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[26]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2095,7 +2095,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{26}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *DeleteRoleRequest) GetId() string {
@@ -2113,7 +2113,7 @@ type DeleteRoleResponse struct {
 
 func (x *DeleteRoleResponse) Reset() {
 	*x = DeleteRoleResponse{}
-	mi := &file_staff_proto_msgTypes[27]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +2125,7 @@ func (x *DeleteRoleResponse) String() string {
 func (*DeleteRoleResponse) ProtoMessage() {}
 
 func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[27]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +2138,7 @@ func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{27}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{27}
 }
 
 type GetAvailabilityRequest struct {
@@ -2150,7 +2150,7 @@ type GetAvailabilityRequest struct {
 
 func (x *GetAvailabilityRequest) Reset() {
 	*x = GetAvailabilityRequest{}
-	mi := &file_staff_proto_msgTypes[28]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2162,7 +2162,7 @@ func (x *GetAvailabilityRequest) String() string {
 func (*GetAvailabilityRequest) ProtoMessage() {}
 
 func (x *GetAvailabilityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[28]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2175,7 +2175,7 @@ func (x *GetAvailabilityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailabilityRequest.ProtoReflect.Descriptor instead.
 func (*GetAvailabilityRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{28}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetAvailabilityRequest) GetStaffId() string {
@@ -2194,7 +2194,7 @@ type GetAvailabilityResponse struct {
 
 func (x *GetAvailabilityResponse) Reset() {
 	*x = GetAvailabilityResponse{}
-	mi := &file_staff_proto_msgTypes[29]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2206,7 +2206,7 @@ func (x *GetAvailabilityResponse) String() string {
 func (*GetAvailabilityResponse) ProtoMessage() {}
 
 func (x *GetAvailabilityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[29]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2219,7 +2219,7 @@ func (x *GetAvailabilityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvailabilityResponse.ProtoReflect.Descriptor instead.
 func (*GetAvailabilityResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{29}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetAvailabilityResponse) GetAvailabilities() []*StaffAvailability {
@@ -2239,7 +2239,7 @@ type SetAvailabilityRequest struct {
 
 func (x *SetAvailabilityRequest) Reset() {
 	*x = SetAvailabilityRequest{}
-	mi := &file_staff_proto_msgTypes[30]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2251,7 +2251,7 @@ func (x *SetAvailabilityRequest) String() string {
 func (*SetAvailabilityRequest) ProtoMessage() {}
 
 func (x *SetAvailabilityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[30]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2264,7 +2264,7 @@ func (x *SetAvailabilityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAvailabilityRequest.ProtoReflect.Descriptor instead.
 func (*SetAvailabilityRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{30}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SetAvailabilityRequest) GetStaffId() string {
@@ -2290,7 +2290,7 @@ type SetAvailabilityResponse struct {
 
 func (x *SetAvailabilityResponse) Reset() {
 	*x = SetAvailabilityResponse{}
-	mi := &file_staff_proto_msgTypes[31]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2302,7 +2302,7 @@ func (x *SetAvailabilityResponse) String() string {
 func (*SetAvailabilityResponse) ProtoMessage() {}
 
 func (x *SetAvailabilityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[31]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2315,7 +2315,7 @@ func (x *SetAvailabilityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAvailabilityResponse.ProtoReflect.Descriptor instead.
 func (*SetAvailabilityResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{31}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SetAvailabilityResponse) GetAvailabilities() []*StaffAvailability {
@@ -2335,7 +2335,7 @@ type GetStaffAvailabilityRequest struct {
 
 func (x *GetStaffAvailabilityRequest) Reset() {
 	*x = GetStaffAvailabilityRequest{}
-	mi := &file_staff_proto_msgTypes[32]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2347,7 +2347,7 @@ func (x *GetStaffAvailabilityRequest) String() string {
 func (*GetStaffAvailabilityRequest) ProtoMessage() {}
 
 func (x *GetStaffAvailabilityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[32]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2360,7 +2360,7 @@ func (x *GetStaffAvailabilityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStaffAvailabilityRequest.ProtoReflect.Descriptor instead.
 func (*GetStaffAvailabilityRequest) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{32}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetStaffAvailabilityRequest) GetStaffId() string {
@@ -2386,7 +2386,7 @@ type GetStaffAvailabilityResponse struct {
 
 func (x *GetStaffAvailabilityResponse) Reset() {
 	*x = GetStaffAvailabilityResponse{}
-	mi := &file_staff_proto_msgTypes[33]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2398,7 +2398,7 @@ func (x *GetStaffAvailabilityResponse) String() string {
 func (*GetStaffAvailabilityResponse) ProtoMessage() {}
 
 func (x *GetStaffAvailabilityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_staff_proto_msgTypes[33]
+	mi := &file_api_proto_staff_v1_staff_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2411,7 +2411,7 @@ func (x *GetStaffAvailabilityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStaffAvailabilityResponse.ProtoReflect.Descriptor instead.
 func (*GetStaffAvailabilityResponse) Descriptor() ([]byte, []int) {
-	return file_staff_proto_rawDescGZIP(), []int{33}
+	return file_api_proto_staff_v1_staff_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetStaffAvailabilityResponse) GetAvailabilities() []*StaffAvailability {
@@ -2421,11 +2421,11 @@ func (x *GetStaffAvailabilityResponse) GetAvailabilities() []*StaffAvailability 
 	return nil
 }
 
-var File_staff_proto protoreflect.FileDescriptor
+var File_api_proto_staff_v1_staff_proto protoreflect.FileDescriptor
 
-const file_staff_proto_rawDesc = "" +
+const file_api_proto_staff_v1_staff_proto_rawDesc = "" +
 	"\n" +
-	"\vstaff.proto\x12\bstaff.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x99\a\n" +
+	"\x1eapi/proto/staff/v1/staff.proto\x12\bstaff.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\x1a\x1cgoogle/protobuf/struct.proto\"\x99\a\n" +
 	"\x05Staff\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x125\n" +
 	"\auser_id\x18\x02 \x01(\v2\x1c.google.protobuf.StringValueR\x06userId\x12\x12\n" +
@@ -2657,19 +2657,19 @@ const file_staff_proto_rawDesc = "" +
 	"\x14GetStaffAvailability\x12%.staff.v1.GetStaffAvailabilityRequest\x1a&.staff.v1.GetStaffAvailabilityResponseB<Z:github.com/julesChu12/fly/staff/api/proto/staff/v1;staffv1b\x06proto3"
 
 var (
-	file_staff_proto_rawDescOnce sync.Once
-	file_staff_proto_rawDescData []byte
+	file_api_proto_staff_v1_staff_proto_rawDescOnce sync.Once
+	file_api_proto_staff_v1_staff_proto_rawDescData []byte
 )
 
-func file_staff_proto_rawDescGZIP() []byte {
-	file_staff_proto_rawDescOnce.Do(func() {
-		file_staff_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_staff_proto_rawDesc), len(file_staff_proto_rawDesc)))
+func file_api_proto_staff_v1_staff_proto_rawDescGZIP() []byte {
+	file_api_proto_staff_v1_staff_proto_rawDescOnce.Do(func() {
+		file_api_proto_staff_v1_staff_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_proto_staff_v1_staff_proto_rawDesc), len(file_api_proto_staff_v1_staff_proto_rawDesc)))
 	})
-	return file_staff_proto_rawDescData
+	return file_api_proto_staff_v1_staff_proto_rawDescData
 }
 
-var file_staff_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
-var file_staff_proto_goTypes = []any{
+var file_api_proto_staff_v1_staff_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_api_proto_staff_v1_staff_proto_goTypes = []any{
 	(*Staff)(nil),                        // 0: staff.v1.Staff
 	(*StaffRole)(nil),                    // 1: staff.v1.StaffRole
 	(*StaffAvailability)(nil),            // 2: staff.v1.StaffAvailability
@@ -2711,7 +2711,7 @@ var file_staff_proto_goTypes = []any{
 	(*wrapperspb.BoolValue)(nil),         // 38: google.protobuf.BoolValue
 	(*wrapperspb.Int32Value)(nil),        // 39: google.protobuf.Int32Value
 }
-var file_staff_proto_depIdxs = []int32{
+var file_api_proto_staff_v1_staff_proto_depIdxs = []int32{
 	34, // 0: staff.v1.Staff.user_id:type_name -> google.protobuf.StringValue
 	34, // 1: staff.v1.Staff.birthday:type_name -> google.protobuf.StringValue
 	34, // 2: staff.v1.Staff.avatar:type_name -> google.protobuf.StringValue
@@ -2825,26 +2825,26 @@ var file_staff_proto_depIdxs = []int32{
 	0,  // [0:76] is the sub-list for field type_name
 }
 
-func init() { file_staff_proto_init() }
-func file_staff_proto_init() {
-	if File_staff_proto != nil {
+func init() { file_api_proto_staff_v1_staff_proto_init() }
+func file_api_proto_staff_v1_staff_proto_init() {
+	if File_api_proto_staff_v1_staff_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_staff_proto_rawDesc), len(file_staff_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_staff_v1_staff_proto_rawDesc), len(file_api_proto_staff_v1_staff_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_staff_proto_goTypes,
-		DependencyIndexes: file_staff_proto_depIdxs,
-		MessageInfos:      file_staff_proto_msgTypes,
+		GoTypes:           file_api_proto_staff_v1_staff_proto_goTypes,
+		DependencyIndexes: file_api_proto_staff_v1_staff_proto_depIdxs,
+		MessageInfos:      file_api_proto_staff_v1_staff_proto_msgTypes,
 	}.Build()
-	File_staff_proto = out.File
-	file_staff_proto_goTypes = nil
-	file_staff_proto_depIdxs = nil
+	File_api_proto_staff_v1_staff_proto = out.File
+	file_api_proto_staff_v1_staff_proto_goTypes = nil
+	file_api_proto_staff_v1_staff_proto_depIdxs = nil
 }

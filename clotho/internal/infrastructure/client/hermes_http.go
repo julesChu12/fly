@@ -474,3 +474,60 @@ func (c *CustomerHTTPClient) doRequest(ctx context.Context, method, url string, 
 
 	return nil
 }
+
+// BatchDeleteCustomers batch deletes customers by IDs
+func (c *CustomerHTTPClient) BatchDeleteCustomers(ctx context.Context, customerIDs []uint) error {
+	url := c.buildURL("/api/customers/batch", nil)
+
+	requestBody := map[string][]uint{
+		"ids": customerIDs,
+	}
+
+	var response struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+
+	err := c.doRequest(ctx, "DELETE", url, requestBody, &response)
+	if err != nil {
+		c.logger.Error("Failed to batch delete customers", "count", len(customerIDs), "error", err.Error())
+		return err
+	}
+
+	if response.Code != 200 {
+		return fmt.Errorf("hermes service error: %s", response.Message)
+	}
+
+	c.logger.Info("Successfully batch deleted customers", "count", len(customerIDs))
+	return nil
+}
+// GetCustomerStats retrieves customer statistics from the service
+func (c *CustomerHTTPClient) GetCustomerStats(ctx context.Context) (map[string]interface{}, error) {
+	url := fmt.Sprintf("%s/api/v1/customers/stats", c.baseURL)
+
+	resp, err := c.httpClient.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get customer stats: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("get customer stats failed: status %d", resp.StatusCode)
+	}
+
+	var response struct {
+		Code    int                    `json:"code"`
+		Message string                 `json:"message"`
+		Data    map[string]interface{} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	if response.Code != http.StatusOK {
+		return nil, fmt.Errorf("get customer stats failed: %s", response.Message)
+	}
+
+	return response.Data, nil
+}

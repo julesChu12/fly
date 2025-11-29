@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -31,6 +32,7 @@ func (h *AppointmentHandler) RegisterRoutes(router *gin.RouterGroup) {
 		appointments.GET("/:id", h.GetAppointment)                   // 获取预约详情
 		appointments.PUT("/:id", h.UpdateAppointment)                // 更新预约
 		appointments.DELETE("/:id", h.DeleteAppointment)             // 删除预约
+		appointments.DELETE("/batch", h.BatchDeleteAppointments)     // 批量删除预约
 		appointments.PUT("/:id/status", h.UpdateStatus)              // 更新预约状态
 
 		// 可用性和冲突检查
@@ -546,6 +548,59 @@ func (h *AppointmentHandler) GetAppointmentsByEmployee(c *gin.Context) {
 	})
 }
 
+// BatchDeleteAppointments godoc
+// @Summary 批量删除预约
+// @Description 批量删除指定的预约
+// @Tags appointments
+// @Accept json
+// @Produce json
+// @Param request body map[string][]int true "预约ID列表"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /appointments/batch [delete]
+func (h *AppointmentHandler) BatchDeleteAppointments(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "参数错误",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "预约ID列表不能为空",
+		})
+		return
+	}
+
+	// 批量删除预约
+	err := h.appointmentProxy.BatchDeleteAppointments(c.Request.Context(), req.IDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "批量删除预约失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "批量删除成功",
+		"data": gin.H{
+			"deleted_count": len(req.IDs),
+		},
+	})
+}
+
 // Helper functions
 
 func stringPtr(s string) *string {
@@ -563,4 +618,32 @@ func parseIntQueryParam(s string, defaultValue int) int {
 		return val
 	}
 	return defaultValue
+}
+// GetAppointmentStats godoc
+// @Summary 获取预约统计信息
+// @Description 获取预约相关的统计数据，包括总数、待确认、已完成等
+// @Tags appointments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/appointments/appointments/stats [get]
+func (h *AppointmentHandler) GetAppointmentStats(c *gin.Context) {
+	var stats interface{} = map[string]interface{}{}
+	err := fmt.Errorf("not implemented yet")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "获取预约统计失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "获取成功",
+		"data":    stats,
+	})
 }

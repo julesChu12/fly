@@ -328,3 +328,36 @@ func (p *CustomerProxy) validateUpdateContactRequest(req *client.UpdateContactRe
 	}
 	return nil
 }
+
+// BatchDeleteCustomers batch deletes customers by IDs
+func (p *CustomerProxy) BatchDeleteCustomers(ctx context.Context, customerIDs []uint) error {
+	p.logger.Info("Batch deleting customers", "count", len(customerIDs))
+
+	start := time.Now()
+	err := p.customerClient.BatchDeleteCustomers(ctx, customerIDs)
+	duration := time.Since(start)
+
+	if err != nil {
+		p.logger.Error("Failed to batch delete customers", "error", err.Error(), "duration", duration)
+		return fmt.Errorf("failed to batch delete customers: %w", err)
+	}
+
+	p.logger.Info("Successfully batch deleted customers", "count", len(customerIDs), "duration", duration)
+	return nil
+}
+// GetCustomerStats retrieves customer statistics
+func (p *CustomerProxy) GetCustomerStats(ctx context.Context) (map[string]interface{}, error) {
+	p.logger.Info("Retrieving customer statistics")
+
+	start := time.Now()
+	stats, err := p.customerClient.GetCustomerStats(ctx)
+	duration := time.Since(start)
+
+	if err != nil {
+		p.logger.Error("Failed to retrieve customer statistics", "error", err.Error(), "duration", duration)
+		return nil, fmt.Errorf("failed to retrieve customer statistics: %w", err)
+	}
+
+	p.logger.Info("Successfully retrieved customer statistics", "duration", duration)
+	return stats, nil
+}

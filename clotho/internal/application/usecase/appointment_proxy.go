@@ -347,3 +347,20 @@ func (p *AppointmentProxy) validateStatusTransition(status string) error {
 
 	return nil
 }
+
+// BatchDeleteAppointments batch deletes appointments by IDs
+func (p *AppointmentProxy) BatchDeleteAppointments(ctx context.Context, appointmentIDs []uint) error {
+	p.logger.Info("Batch deleting appointments", "count", len(appointmentIDs))
+
+	start := time.Now()
+	err := p.appointmentClient.BatchDeleteAppointments(ctx, appointmentIDs)
+	duration := time.Since(start)
+
+	if err != nil {
+		p.logger.Error("Failed to batch delete appointments", "error", err.Error(), "duration", duration)
+		return fmt.Errorf("failed to batch delete appointments: %w", err)
+	}
+
+	p.logger.Info("Successfully batch deleted appointments", "count", len(appointmentIDs), "duration", duration)
+	return nil
+}

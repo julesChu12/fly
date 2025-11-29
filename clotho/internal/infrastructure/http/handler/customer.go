@@ -23,17 +23,21 @@ func NewCustomerHandler(customerProxy *usecase.CustomerProxy) *CustomerHandler {
 
 // RegisterRoutes registers customer-related routes
 func (h *CustomerHandler) RegisterRoutes(router *gin.RouterGroup) {
-	customers := router.Group("/customers")
 	{
-		customers.GET("", h.ListCustomers)                    // 获取客户列表
-		customers.POST("", h.CreateCustomer)                  // 创建客户
-		customers.GET("/:id", h.GetCustomer)                   // 获取客户详情
-		customers.PUT("/:id", h.UpdateCustomer)                // 更新客户
-		customers.DELETE("/:id", h.DeleteCustomer)             // 删除客户
-		customers.GET("/search", h.SearchCustomers)             // 搜索客户
+		// 客户管理路由（不需要 /customers 前缀，因为组已经是 /customers）
+		router.GET("", h.ListCustomers)                    // 获取客户列表
+		router.POST("", h.CreateCustomer)                  // 创建客户
+		router.GET("/search", h.SearchCustomers)           // 搜索客户
+		router.DELETE("/batch", h.BatchDeleteCustomers)    // 批量删除客户
+		router.GET("/stats", h.GetCustomerStats)           // 获取客户统计信息
 
-		// 联系人管理
-		contacts := customers.Group("/:customerId/contacts")
+		// 客户详情路由 - 使用更具体的参数名避免与联系人路由冲突
+		router.GET("/customer/:id", h.GetCustomer)         // 获取客户详情
+		router.PUT("/customer/:id", h.UpdateCustomer)      // 更新客户
+		router.DELETE("/customer/:id", h.DeleteCustomer)   // 删除客户
+
+		// 联系人管理 - 现在不会与 /customer/:id 冲突
+		contacts := router.Group("/:customerId/contacts")
 		{
 			contacts.GET("", h.GetContacts)               // 获取客户联系人列表
 			contacts.POST("", h.CreateContact)           // 创建联系人
@@ -549,3 +553,85 @@ func (h *CustomerHandler) DeleteContact(c *gin.Context) {
 	})
 }
 
+// BatchDeleteCustomers godoc
+// @Summary 批量删除客户
+// @Description 批量删除指定的客户
+// @Tags customers
+// @Accept json
+// @Produce json
+// @Param request body map[string][]int true "客户ID列表"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /customers/batch [delete]
+func (h *CustomerHandler) BatchDeleteCustomers(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "参数错误",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "客户ID列表不能为空",
+		})
+		return
+	}
+
+	// 批量删除客户
+	err := h.customerProxy.BatchDeleteCustomers(c.Request.Context(), req.IDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "批量删除客户失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "���量删除成功",
+		"data": gin.H{
+			"deleted_count": len(req.IDs),
+		},
+	})
+}
+
+
+// GetCustomerStats godoc
+// @Summary 获取客户统计信息
+// @Description 获取客户相关的统计数据，包括总数、活跃客户、新增客户等
+// @Tags customers
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/v1/customers/stats [get]
+func (h *CustomerHandler) GetCustomerStats(c *gin.Context) {
+	// 调用客户代理获取统计信息
+	stats, err := h.customerProxy.GetCustomerStats(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "获取客户统计失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "获取成功",
+		"data":    stats,
+	})
+}

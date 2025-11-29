@@ -1,0 +1,59 @@
+server:
+  port: "8086"
+  host: "0.0.0.0"
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 60
+
+app:
+  mode: "development"
+  name: "items-service"
+
+database:
+  driver: "mysql"
+  host: "localhost"
+  port: 3306
+  username: "root"
+  password: ""
+  database: "items_db"
+  charset: "utf8mb4"
+  parse_time: true
+  loc: "Local"
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600
+
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+# Redis configuration for caching
+redis:
+  address: "localhost:6379"
+  password: ""
+  db: 0
+  pool_size: 10
+  min_idle_conns: 5
+
+# gRPC configuration
+grpc:
+  port: "50056"
+  timeout: 30
+  max_recv_msg_size: 4194304  # 4MB
+  max_send_msg_size: 4194304  # 4MB
+
+# Service discovery
+discovery:
+  enabled: false
+  consul:
+    address: "localhost:8500"
+    health_check_interval: 10
+
+# OpenTelemetry observability configuration
+observability:
+  service_name: "items"
+  exporter_url: "http://jaeger:4317"
+  sample_ratio: 1.0
+  environment: "development"
+  exporter_type: "stdout"

@@ -30,6 +30,7 @@ func (h *StaffHandler) RegisterRoutes(router *gin.RouterGroup) {
 		staff.GET("/:id", h.GetStaff)                   // 获取员工详情
 		staff.PUT("/:id", h.UpdateStaff)                // 更新员工
 		staff.DELETE("/:id", h.DeleteStaff)             // 删除员工
+		staff.DELETE("/batch", h.BatchDeleteStaff)      // 批量删除员工
 		staff.PUT("/:id/status", h.UpdateStatus)         // 更新员工状态
 		staff.GET("/available", h.GetAvailableStaff)    // 获取可用员工
 	}
@@ -517,5 +518,58 @@ func (h *StaffHandler) SetAvailability(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code":    200,
 		"message": "设置成功",
+	})
+}
+
+// BatchDeleteStaff godoc
+// @Summary 批量删除员工
+// @Description 批量删除指定的员工
+// @Tags staff
+// @Accept json
+// @Produce json
+// @Param request body map[string][]int true "员工ID列表"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /employees/batch [delete]
+func (h *StaffHandler) BatchDeleteStaff(c *gin.Context) {
+	var req struct {
+		IDs []uint `json:"ids" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "参数错误",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    400,
+			"message": "员工ID列表不能为空",
+		})
+		return
+	}
+
+	// 批量删除员工
+	err := h.staffProxy.BatchDeleteStaff(c.Request.Context(), req.IDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"code":    500,
+			"message": "批量删除员工失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "批量删除成功",
+		"data": gin.H{
+			"deleted_count": len(req.IDs),
+		},
 	})
 }

@@ -601,3 +601,30 @@ func (c *StaffHTTPClient) doRequest(ctx context.Context, method, url string, bod
 
 	return nil
 }
+
+// BatchDeleteStaff batch deletes staff members by IDs
+func (c *StaffHTTPClient) BatchDeleteStaff(ctx context.Context, staffIDs []uint) error {
+	url := c.buildURL("/api/employees/batch", nil)
+
+	requestBody := map[string][]uint{
+		"ids": staffIDs,
+	}
+
+	var response struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+
+	err := c.doRequest(ctx, "DELETE", url, requestBody, &response)
+	if err != nil {
+		c.logger.Error("Failed to batch delete staff", "count", len(staffIDs), "error", err.Error())
+		return err
+	}
+
+	if response.Code != 200 {
+		return fmt.Errorf("staff service error: %s", response.Message)
+	}
+
+	c.logger.Info("Successfully batch deleted staff", "count", len(staffIDs))
+	return nil
+}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/kratos/internal/domain/entity"
+	"github.com/julesChu12/fly/kratos/pkg/constants"
 	"github.com/julesChu12/fly/kratos/pkg/errors"
 	"github.com/julesChu12/fly/kratos/pkg/types"
 )
@@ -410,9 +411,9 @@ func TestCreateOrder_MissingHeaders(t *testing.T) {
 
 	handler.CreateOrder(c)
 
-	// Should still work, as context will be empty
-	if w.Code != http.StatusCreated {
-		t.Errorf("Expected status code %d, got %d", http.StatusCreated, w.Code)
+	// Should return 400 because tenant ID is required
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, w.Code)
 	}
 }
 
@@ -565,19 +566,19 @@ func TestAddContextFromHeaders_VariousFormats(t *testing.T) {
 
 			// Verify context values
 			if tt.expectedTenant != 0 {
-				if tenantID := ctx.Value("tenant_id"); tenantID == nil {
+				if tenantID := ctx.Value(constants.ContextKeyTenantID); tenantID == nil {
 					t.Error("Expected tenant_id in context")
 				}
 			}
 
 			if tt.expectedUser != 0 {
-				if userID := ctx.Value("user_id"); userID == nil {
+				if userID := ctx.Value(constants.ContextKeyUserID); userID == nil {
 					t.Error("Expected user_id in context")
 				}
 			}
 
 			if tt.headers["X-Trace-ID"] != "" {
-				if traceID := ctx.Value("trace_id"); traceID == nil {
+				if traceID := ctx.Value(constants.ContextKeyTraceID); traceID == nil {
 					t.Error("Expected trace_id in context")
 				}
 			}

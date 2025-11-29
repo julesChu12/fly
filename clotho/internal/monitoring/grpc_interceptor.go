@@ -631,9 +631,30 @@ func (i *GRPCInterceptor) GetMetrics() map[string]*GRPCMetrics {
 
 	metrics := make(map[string]*GRPCMetrics)
 	for key, metric := range i.metrics {
-		// Return a copy to avoid concurrent modifications
-		metricCopy := *metric
-		metrics[key] = &metricCopy
+		// Create a new copy without copying the mutex
+		metric.mu.RLock()
+		metricCopy := &GRPCMetrics{
+			ServiceName:       metric.ServiceName,
+			MethodName:        metric.MethodName,
+			RequestCount:      metric.RequestCount,
+			SuccessCount:      metric.SuccessCount,
+			ErrorCount:        metric.ErrorCount,
+			TotalDuration:     metric.TotalDuration,
+			MinDuration:       metric.MinDuration,
+			MaxDuration:       metric.MaxDuration,
+			AverageDuration:   metric.AverageDuration,
+			LastRequestTime:   metric.LastRequestTime,
+			TotalRequestSize:  metric.TotalRequestSize,
+			TotalResponseSize: metric.TotalResponseSize,
+			ErrorCodes:        make(map[codes.Code]int64),
+			LastUpdated:       metric.LastUpdated,
+		}
+		// Copy error codes
+		for code, count := range metric.ErrorCodes {
+			metricCopy.ErrorCodes[code] = count
+		}
+		metric.mu.RUnlock()
+		metrics[key] = metricCopy
 	}
 	return metrics
 }
