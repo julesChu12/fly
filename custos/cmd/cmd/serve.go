@@ -27,8 +27,6 @@ import (
 	"github.com/spf13/cobra"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
-	_ "github.com/julesChu12/fly/custos/docs" // Swagger docs
 )
 
 var serveCmd = &cobra.Command{

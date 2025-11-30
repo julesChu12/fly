@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/julesChu12/fly/custos/cmd/userd/cmd"
+	"github.com/julesChu12/fly/custos/cmd/cmd"
 )
 
 // @title Custos User & Authentication Service API
