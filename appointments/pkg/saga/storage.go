@@ -38,17 +38,17 @@ type SagaStorage interface {
 // MemorySagaStorage 内存Saga存储实现
 type MemorySagaStorage struct {
 	transactions map[string]*SagaTransaction
-	stats       *SagaStats
-	mu          sync.RWMutex
-	logger      *logger.Logger
+	stats        *SagaStats
+	mu           sync.RWMutex
+	logger       *logger.Logger
 }
 
 // NewMemorySagaStorage 创建内存Saga存储
 func NewMemorySagaStorage(logger *logger.Logger) *MemorySagaStorage {
 	return &MemorySagaStorage{
-	transactions: make(map[string]*SagaTransaction),
-		stats:       &SagaStats{},
-		logger:      logger,
+		transactions: make(map[string]*SagaTransaction),
+		stats:        &SagaStats{},
+		logger:       logger,
 	}
 }
 
@@ -57,15 +57,35 @@ func (m *MemorySagaStorage) SaveSaga(ctx context.Context, saga *SagaTransaction)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	// 深拷贝Saga以避免外部修改
-	sagaCopy := *saga
-	m.transactions[saga.ID] = &sagaCopy
+	// 深拷贝Saga以避免外部修改，不包含互斥锁
+	sagaCopy := &SagaTransaction{
+		ID:             saga.ID,
+		Name:           saga.Name,
+		Description:    saga.Description,
+		Steps:          make([]*SagaStep, len(saga.Steps)),
+		Status:         saga.Status,
+		CurrentStep:    saga.CurrentStep,
+		Payload:        saga.Payload,
+		CompletedSteps: saga.CompletedSteps,
+		FailedSteps:    saga.FailedSteps,
+		StartTime:      saga.StartTime,
+		EndTime:        saga.EndTime,
+		CompensateAll:  saga.CompensateAll,
+		CreatedAt:      saga.CreatedAt,
+		UpdatedAt:      saga.UpdatedAt,
+	}
+	// 深拷贝步骤
+	for i, step := range saga.Steps {
+		stepCopy := *step
+		sagaCopy.Steps[i] = &stepCopy
+	}
+	m.transactions[saga.ID] = sagaCopy
 
 	m.logger.Debug("Saga事务已保存",
 		map[string]interface{}{
-		"saga_id": saga.ID,
-		"status":  saga.Status,
-	})
+			"saga_id": saga.ID,
+			"status":  saga.Status,
+		})
 
 	return nil
 }
@@ -76,13 +96,29 @@ func (m *MemorySagaStorage) GetSaga(ctx context.Context, sagaID string) (*SagaTr
 	defer m.mu.RUnlock()
 
 	if saga, exists := m.transactions[sagaID]; exists {
-		// 返回深拷贝
-		sagaCopy := *saga
+		// 返回深拷贝，不包含互斥锁
+		sagaCopy := &SagaTransaction{
+			ID:             saga.ID,
+			Name:           saga.Name,
+			Description:    saga.Description,
+			Steps:          make([]*SagaStep, len(saga.Steps)),
+			Status:         saga.Status,
+			CurrentStep:    saga.CurrentStep,
+			Payload:        saga.Payload,
+			CompletedSteps: saga.CompletedSteps,
+			FailedSteps:    saga.FailedSteps,
+			StartTime:      saga.StartTime,
+			EndTime:        saga.EndTime,
+			CompensateAll:  saga.CompensateAll,
+			CreatedAt:      saga.CreatedAt,
+			UpdatedAt:      saga.UpdatedAt,
+		}
 		// 深拷贝步骤
-		sagaCopy.Steps = make([]*SagaStep, len(saga.Steps))
-		copy(saga.Steps, saga.Steps)
-
-		return &sagaCopy, nil
+		for i, step := range saga.Steps {
+			stepCopy := *step
+			sagaCopy.Steps[i] = &stepCopy
+		}
+		return sagaCopy, nil
 	}
 
 	return nil, fmt.Errorf("Saga不存在: %s", sagaID)
@@ -119,11 +155,29 @@ func (m *MemorySagaStorage) ListSagas(ctx context.Context, filter *SagaFilter) (
 			continue
 		}
 
-		// 返回深拷贝
-		sagaCopy := *saga
-		sagaCopy.Steps = make([]*SagaStep, len(saga.Steps))
-		copy(sagaCopy.Steps, saga.Steps)
-		sagas = append(sagas, &sagaCopy)
+		// 返回深拷贝，不包含互斥锁
+		sagaCopy := &SagaTransaction{
+			ID:             saga.ID,
+			Name:           saga.Name,
+			Description:    saga.Description,
+			Steps:          make([]*SagaStep, len(saga.Steps)),
+			Status:         saga.Status,
+			CurrentStep:    saga.CurrentStep,
+			Payload:        saga.Payload,
+			CompletedSteps: saga.CompletedSteps,
+			FailedSteps:    saga.FailedSteps,
+			StartTime:      saga.StartTime,
+			EndTime:        saga.EndTime,
+			CompensateAll:  saga.CompensateAll,
+			CreatedAt:      saga.CreatedAt,
+			UpdatedAt:      saga.UpdatedAt,
+		}
+		// 深拷贝步骤
+		for i, step := range saga.Steps {
+			stepCopy := *step
+			sagaCopy.Steps[i] = &stepCopy
+		}
+		sagas = append(sagas, sagaCopy)
 	}
 
 	// 排序
@@ -185,9 +239,29 @@ func (m *MemorySagaStorage) BatchSave(ctx context.Context, sagas []*SagaTransact
 	defer m.mu.Unlock()
 
 	for _, saga := range sagas {
-		// 深拷贝Saga
-		sagaCopy := *saga
-		m.transactions[saga.ID] = &sagaCopy
+		// 深拷贝Saga，不包含互斥锁
+		sagaCopy := &SagaTransaction{
+			ID:             saga.ID,
+			Name:           saga.Name,
+			Description:    saga.Description,
+			Steps:          make([]*SagaStep, len(saga.Steps)),
+			Status:         saga.Status,
+			CurrentStep:    saga.CurrentStep,
+			Payload:        saga.Payload,
+			CompletedSteps: saga.CompletedSteps,
+			FailedSteps:    saga.FailedSteps,
+			StartTime:      saga.StartTime,
+			EndTime:        saga.EndTime,
+			CompensateAll:  saga.CompensateAll,
+			CreatedAt:      saga.CreatedAt,
+			UpdatedAt:      saga.UpdatedAt,
+		}
+		// 深拷贝步骤
+		for i, step := range saga.Steps {
+			stepCopy := *step
+			sagaCopy.Steps[i] = &stepCopy
+		}
+		m.transactions[saga.ID] = sagaCopy
 	}
 
 	m.logger.Debug("批量保存Saga事务完成",
@@ -291,11 +365,29 @@ func (j *JSONSagaStorage) GetSaga(ctx context.Context, sagaID string) (*SagaTran
 
 	for _, saga := range sagas {
 		if saga.ID == sagaID {
-			// 返回深拷贝
-			sagaCopy := *saga
-			sagaCopy.Steps = make([]*SagaStep, len(saga.Steps))
-			copy(sagaCopy.Steps, saga.Steps)
-			return &sagaCopy, nil
+			// 返回深拷贝，不包含互斥锁
+			sagaCopy := &SagaTransaction{
+				ID:             saga.ID,
+				Name:           saga.Name,
+				Description:    saga.Description,
+				Steps:          make([]*SagaStep, len(saga.Steps)),
+				Status:         saga.Status,
+				CurrentStep:    saga.CurrentStep,
+				Payload:        saga.Payload,
+				CompletedSteps: saga.CompletedSteps,
+				FailedSteps:    saga.FailedSteps,
+				StartTime:      saga.StartTime,
+				EndTime:        saga.EndTime,
+				CompensateAll:  saga.CompensateAll,
+				CreatedAt:      saga.CreatedAt,
+				UpdatedAt:      saga.UpdatedAt,
+			}
+			// 深拷贝步骤
+			for i, step := range saga.Steps {
+				stepCopy := *step
+				sagaCopy.Steps[i] = &stepCopy
+			}
+			return sagaCopy, nil
 		}
 	}
 
@@ -403,8 +495,8 @@ func (j *JSONSagaStorage) GetStats(ctx context.Context) (*SagaStats, error) {
 	}
 
 	// 计算成功率
-		if stats.TotalSagas > 0 {
-			stats.SuccessRate = float64(stats.TotalSagas-stats.FailedSagas-stats.CancelledSagas) / float64(stats.TotalSagas) * 100
+	if stats.TotalSagas > 0 {
+		stats.SuccessRate = float64(stats.TotalSagas-stats.FailedSagas-stats.CancelledSagas) / float64(stats.TotalSagas) * 100
 	}
 
 	return stats, nil

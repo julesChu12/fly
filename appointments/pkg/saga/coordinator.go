@@ -14,13 +14,13 @@ import (
 type SagaStatus string
 
 const (
-	SagaStatusPending     SagaStatus = "pending"      // 待执行
-	SagaStatusRunning     SagaStatus = "running"      // 执行中
-	SagaStatusCompleted   SagaStatus = "completed"    // 已完成
-	SagaStatusFailed      SagaStatus = "failed"       // 失败
+	SagaStatusPending      SagaStatus = "pending"      // 待执行
+	SagaStatusRunning      SagaStatus = "running"      // 执行中
+	SagaStatusCompleted    SagaStatus = "completed"    // 已完成
+	SagaStatusFailed       SagaStatus = "failed"       // 失败
 	SagaStatusCompensating SagaStatus = "compensating" // 补偿中
-	SagaStatusCompensated SagaStatus = "compensated" // 已补偿
-	SagaStatusCancelled   SagaStatus = "cancelled"   // 已取消
+	SagaStatusCompensated  SagaStatus = "compensated"  // 已补偿
+	SagaStatusCancelled    SagaStatus = "cancelled"    // 已取消
 )
 
 // StepStatus 步骤状态
@@ -30,22 +30,22 @@ const (
 	StepStatusPending     StepStatus = "pending"     // 待执行
 	StepStatusRunning     StepStatus = "running"     // 执行中
 	StepStatusCompleted   StepStatus = "completed"   // 已完成
-	StepStatusFailed      StepStatus = "failed"       // 失败
+	StepStatusFailed      StepStatus = "failed"      // 失败
 	StepStatusSkipped     StepStatus = "skipped"     // 已跳过
 	StepStatusCompensated StepStatus = "compensated" // 已补偿
 )
 
 // SagaStep Saga步骤
 type SagaStep struct {
-	ID          string        `json:"id"`
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
+	ID          string       `json:"id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
 	Execute     StepHandler  `json:"-"`
 	Compensate  StepHandler  `json:"-"`
-	Status      StepStatus    `json:"status"`
-	RetryPolicy *RetryPolicy  `json:"retry_policy"`
-	Result      interface{}   `json:"result,omitempty"`
-	Error       error         `json:"error,omitempty"`
+	Status      StepStatus   `json:"status"`
+	RetryPolicy *RetryPolicy `json:"retry_policy"`
+	Result      interface{}  `json:"result,omitempty"`
+	Error       error        `json:"error,omitempty"`
 	StartTime   time.Time    `json:"start_time"`
 	EndTime     *time.Time   `json:"end_time,omitempty"`
 	CreatedAt   time.Time    `json:"created_at"`
@@ -57,20 +57,20 @@ type StepHandler func(ctx context.Context) (interface{}, error)
 
 // SagaTransaction Saga事务
 type SagaTransaction struct {
-	ID            string         `json:"id"`
-	Name          string         `json:"name"`
-	Description   string         `json:"description"`
-	Steps         []*SagaStep    `json:"steps"`
-	Status        SagaStatus     `json:"status"`
-	CurrentStep   int            `json:"current_step"`
-	Payload       interface{}    `json:"payload,omitempty"`
-	CompletedSteps int            `json:"completed_steps"`
-	FailedSteps   int            `json:"failed_steps"`
-	StartTime     time.Time      `json:"start_time"`
-	EndTime       *time.Time     `json:"end_time,omitempty"`
-	CompensateAll bool           `json:"compensate_all"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
+	ID             string      `json:"id"`
+	Name           string      `json:"name"`
+	Description    string      `json:"description"`
+	Steps          []*SagaStep `json:"steps"`
+	Status         SagaStatus  `json:"status"`
+	CurrentStep    int         `json:"current_step"`
+	Payload        interface{} `json:"payload,omitempty"`
+	CompletedSteps int         `json:"completed_steps"`
+	FailedSteps    int         `json:"failed_steps"`
+	StartTime      time.Time   `json:"start_time"`
+	EndTime        *time.Time  `json:"end_time,omitempty"`
+	CompensateAll  bool        `json:"compensate_all"`
+	CreatedAt      time.Time   `json:"created_at"`
+	UpdatedAt      time.Time   `json:"updated_at"`
 
 	mu sync.RWMutex `json:"-"`
 }
@@ -86,8 +86,8 @@ type RetryPolicy struct {
 type BackoffType string
 
 const (
-	BackoffFixed      BackoffType = "fixed"      // 固定延迟
-	BackoffLinear     BackoffType = "linear"     // 线性退避
+	BackoffFixed       BackoffType = "fixed"       // 固定延迟
+	BackoffLinear      BackoffType = "linear"      // 线性退避
 	BackoffExponential BackoffType = "exponential" // 指数退避
 )
 
@@ -123,14 +123,14 @@ type SagaFilter struct {
 
 // SagaStats Saga统计信息
 type SagaStats struct {
-	TotalSagas        int64     `json:"total_sagas"`
-	RunningSagas      int64     `json:"running_sagas"`
-	CompletedSagas    int64     `json:"completed_sagas"`
-	FailedSagas       int64     `json:"failed_sagas"`
-	CompensatedSagas  int64     `json:"compensated_sagas"`
-	CancelledSagas    int64     `json:"cancelled_sagas"`
-	AverageDuration   float64   `json:"average_duration_ms"`
-	SuccessRate       float64   `json:"success_rate"`
+	TotalSagas       int64   `json:"total_sagas"`
+	RunningSagas     int64   `json:"running_sagas"`
+	CompletedSagas   int64   `json:"completed_sagas"`
+	FailedSagas      int64   `json:"failed_sagas"`
+	CompensatedSagas int64   `json:"compensated_sagas"`
+	CancelledSagas   int64   `json:"cancelled_sagas"`
+	AverageDuration  float64 `json:"average_duration_ms"`
+	SuccessRate      float64 `json:"success_rate"`
 }
 
 // DefaultSagaCoordinator 默认Saga协调器实现
@@ -146,27 +146,27 @@ type DefaultSagaCoordinator struct {
 
 // SagaConfig Saga配置
 type SagaConfig struct {
-	MaxConcurrentSagas int           `yaml:"max_concurrent_sagas"`
+	MaxConcurrentSagas    int           `yaml:"max_concurrent_sagas"`
 	DefaultRetryAttempts  int           `yaml:"default_retry_attempts"`
-	DefaultRetryDelay    time.Duration `yaml:"default_retry_delay"`
-	TimeoutDuration      time.Duration `yaml:"timeout_duration"`
-	CompensationTimeout  time.Duration `yaml:"compensation_timeout"`
-	EnablePersistence    bool          `yaml:"enable_persistence"`
-	EnableEventPublishing  bool          `yaml:"enable_event_publishing"`
+	DefaultRetryDelay     time.Duration `yaml:"default_retry_delay"`
+	TimeoutDuration       time.Duration `yaml:"timeout_duration"`
+	CompensationTimeout   time.Duration `yaml:"compensation_timeout"`
+	EnablePersistence     bool          `yaml:"enable_persistence"`
+	EnableEventPublishing bool          `yaml:"enable_event_publishing"`
 	CleanupInterval       time.Duration `yaml:"cleanup_interval"`
 }
 
 // DefaultSagaConfig 默认Saga配置
 func DefaultSagaConfig() *SagaConfig {
 	return &SagaConfig{
-	MaxConcurrentSagas: 100,
-		DefaultRetryAttempts: 3,
-		DefaultRetryDelay:   1 * time.Second,
-		TimeoutDuration:     30 * time.Minute,
-		CompensationTimeout: 10 * time.Minute,
-		EnablePersistence:   true,
-	EnableEventPublishing: true,
-		CleanupInterval:      1 * time.Hour,
+		MaxConcurrentSagas:    100,
+		DefaultRetryAttempts:  3,
+		DefaultRetryDelay:     1 * time.Second,
+		TimeoutDuration:       30 * time.Minute,
+		CompensationTimeout:   10 * time.Minute,
+		EnablePersistence:     true,
+		EnableEventPublishing: true,
+		CleanupInterval:       1 * time.Hour,
 	}
 }
 
@@ -195,8 +195,8 @@ func NewDefaultSagaCoordinator(config *SagaConfig, storage SagaStorage, eventBus
 func (c *DefaultSagaCoordinator) ExecuteSaga(ctx context.Context, saga *SagaTransaction) error {
 	c.logger.Info("开始执行Saga事务",
 		map[string]interface{}{
-			"saga_id":   saga.ID,
-			"saga_name": saga.Name,
+			"saga_id":     saga.ID,
+			"saga_name":   saga.Name,
 			"steps_count": len(saga.Steps),
 		})
 
@@ -269,8 +269,8 @@ func (c *DefaultSagaCoordinator) ExecuteSaga(ctx context.Context, saga *SagaTran
 			if compensateErr != nil {
 				c.logger.Error("Saga补偿失败",
 					map[string]interface{}{
-						"saga_id":         saga.ID,
-						"failed_step":     i,
+						"saga_id":          saga.ID,
+						"failed_step":      i,
 						"compensate_error": compensateErr,
 					})
 			}
@@ -318,10 +318,10 @@ func (c *DefaultSagaCoordinator) ExecuteSaga(ctx context.Context, saga *SagaTran
 
 	c.logger.Info("Saga事务执行成功",
 		map[string]interface{}{
-			"saga_id":        saga.ID,
-			"saga_name":      saga.Name,
+			"saga_id":         saga.ID,
+			"saga_name":       saga.Name,
 			"completed_steps": saga.CompletedSteps,
-			"duration":       saga.EndTime.Sub(saga.StartTime),
+			"duration":        saga.EndTime.Sub(saga.StartTime),
 		})
 
 	// 持久化最终状态
@@ -335,7 +335,7 @@ func (c *DefaultSagaCoordinator) ExecuteSaga(ctx context.Context, saga *SagaTran
 
 	// 发布完成事件
 	if c.config.EnableEventPublishing {
-		c.publishSagaEvent(ctx,SagaEventCompleted, saga)
+		c.publishSagaEvent(ctx, SagaEventCompleted, saga)
 	}
 
 	// 更新统计
@@ -362,9 +362,9 @@ func (c *DefaultSagaCoordinator) executeStepWithRetry(ctx context.Context, step 
 			delay := c.calculateRetryDelay(retryPolicy, attempt)
 			c.logger.Debug("重试Saga步骤",
 				map[string]interface{}{
-					"step_id":   step.ID,
-					"attempt":  attempt,
-					"delay":    delay,
+					"step_id":      step.ID,
+					"attempt":      attempt,
+					"delay":        delay,
 					"max_attempts": retryPolicy.MaxAttempts,
 				})
 			time.Sleep(delay)
@@ -379,10 +379,10 @@ func (c *DefaultSagaCoordinator) executeStepWithRetry(ctx context.Context, step 
 
 		c.logger.Debug("Saga步骤执行失败，将重试",
 			map[string]interface{}{
-				"step_id":    step.ID,
+				"step_id":   step.ID,
 				"attempt":   attempt,
 				"error":     err,
-				"max_retry":  retryPolicy.MaxAttempts,
+				"max_retry": retryPolicy.MaxAttempts,
 			})
 	}
 
@@ -393,8 +393,8 @@ func (c *DefaultSagaCoordinator) executeStepWithRetry(ctx context.Context, step 
 func (c *DefaultSagaCoordinator) compensate(ctx context.Context, saga *SagaTransaction, failedStep int) error {
 	c.logger.Info("开始Saga补偿",
 		map[string]interface{}{
-			"saga_id":       saga.ID,
-			"failed_step":    failedStep,
+			"saga_id":         saga.ID,
+			"failed_step":     failedStep,
 			"completed_steps": saga.CompletedSteps,
 		})
 
@@ -414,8 +414,8 @@ func (c *DefaultSagaCoordinator) compensate(ctx context.Context, saga *SagaTrans
 
 		c.logger.Debug("补偿Saga步骤",
 			map[string]interface{}{
-				"saga_id": saga.ID,
-				"step_id": step.ID,
+				"saga_id":   saga.ID,
+				"step_id":   step.ID,
 				"step_name": step.Name,
 			})
 
@@ -424,10 +424,10 @@ func (c *DefaultSagaCoordinator) compensate(ctx context.Context, saga *SagaTrans
 		if err != nil {
 			c.logger.Error("Saga步骤补偿失败",
 				map[string]interface{}{
-					"saga_id": saga.ID,
-					"step_id": step.ID,
+					"saga_id":   saga.ID,
+					"step_id":   step.ID,
 					"step_name": step.Name,
-					"error": err,
+					"error":     err,
 				})
 			// 记录补偿失败但继续执行其他补偿
 			continue
@@ -482,9 +482,9 @@ func (c *DefaultSagaCoordinator) compensateStepWithRetry(ctx context.Context, st
 			delay := c.calculateRetryDelay(retryPolicy, attempt)
 			c.logger.Debug("重试补偿步骤",
 				map[string]interface{}{
-					"step_id":   step.ID,
-					"attempt":   attempt,
-					"delay":    delay,
+					"step_id": step.ID,
+					"attempt": attempt,
+					"delay":   delay,
 				})
 			time.Sleep(delay)
 		}
@@ -496,9 +496,9 @@ func (c *DefaultSagaCoordinator) compensateStepWithRetry(ctx context.Context, st
 
 		c.logger.Debug("补偿步骤执行失败",
 			map[string]interface{}{
-				"step_id":   step.ID,
-				"attempt":   attempt,
-				"error":     compensateErr,
+				"step_id": step.ID,
+				"attempt": attempt,
+				"error":   compensateErr,
 			})
 		err = compensateErr
 	}
@@ -516,9 +516,29 @@ func (c *DefaultSagaCoordinator) GetSaga(ctx context.Context, sagaID string) (*S
 	defer c.mu.RUnlock()
 
 	if saga, exists := c.transactions[sagaID]; exists {
-		// 返回副本避免外部修改
-		sagaCopy := *saga
-		return &sagaCopy, nil
+		// 返回副本避免外部修改，不包含互斥锁
+		sagaCopy := &SagaTransaction{
+			ID:             saga.ID,
+			Name:           saga.Name,
+			Description:    saga.Description,
+			Steps:          make([]*SagaStep, len(saga.Steps)),
+			Status:         saga.Status,
+			CurrentStep:    saga.CurrentStep,
+			Payload:        saga.Payload,
+			CompletedSteps: saga.CompletedSteps,
+			FailedSteps:    saga.FailedSteps,
+			StartTime:      saga.StartTime,
+			EndTime:        saga.EndTime,
+			CompensateAll:  saga.CompensateAll,
+			CreatedAt:      saga.CreatedAt,
+			UpdatedAt:      saga.UpdatedAt,
+		}
+		// 深拷贝步骤
+		for i, step := range saga.Steps {
+			stepCopy := *step
+			sagaCopy.Steps[i] = &stepCopy
+		}
+		return sagaCopy, nil
 	}
 
 	return nil, fmt.Errorf("Saga不存在: %s", sagaID)
@@ -547,8 +567,29 @@ func (c *DefaultSagaCoordinator) ListSagas(ctx context.Context, filter *SagaFilt
 				continue
 			}
 		}
-		sagaCopy := *saga
-		sagas = append(sagas, &sagaCopy)
+		// 创建副本避免外部修改，不包含互斥锁
+		sagaCopy := &SagaTransaction{
+			ID:             saga.ID,
+			Name:           saga.Name,
+			Description:    saga.Description,
+			Steps:          make([]*SagaStep, len(saga.Steps)),
+			Status:         saga.Status,
+			CurrentStep:    saga.CurrentStep,
+			Payload:        saga.Payload,
+			CompletedSteps: saga.CompletedSteps,
+			FailedSteps:    saga.FailedSteps,
+			StartTime:      saga.StartTime,
+			EndTime:        saga.EndTime,
+			CompensateAll:  saga.CompensateAll,
+			CreatedAt:      saga.CreatedAt,
+			UpdatedAt:      saga.UpdatedAt,
+		}
+		// 深拷贝步骤
+		for i, step := range saga.Steps {
+			stepCopy := *step
+			sagaCopy.Steps[i] = &stepCopy
+		}
+		sagas = append(sagas, sagaCopy)
 	}
 
 	return sagas, nil
@@ -660,10 +701,10 @@ func (c *DefaultSagaCoordinator) publishSagaEvent(ctx context.Context, eventType
 	event := &SagaEvent{
 		ID:        generateSagaEventID(),
 		Type:      eventType,
-		SagaID:   saga.ID,
-		SagaName: saga.Name,
-		Status:   saga.Status,
-		Payload:  saga,
+		SagaID:    saga.ID,
+		SagaName:  saga.Name,
+		Status:    saga.Status,
+		Payload:   saga,
 		Timestamp: time.Now(),
 	}
 
@@ -679,14 +720,14 @@ func (c *DefaultSagaCoordinator) publishStepEvent(ctx context.Context, eventType
 	event := &SagaStepEvent{
 		ID:        generateSagaEventID(),
 		Type:      eventType,
-		SagaID:   saga.ID,
-		SagaName: saga.Name,
-		StepID:   step.ID,
-		StepName: step.Name,
-		Status:   step.Status,
-		Result:   step.Result,
-		Error:    step.Error,
-		Payload:  step,
+		SagaID:    saga.ID,
+		SagaName:  saga.Name,
+		StepID:    step.ID,
+		StepName:  step.Name,
+		Status:    step.Status,
+		Result:    step.Result,
+		Error:     step.Error,
+		Payload:   step,
 		Timestamp: time.Now(),
 	}
 
