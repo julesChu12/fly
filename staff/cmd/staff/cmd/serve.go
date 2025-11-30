@@ -13,6 +13,7 @@ import (
 	"github.com/julesChu12/fly/mora/pkg/config"
 	moraDB "github.com/julesChu12/fly/mora/pkg/db"
 	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/julesChu12/fly/staff/docs"
 	"github.com/julesChu12/fly/staff/internal/application/service"
 	"github.com/julesChu12/fly/staff/internal/infrastructure/database"
 	grpcInterface "github.com/julesChu12/fly/staff/internal/interface/grpc"
@@ -296,6 +297,7 @@ func startServers(
 	staffHandler.RegisterRoutes(api)
 
 	// Swagger documentation
+	docs.SwaggerInfo.BasePath = "/api"  // Initialize docs package
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Create HTTP server
