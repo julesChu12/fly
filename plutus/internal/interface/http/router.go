@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/julesChu12/fly/plutus/docs"
 	"github.com/julesChu12/fly/plutus/internal/application/service"
 	"github.com/julesChu12/fly/plutus/internal/interface/http/middleware"
 
@@ -35,6 +36,7 @@ func (r *Router) SetupRoutes() *gin.Engine {
 	})
 
 	// Swagger documentation (no auth required)
+	docs.SwaggerInfo.BasePath = "/api"  // Initialize docs package
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API routes with authentication
