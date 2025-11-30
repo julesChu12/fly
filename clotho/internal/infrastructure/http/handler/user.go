@@ -55,8 +55,8 @@ func GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	userType, _ := c.Get("user_type")
-	tenantID, _ := c.Get("tenant_id")
+	userType, userTypeExists := c.Get("user_type")
+	tenantID, tenantIDExists := c.Get("tenant_id")
 
 	// For the GetCurrentUser function, we'll return basic information from JWT claims
 	// The full profile information should be retrieved via the /profile endpoint
@@ -64,8 +64,19 @@ func GetCurrentUser(c *gin.Context) {
 		ID:       userID.(int64),
 		Username: "user",             // This would come from Custos service in a full implementation
 		Email:    "user@example.com", // This would come from Custos service in a full implementation
-		UserType: userType.(string),
-		TenantID: tenantID.(int64),
+	}
+
+	// Safely extract optional values
+	if userTypeExists && userType != nil {
+		if ut, ok := userType.(string); ok {
+			response.UserType = ut
+		}
+	}
+
+	if tenantIDExists && tenantID != nil {
+		if tid, ok := tenantID.(int64); ok {
+			response.TenantID = tid
+		}
 	}
 
 	log.Info("Current user information retrieved successfully")

@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/julesChu12/fly/mora/pkg/auth"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthMiddleware struct {
@@ -16,6 +18,15 @@ func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
 	return &AuthMiddleware{
 		jwtSecret: jwtSecret,
 	}
+}
+
+// CustomClaims matches Custos JWT token structure
+type CustomClaims struct {
+	UserID    int    `json:"user_id"`
+	Username  string `json:"username"`
+	Role      string `json:"role"`
+	SessionID string `json:"session_id"`
+	jwt.RegisteredClaims
 }
 
 func (a *AuthMiddleware) ValidateToken() gin.HandlerFunc {
@@ -31,8 +42,8 @@ func (a *AuthMiddleware) ValidateToken() gin.HandlerFunc {
 		}
 
 		// Check Bearer token format
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		const bearerPrefix = "Bearer "
+		if !strings.HasPrefix(authHeader, bearerPrefix) {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "unauthorized",
 				"message": "Invalid authorization header format",
@@ -41,10 +52,10 @@ func (a *AuthMiddleware) ValidateToken() gin.HandlerFunc {
 			return
 		}
 
-		token := tokenParts[1]
+		token := strings.TrimPrefix(authHeader, bearerPrefix)
 
-		// Validate token using Mora auth package
-		claims, err := auth.ValidateToken(token, a.jwtSecret)
+		// Validate token with custom claims that match Custos structure
+		claims, err := a.validateCustomToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "unauthorized",
@@ -55,9 +66,41 @@ func (a *AuthMiddleware) ValidateToken() gin.HandlerFunc {
 		}
 
 		// Add user information to context
-		c.Set("user_id", claims.UserID)
+		c.Set("user_id", int64(claims.UserID))
 		c.Set("username", claims.Username)
+		c.Set("user_type", claims.Role)
+		c.Set("tenant_id", int64(1)) // Default tenant ID for now
 
 		c.Next()
 	}
+}
+
+// validateCustomToken validates JWT token with Custos-compatible claims structure
+func (a *AuthMiddleware) validateCustomToken(tokenString string) (*CustomClaims, error) {
+	if tokenString == "" {
+		return nil, fmt.Errorf("empty token")
+	}
+
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(a.jwtSecret), nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("token validation failed: %w", err)
+	}
+
+	claims, ok := token.Claims.(*CustomClaims)
+	if !ok || !token.Valid {
+		return nil, fmt.Errorf("invalid token claims")
+	}
+
+	// Check if token is expired
+	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
+		return nil, fmt.Errorf("token expired")
+	}
+
+	return claims, nil
 }

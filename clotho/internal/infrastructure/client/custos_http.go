@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/julesChu12/fly/mora/pkg/logger"
@@ -37,7 +36,25 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-// LoginResponse 登录响应
+// CustosLoginResponse Custos服务返回的原始响应结构
+type CustosLoginResponse struct {
+	Code    string      `json:"code"`
+	Message string      `json:"message"`
+	Data    LoginData   `json:"data"`
+}
+
+// LoginData 登录数据
+type LoginData struct {
+	AccessToken          string      `json:"access_token"`
+	TokenType            string      `json:"token_type"`
+	ExpiresIn            int         `json:"expires_in"`
+	RefreshToken         string      `json:"refresh_token"`
+	RefreshExpiresIn     int         `json:"refresh_expires_in"`
+	SessionID            string      `json:"session_id"`
+	User                 HTTPUserInfo `json:"user"`
+}
+
+// LoginResponse 登录响应 - 兼容原有接口
 type LoginResponse struct {
 	AccessToken          string      `json:"access_token"`
 	TokenType            string      `json:"token_type"`
@@ -99,9 +116,25 @@ type ResetPasswordRequest struct {
 
 // Login 用户登录
 func (c *CustosHTTPClient) Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error) {
-	resp := &LoginResponse{}
-	err := c.postRequest(ctx, "/api/v1/auth/login", req, resp)
-	return resp, err
+	// 先解析为 Custos 原始响应格式
+	custosResp := &CustosLoginResponse{}
+	err := c.postRequest(ctx, "/api/v1/auth/login", req, custosResp)
+	if err != nil {
+		return nil, err
+	}
+
+	// 转换为标准 LoginResponse 格式
+	resp := &LoginResponse{
+		AccessToken:      custosResp.Data.AccessToken,
+		TokenType:        custosResp.Data.TokenType,
+		ExpiresIn:        custosResp.Data.ExpiresIn,
+		RefreshToken:     custosResp.Data.RefreshToken,
+		RefreshExpiresIn: custosResp.Data.RefreshExpiresIn,
+		SessionID:        custosResp.Data.SessionID,
+		User:             custosResp.Data.User,
+	}
+
+	return resp, nil
 }
 
 // Register 用户注册
@@ -155,13 +188,8 @@ func (c *CustosHTTPClient) postRequest(ctx context.Context, path string, reqBody
 	}
 
 	// 创建请求
-	url, err := url.JoinPath(c.baseURL, path)
-	if err != nil {
-		c.logger.Error("Failed to join URL path", "baseURL", c.baseURL, "path", path, "error", err)
-		return fmt.Errorf("join URL path: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBody))
+	fullURL := c.baseURL + path
+	req, err := http.NewRequestWithContext(ctx, "POST", fullURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		c.logger.Error("Failed to create request", "error", err)
 		return fmt.Errorf("create request: %w", err)
@@ -171,7 +199,7 @@ func (c *CustosHTTPClient) postRequest(ctx context.Context, path string, reqBody
 	req.Header.Set("Content-Type", "application/json")
 
 	// 发送请求
-	c.logger.Info("Sending HTTP request", "method", "POST", "url", url)
+	c.logger.Info("Sending HTTP request", "method", "POST", "url", fullURL)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		c.logger.Error("Failed to send request", "error", err)
@@ -206,15 +234,9 @@ func (c *CustosHTTPClient) postRequest(ctx context.Context, path string, reqBody
 
 // deleteRequest 发送 DELETE 请求
 func (c *CustosHTTPClient) deleteRequest(ctx context.Context, path string, headers map[string]string) error {
-	// 创建 URL
-	url, err := url.JoinPath(c.baseURL, path)
-	if err != nil {
-		c.logger.Error("Failed to join URL path", "baseURL", c.baseURL, "path", path, "error", err)
-		return fmt.Errorf("join URL path: %w", err)
-	}
-
 	// 创建请求
-	req, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	fullURL := c.baseURL + path
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fullURL, nil)
 	if err != nil {
 		c.logger.Error("Failed to create request", "error", err)
 		return fmt.Errorf("create request: %w", err)
@@ -226,7 +248,7 @@ func (c *CustosHTTPClient) deleteRequest(ctx context.Context, path string, heade
 	}
 
 	// 发送请求
-	c.logger.Info("Sending HTTP request", "method", "DELETE", "url", url)
+	c.logger.Info("Sending HTTP request", "method", "DELETE", "url", fullURL)
 	resp, err := c.client.Do(req)
 	if err != nil {
 		c.logger.Error("Failed to send request", "error", err)

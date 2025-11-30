@@ -29,9 +29,9 @@ func NewAuthHandler(custosClient *client.CustosHTTPClient, logger *logger.Logger
 // @Accept json
 // @Produce json
 // @Param request body client.LoginRequest true "登录信息"
-// @Success 200 {object} response.Response{data=client.LoginResponse}
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse{data=client.LoginResponse}
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req client.LoginRequest
@@ -70,9 +70,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body client.RegisterRequest true "注册信息"
-// @Success 200 {object} response.Response{data=client.RegisterResponse}
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse{data=client.RegisterResponse}
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req client.RegisterRequest
@@ -111,9 +111,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body client.RefreshTokenRequest true "刷新令牌信息"
-// @Success 200 {object} response.Response{data=client.TokenResponse}
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse{data=client.TokenResponse}
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req client.RefreshTokenRequest
@@ -150,9 +150,9 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Description 用户登出当前设备
 // @Tags 认证
 // @Security ApiKeyAuth
-// @Success 200 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	// 从头部获取认证信息
@@ -202,9 +202,9 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 // @Description 用户登出所有设备
 // @Tags 认证
 // @Security ApiKeyAuth
-// @Success 200 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/logout-all [post]
 func (h *AuthHandler) LogoutAll(c *gin.Context) {
 	// 从头部获取认证信息
@@ -247,9 +247,9 @@ func (h *AuthHandler) LogoutAll(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body client.ForgotPasswordRequest true "邮箱信息"
-// @Success 200 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/forgot-password [post]
 func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	var req client.ForgotPasswordRequest
@@ -287,9 +287,9 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body client.ResetPasswordRequest true "重置密码信息"
-// @Success 200 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
+// @Success 200 {object} handler.SuccessResponse
+// @Failure 400 {object} handler.SuccessResponse
+// @Failure 500 {object} handler.SuccessResponse
 // @Router /api/v1/auth/reset-password [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req client.ResetPasswordRequest

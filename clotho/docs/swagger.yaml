@@ -1,4 +1,459 @@
 definitions:
+  client.AvailabilityItem:
+    properties:
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      is_available:
+        type: boolean
+      notes:
+        type: string
+      start_time:
+        type: string
+    type: object
+  client.AvailabilityRequest:
+    properties:
+      availabilities:
+        items:
+          $ref: '#/definitions/client.AvailabilityItem'
+        type: array
+      staff_id:
+        type: string
+    type: object
+  client.BatchUpdateItemsRequest:
+    properties:
+      category_id:
+        type: string
+      ids:
+        items:
+          type: string
+        type: array
+      is_active:
+        type: boolean
+      price:
+        type: number
+      status:
+        type: string
+    type: object
+  client.ConflictCheckRequest:
+    properties:
+      end_time:
+        type: string
+      exclude_id:
+        type: string
+      staff_id:
+        type: string
+      start_time:
+        type: string
+    type: object
+  client.ConsumeRequestHTTP:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        additionalProperties: true
+        type: object
+      order_id:
+        type: integer
+    type: object
+  client.CreateAppointmentRequestHTTP:
+    properties:
+      customer_id:
+        type: string
+      end_time:
+        type: string
+      notes:
+        type: string
+      reminder:
+        type: boolean
+      reminder_time:
+        type: string
+      service_id:
+        type: string
+      staff_id:
+        type: string
+      start_time:
+        type: string
+    type: object
+  client.CreateCategoryRequest:
+    properties:
+      description:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
+      sort_order:
+        type: integer
+    type: object
+  client.CreateContactRequestHTTP:
+    properties:
+      customer_id:
+        type: integer
+      is_primary:
+        type: boolean
+      tenant_id:
+        type: integer
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  client.CreateCustomerRequestHTTP:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      tags:
+        type: string
+    type: object
+  client.CreateItemRequest:
+    properties:
+      capacity:
+        type: integer
+      category_id:
+        type: string
+      cost_price:
+        type: number
+      description:
+        type: string
+      duration:
+        description: 服务字段
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      sku:
+        type: string
+      staff_required:
+        type: boolean
+      stock:
+        description: 产品字段
+        type: integer
+      tags:
+        type: string
+      type:
+        type: string
+      weight:
+        type: number
+    type: object
+  client.CreateOrderItemRequestHTTP:
+    properties:
+      product_id:
+        type: integer
+      product_name:
+        type: string
+      quantity:
+        type: integer
+      sku:
+        type: string
+      unit_price:
+        type: number
+    type: object
+  client.CreateOrderRequestHTTP:
+    properties:
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/client.CreateOrderItemRequestHTTP'
+        type: array
+      order_no:
+        type: string
+      remark:
+        type: string
+      total_amount:
+        type: number
+    type: object
+  client.CreateStaffRequest:
+    properties:
+      department:
+        type: string
+      email:
+        type: string
+      is_available:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      role_id:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+    type: object
+  client.CreateWalletRequestHTTP:
+    properties:
+      currency:
+        type: string
+      customer_id:
+        type: integer
+    type: object
+  client.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    type: object
+  client.HTTPUserInfo:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      username:
+        type: string
+    type: object
+  client.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  client.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/client.HTTPUserInfo'
+    type: object
+  client.OrderStatus:
+    enum:
+    - pending
+    - confirmed
+    - processing
+    - shipped
+    - delivered
+    - cancelled
+    - refunded
+    type: string
+    x-enum-varnames:
+    - OrderStatusPending
+    - OrderStatusConfirmed
+    - OrderStatusProcessing
+    - OrderStatusShipped
+    - OrderStatusDelivered
+    - OrderStatusCancelled
+    - OrderStatusRefunded
+  client.PaymentChannel:
+    enum:
+    - wallet
+    - wechat
+    - alipay
+    - stripe
+    - paypal
+    - bank
+    - other
+    type: string
+    x-enum-varnames:
+    - PaymentChannelWallet
+    - PaymentChannelWeChat
+    - PaymentChannelAlipay
+    - PaymentChannelStripe
+    - PaymentChannelPaypal
+    - PaymentChannelBank
+    - PaymentChannelOther
+  client.RechargeRequestHTTP:
+    properties:
+      amount:
+        type: number
+      channel:
+        $ref: '#/definitions/client.PaymentChannel'
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        additionalProperties: true
+        type: object
+      reference_no:
+        type: string
+    type: object
+  client.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+      session_id:
+        type: string
+    type: object
+  client.RefundRequestHTTP:
+    properties:
+      amount:
+        type: number
+      currency:
+        type: string
+      customer_id:
+        type: integer
+      idempotency_key:
+        type: string
+      meta:
+        additionalProperties: true
+        type: object
+      order_id:
+        type: integer
+      reference_no:
+        type: string
+    type: object
+  client.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  client.RegisterResponse:
+    properties:
+      user:
+        $ref: '#/definitions/client.HTTPUserInfo'
+    type: object
+  client.ResetPasswordRequest:
+    properties:
+      new_password:
+        type: string
+      token:
+        type: string
+    type: object
+  client.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
+    type: object
+  client.UpdateAppointmentRequestHTTP:
+    properties:
+      customer_id:
+        type: string
+      end_time:
+        type: string
+      notes:
+        type: string
+      reminder:
+        type: boolean
+      reminder_time:
+        type: string
+      service_id:
+        type: string
+      staff_id:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+    type: object
+  client.UpdateContactRequestHTTP:
+    properties:
+      is_primary:
+        type: boolean
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  client.UpdateCustomerRequestHTTP:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      tags:
+        type: string
+    type: object
+  client.UpdateOrderStatusRequestHTTP:
+    properties:
+      operator_id:
+        type: integer
+      reason:
+        type: string
+      status:
+        $ref: '#/definitions/client.OrderStatus'
+    type: object
+  client.UpdateStaffRequest:
+    properties:
+      department:
+        type: string
+      email:
+        type: string
+      is_available:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      position:
+        type: string
+      role_id:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+    type: object
+  client.UpdateStatusRequest:
+    properties:
+      reason:
+        type: string
+      status:
+        type: string
+    type: object
+  client.UpdateStatusRequestHTTP:
+    properties:
+      reason:
+        type: string
+      status:
+        type: string
+    type: object
   handler.ErrorResponse:
     properties:
       error:
@@ -6,6 +461,12 @@ definitions:
         type: string
       message:
         example: The request is invalid
+        type: string
+      path:
+        type: string
+      request_id:
+        type: string
+      timestamp:
         type: string
     type: object
   handler.HealthResponse:
@@ -72,6 +533,7 @@ definitions:
         type: object
       statistics:
         additionalProperties:
+          format: int64
           type: integer
         type: object
       status:
@@ -85,6 +547,18 @@ definitions:
       username:
         type: string
       website:
+        type: string
+    type: object
+  handler.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
         type: string
     type: object
   handler.UserResponse:
@@ -103,6 +577,691 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/appointments/appointments/stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取预约相关的统计数据，包括总数、待确认、已完成等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 获取预约统计信息
+      tags:
+      - appointments
+  /api/v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: 发送密码重置邮件
+      parameters:
+      - description: 邮箱信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      summary: 忘记密码
+      tags:
+      - 认证
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户使用用户名和密码登录系统
+      parameters:
+      - description: 登录信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/client.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      summary: 用户登录
+      tags:
+      - 认证
+  /api/v1/auth/logout:
+    post:
+      description: 用户登出当前设备
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 用户登出
+      tags:
+      - 认证
+  /api/v1/auth/logout-all:
+    post:
+      description: 用户登出所有设备
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 登出所有设备
+      tags:
+      - 认证
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 使用刷新令牌获取新的访问令牌
+      parameters:
+      - description: 刷新令牌信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/client.TokenResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      summary: 刷新令牌
+      tags:
+      - 认证
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 新用户注册账号
+      parameters:
+      - description: 注册信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/client.RegisterResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      summary: 用户注册
+      tags:
+      - 认证
+  /api/v1/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: 使用重置令牌设置新密码
+      parameters:
+      - description: 重置密码信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.SuccessResponse'
+      summary: 重置密码
+      tags:
+      - 认证
+  /api/v1/categories:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有商品分类的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 获取分类列表
+      tags:
+      - 分类管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的商品分类
+      parameters:
+      - description: 分类信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 创建分类
+      tags:
+      - 分类管理
+  /api/v1/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的分类
+      parameters:
+      - description: 分类ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 删除分类
+      tags:
+      - 分类管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取单个分类的详细信息
+      parameters:
+      - description: 分类ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 获取分类详情
+      tags:
+      - 分类管理
+    put:
+      consumes:
+      - application/json
+      description: 更新现有分类的信息
+      parameters:
+      - description: 分类ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 分类信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 更新分类
+      tags:
+      - 分类管理
+  /api/v1/categories/tree:
+    get:
+      consumes:
+      - application/json
+      description: 获取层次化的分类树结构
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 获取分类树
+      tags:
+      - 分类管理
+  /api/v1/customers/stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取客户相关的统计数据，包括总数、活跃客户、新增客户等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 获取客户统计信息
+      tags:
+      - customers
+  /api/v1/items:
+    get:
+      consumes:
+      - application/json
+      description: 获取商品列表，支持分页和过滤
+      parameters:
+      - description: 商品类型 (SERVICE|PRODUCT)
+        in: query
+        name: type
+        type: string
+      - description: 商品状态
+        in: query
+        name: status
+        type: string
+      - description: 分类ID
+        in: query
+        name: category_id
+        type: string
+      - description: 最低价格
+        in: query
+        name: min_price
+        type: number
+      - description: 最高价格
+        in: query
+        name: max_price
+        type: number
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页大小
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 获取商品列表
+      tags:
+      - 商品管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的商品或服务
+      parameters:
+      - description: 商品信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 创建商品
+      tags:
+      - 商品管理
+  /api/v1/items/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的商品
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 删除商品
+      tags:
+      - 商品管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取单个商品的详细信息
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 获取商品详情
+      tags:
+      - 商品管理
+    put:
+      consumes:
+      - application/json
+      description: 更新现有商品的信息
+      parameters:
+      - description: 商品ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 商品信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 更新商品
+      tags:
+      - 商品管理
+  /api/v1/monitoring/circuit-breaker:
+    get:
+      consumes:
+      - application/json
+      description: Get current statistics and state of all circuit breakers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Circuit breaker statistics
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get circuit breaker statistics
+      tags:
+      - monitoring
+  /api/v1/monitoring/circuit-breaker/reset:
+    post:
+      consumes:
+      - application/json
+      description: Reset all circuit breakers to closed state
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reset successful
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reset all circuit breakers
+      tags:
+      - monitoring
+  /api/v1/monitoring/rate-limiter:
+    get:
+      consumes:
+      - application/json
+      description: Get current statistics and configuration of the rate limiter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rate limiter statistics
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get rate limiter statistics
+      tags:
+      - monitoring
+  /api/v1/monitoring/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get comprehensive statistics for rate limiter and circuit breakers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All middleware statistics
+          schema:
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all middleware statistics
+      tags:
+      - monitoring
   /api/v1/profile:
     get:
       consumes:
@@ -231,6 +1390,52 @@ paths:
       summary: Get public profile of a user
       tags:
       - profile
+  /api/v1/search/items:
+    get:
+      consumes:
+      - application/json
+      description: 根据关键词搜索商品
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: 商品类型过滤
+        in: query
+        name: type
+        type: string
+      - description: 分类ID过滤
+        in: query
+        name: category_id
+        type: string
+      - description: 最低价格
+        in: query
+        name: min_price
+        type: number
+      - description: 最高价格
+        in: query
+        name: max_price
+        type: number
+      - default: 20
+        description: 返回结果数量限制
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+      summary: 搜索商品
+      tags:
+      - 商品管理
   /api/v1/users/{id}:
     get:
       consumes:
@@ -288,6 +1493,1333 @@ paths:
       summary: Get current user information
       tags:
       - users
+  /appointments:
+    get:
+      consumes:
+      - application/json
+      description: 获取预约列表，支持分页和过滤
+      parameters:
+      - description: 客户ID
+        in: query
+        name: customer_id
+        type: string
+      - description: 员工ID
+        in: query
+        name: staff_id
+        type: string
+      - description: 服务ID
+        in: query
+        name: service_id
+        type: string
+      - description: 预约状态
+        in: query
+        name: status
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: start_time
+        description: 排序字段
+        in: query
+        name: sort
+        type: string
+      - default: asc
+        description: 排序方向
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取预约列表
+      tags:
+      - appointments
+    post:
+      consumes:
+      - application/json
+      description: 创建新的预约
+      parameters:
+      - description: 预约信息
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateAppointmentRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建预约
+      tags:
+      - appointments
+  /appointments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定预约
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除预约
+      tags:
+      - appointments
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取预约详情
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取预约详情
+      tags:
+      - appointments
+    put:
+      consumes:
+      - application/json
+      description: 更新现有预约信息
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 预约信息
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateAppointmentRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新预约
+      tags:
+      - appointments
+  /appointments/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新预约状态
+      parameters:
+      - description: 预约ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 状态信息
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateStatusRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新预约状态
+      tags:
+      - appointments
+  /appointments/availability:
+    get:
+      consumes:
+      - application/json
+      description: 检查指定员工在指定日期的可用时间
+      parameters:
+      - description: 员工ID
+        in: query
+        name: staff_id
+        required: true
+        type: string
+      - description: 日期
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: 服务时长(秒)
+        in: query
+        name: service_duration
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 检查可用时间
+      tags:
+      - appointments
+  /appointments/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的预约
+      parameters:
+      - description: 预约ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            items:
+              type: integer
+            type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 批量删除预约
+      tags:
+      - appointments
+  /appointments/conflict-check:
+    post:
+      consumes:
+      - application/json
+      description: 检查预约时间是否存在冲突
+      parameters:
+      - description: 冲突检查信息
+        in: body
+        name: conflict
+        required: true
+        schema:
+          $ref: '#/definitions/client.ConflictCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 检查时间冲突
+      tags:
+      - appointments
+  /appointments/customer/{customerId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取预约列表
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 预约状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取客户预约列表
+      tags:
+      - appointments
+  /appointments/employee/{employeeId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据员工ID获取预约列表
+      parameters:
+      - description: 员工ID
+        in: path
+        name: employeeId
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 预约状态
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工预约列表
+      tags:
+      - appointments
+  /customers:
+    get:
+      consumes:
+      - application/json
+      description: 获取客户列表，支持分页和搜索
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取客户列表
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: 创建新的客户
+      parameters:
+      - description: 客户信息
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateCustomerRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建客户
+      tags:
+      - customers
+  /customers/{customerId}/contacts:
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取联系人列表
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取客户联系人列表
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: 为指定客户创建新的联系人
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      - description: 联系人信息
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateContactRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建联系人
+      tags:
+      - customers
+  /customers/{customerId}/contacts/{contactId}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定联系人
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      - description: 联系人ID
+        in: path
+        name: contactId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除联系人
+      tags:
+      - customers
+    put:
+      consumes:
+      - application/json
+      description: 更新指定联系人的信息
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      - description: 联系人ID
+        in: path
+        name: contactId
+        required: true
+        type: integer
+      - description: 联系人信息
+        in: body
+        name: contact
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateContactRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新联系人
+      tags:
+      - customers
+  /customers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定客户
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除客户
+      tags:
+      - customers
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取客户详情
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取客户详情
+      tags:
+      - customers
+    put:
+      consumes:
+      - application/json
+      description: 更新现有客户信息
+      parameters:
+      - description: 客户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 客户信息
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateCustomerRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新客户
+      tags:
+      - customers
+  /customers/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的客户
+      parameters:
+      - description: 客户ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            items:
+              type: integer
+            type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 批量删除客户
+      tags:
+      - customers
+  /customers/search:
+    get:
+      consumes:
+      - application/json
+      description: 根据关键词搜索客户
+      parameters:
+      - description: 搜索关键词
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 搜索客户
+      tags:
+      - customers
+  /employees:
+    get:
+      consumes:
+      - application/json
+      description: 获取员工列表，支持分页和过滤
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - description: 搜索关键词
+        in: query
+        name: search
+        type: string
+      - description: 部门
+        in: query
+        name: department
+        type: string
+      - description: 角色ID
+        in: query
+        name: role_id
+        type: string
+      - description: 员工状态
+        in: query
+        name: status
+        type: string
+      - description: 是否可用
+        in: query
+        name: is_available
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工列表
+      tags:
+      - 员工管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的员工
+      parameters:
+      - description: 员工信息
+        in: body
+        name: employee
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建员工
+      tags:
+      - 员工管理
+  /employees/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除员工
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除员工
+      tags:
+      - 员工管理
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取员工详情
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工详情
+      tags:
+      - 员工管理
+    put:
+      consumes:
+      - application/json
+      description: 更新员工信息
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 员工信息
+        in: body
+        name: employee
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新员工
+      tags:
+      - 员工管理
+  /employees/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新员工状态
+      parameters:
+      - description: 员工ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 状态信息
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新员工状态
+      tags:
+      - 员工管理
+  /employees/availability/{staff_id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取员工的可用性时间安排
+      parameters:
+      - description: 员工ID
+        in: path
+        name: staff_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取员工可用性
+      tags:
+      - 可用性管理
+    put:
+      consumes:
+      - application/json
+      description: 设置员工的可用性时间安排
+      parameters:
+      - description: 员工ID
+        in: path
+        name: staff_id
+        required: true
+        type: string
+      - description: 可用性信息
+        in: body
+        name: availability
+        required: true
+        schema:
+          $ref: '#/definitions/client.AvailabilityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 设置员工可用性
+      tags:
+      - 可用性管理
+  /employees/available:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前可用的员工列表
+      parameters:
+      - description: 部门
+        in: query
+        name: department
+        type: string
+      - description: 技能列表
+        in: query
+        name: skills
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取可用员工
+      tags:
+      - 员工管理
+  /employees/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的员工
+      parameters:
+      - description: 员工ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            items:
+              type: integer
+            type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 批量删除员工
+      tags:
+      - staff
+  /employees/roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取角色列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取角色列表
+      tags:
+      - 角色管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的角色
+      parameters:
+      - description: 角色信息
+        in: body
+        name: role
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建角色
+      tags:
+      - 角色管理
   /health:
     get:
       consumes:
@@ -303,4 +2835,870 @@ paths:
       summary: Health check endpoint
       tags:
       - health
+  /items/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的商品
+      parameters:
+      - description: 商品ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            items:
+              type: string
+            type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 批量删除商品
+      tags:
+      - 商品管理
+    put:
+      consumes:
+      - application/json
+      description: 批量更新商品信息（如状态、价格等）
+      parameters:
+      - description: 批量更新请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/client.BatchUpdateItemsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 批量更新商品
+      tags:
+      - 商品管理
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: 获取订单列表，支持分页和过滤
+      parameters:
+      - description: 客户ID
+        in: query
+        name: customer_id
+        type: integer
+      - description: 订单状态
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取订单列表
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: 创建新的订单
+      parameters:
+      - description: 订单信息
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateOrderRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建订单
+      tags:
+      - orders
+  /orders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定订单
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 删除订单
+      tags:
+      - orders
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取订单详情
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取订单详情
+      tags:
+      - orders
+  /orders/{id}/items:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取订单详情，包含所有商品信息
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取订单详情（含商品）
+      tags:
+      - orders
+  /orders/{id}/logs:
+    get:
+      consumes:
+      - application/json
+      description: 根据订单ID获取状态变更日志
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取订单状态变更日志
+      tags:
+      - orders
+  /orders/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: 更新订单状态
+      parameters:
+      - description: 订单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态信息
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/client.UpdateOrderStatusRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 更新订单状态
+      tags:
+      - orders
+  /orders/customer/{customerId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取订单列表
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取客户订单列表
+      tags:
+      - orders
+  /orders/status/{status}:
+    get:
+      consumes:
+      - application/json
+      description: 根据状态获取订单列表
+      parameters:
+      - description: 订单状态
+        in: path
+        name: status
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 按状态获取订单列表
+      tags:
+      - orders
+  /payments/orders/{orderId}/pay:
+    post:
+      consumes:
+      - application/json
+      description: 处理订单支付（从客户钱包扣款）
+      parameters:
+      - description: 订单ID
+        in: path
+        name: orderId
+        required: true
+        type: integer
+      - description: 支付信息
+        in: body
+        name: payment
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 处理订单支付
+      tags:
+      - payments
+  /payments/orders/{orderId}/refund:
+    post:
+      consumes:
+      - application/json
+      description: 处理订单退款（向客户钱包退款）
+      parameters:
+      - description: 订单ID
+        in: path
+        name: orderId
+        required: true
+        type: integer
+      - description: 退款信息
+        in: body
+        name: refund
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 处理订单退款
+      tags:
+      - payments
+  /payments/transactions:
+    get:
+      consumes:
+      - application/json
+      description: 获取交易列表，支持分页和过滤
+      parameters:
+      - description: 钱包ID
+        in: query
+        name: wallet_id
+        type: integer
+      - description: 订单ID
+        in: query
+        name: order_id
+        type: integer
+      - description: 交易类型
+        in: query
+        name: type
+        type: string
+      - description: 交易状态
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取交易列表
+      tags:
+      - transactions
+  /payments/transactions/consume:
+    post:
+      consumes:
+      - application/json
+      description: 从钱包消费
+      parameters:
+      - description: 消费信��
+        in: body
+        name: consume
+        required: true
+        schema:
+          $ref: '#/definitions/client.ConsumeRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 消费
+      tags:
+      - transactions
+  /payments/transactions/order/{orderId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据订单ID获取交易记录
+      parameters:
+      - description: 订单ID
+        in: path
+        name: orderId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 根据订单ID获取交易记录
+      tags:
+      - transactions
+  /payments/transactions/recharge:
+    post:
+      consumes:
+      - application/json
+      description: 向钱包充值
+      parameters:
+      - description: 充值信息
+        in: body
+        name: recharge
+        required: true
+        schema:
+          $ref: '#/definitions/client.RechargeRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 充值
+      tags:
+      - transactions
+  /payments/transactions/refund:
+    post:
+      consumes:
+      - application/json
+      description: 向钱包退款
+      parameters:
+      - description: 退款信息
+        in: body
+        name: refund
+        required: true
+        schema:
+          $ref: '#/definitions/client.RefundRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 退款
+      tags:
+      - transactions
+  /payments/wallets:
+    get:
+      consumes:
+      - application/json
+      description: 获取钱包列表，支持分页和过滤
+      parameters:
+      - description: 客户ID
+        in: query
+        name: customer_id
+        type: integer
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取钱包列表
+      tags:
+      - wallets
+    post:
+      consumes:
+      - application/json
+      description: 创建新的钱包
+      parameters:
+      - description: 钱包信息
+        in: body
+        name: wallet
+        required: true
+        schema:
+          $ref: '#/definitions/client.CreateWalletRequestHTTP'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 创建钱包
+      tags:
+      - wallets
+  /payments/wallets/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据ID获取钱包详情
+      parameters:
+      - description: 钱包ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取钱包详情
+      tags:
+      - wallets
+  /payments/wallets/{id}/balance:
+    get:
+      consumes:
+      - application/json
+      description: 根据钱包ID获取当前余额
+      parameters:
+      - description: 钱包ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取钱包余额
+      tags:
+      - wallets
+  /payments/wallets/customer/{customerId}:
+    get:
+      consumes:
+      - application/json
+      description: 根据客户ID获取钱包
+      parameters:
+      - description: 客户ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 根据客户ID获取钱包
+      tags:
+      - wallets
 swagger: "2.0"
