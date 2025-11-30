@@ -136,7 +136,7 @@ services:
       redis:
         condition: service_started
     ports:
-      - "8083:8080"
+      - "8082:8080"
       - "9080:9080"
     volumes:
       - ./hermes/configs:/app/configs
@@ -217,6 +217,42 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  appointments:
+    build:
+      context: .
+      dockerfile: appointments/Dockerfile.prod
+    container_name: appointments-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "18083:18083"
+      - "15083:15083"
+    volumes:
+      - ./appointments/configs:/app/configs
+    environment:
+      SERVER_HTTP_PORT: "18083"
+      SERVER_GRPC_PORT: "15083"
+      DATABASE_DSN: appointments:appointmentspassword@tcp(mysql:3306)/appointments?charset=utf8mb4&parseTime=True&loc=Local
+      REDIS_ADDR: redis:6379
+      CUSTOS_GRPC_ADDRESS: custos:9001
+      KRATOS_GRPC_ADDRESS: kratos:9092
+      PLUTUS_GRPC_ADDRESS: plutus:9085
+      STAFF_GRPC_ADDRESS: staff:9090
+      OBSERVABILITY_ENDPOINT: http://jaeger:4317
+      OBSERVABILITY_SERVICE_NAME: appointments
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:18083/health"]
       interval: 30s
       timeout: 10s
       retries: 3
