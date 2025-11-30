@@ -61,6 +61,16 @@ tmp/
 *.bak
 *~
 
+# Process ID files
+*.pid
+**/*.pid
+
+# Service specific files
+*.log
+*.service
+*.lock
+*.sock
+
 # OS generated files
 .DS_Store
 .DS_Store?
