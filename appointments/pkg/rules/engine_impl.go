@@ -14,15 +14,15 @@ import (
 
 // DefaultRuleEngine 默认规则引擎实现
 type DefaultRuleEngine struct {
-	rules       map[string]*Rule
-	mu          sync.RWMutex
-	logger      *logger.Logger
-	config      *RuleEngineConfig
-	repository  RuleRepository
-	handlers    map[RuleAction]ActionHandler
-	stats       *RuleEngineStats
-	cache       map[string]interface{}
-	cacheMu     sync.RWMutex
+	rules          map[string]*Rule
+	mu             sync.RWMutex
+	logger         *logger.Logger
+	config         *RuleEngineConfig
+	repository     RuleRepository
+	handlers       map[RuleAction]ActionHandler
+	stats          *RuleEngineStats
+	cache          map[string]interface{}
+	cacheMu        sync.RWMutex
 	lastCacheClean time.Time
 }
 
@@ -37,13 +37,13 @@ func NewDefaultRuleEngine(
 	}
 
 	engine := &DefaultRuleEngine{
-		rules:       make(map[string]*Rule),
-		logger:      logger,
-		config:      config,
-		repository:  repository,
-		handlers:    make(map[RuleAction]ActionHandler),
-		stats:       &RuleEngineStats{LastResetTime: time.Now()},
-		cache:       make(map[string]interface{}),
+		rules:          make(map[string]*Rule),
+		logger:         logger,
+		config:         config,
+		repository:     repository,
+		handlers:       make(map[RuleAction]ActionHandler),
+		stats:          &RuleEngineStats{LastResetTime: time.Now()},
+		cache:          make(map[string]interface{}),
 		lastCacheClean: time.Now(),
 	}
 
@@ -70,7 +70,7 @@ func (e *DefaultRuleEngine) ExecuteRules(ctx context.Context, data map[string]in
 
 	e.logger.Debug("开始执行规则",
 		map[string]interface{}{
-			"data_size": len(data),
+			"data_size":   len(data),
 			"rules_count": len(e.rules),
 		})
 
@@ -93,8 +93,8 @@ func (e *DefaultRuleEngine) ExecuteRules(ctx context.Context, data map[string]in
 	e.logger.Debug("规则执行完成",
 		map[string]interface{}{
 			"execution_time": time.Since(startTime),
-			"rules_matched": len(execCtx.RuleResults),
-			"total_rules": len(activeRules),
+			"rules_matched":  len(execCtx.RuleResults),
+			"total_rules":    len(activeRules),
 		})
 
 	return execCtx, nil
@@ -154,10 +154,10 @@ func (e *DefaultRuleEngine) executeRulesSequentially(execCtx *ExecutionContext, 
 func (e *DefaultRuleEngine) executeRule(execCtx *ExecutionContext, rule *Rule) *RuleResult {
 	startTime := time.Now()
 	result := &RuleResult{
-		RuleID:    rule.ID,
-		RuleName:  rule.Name,
-		Action:    rule.Action,
-		Timestamp: startTime,
+		RuleID:     rule.ID,
+		RuleName:   rule.Name,
+		Action:     rule.Action,
+		Timestamp:  startTime,
 		Conditions: make([]bool, len(rule.Conditions)),
 	}
 

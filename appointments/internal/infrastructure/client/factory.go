@@ -60,7 +60,7 @@ type PlutusClientConfig struct {
 func DefaultPlutusClientConfig() *PlutusClientConfig {
 	return &PlutusClientConfig{
 		BaseURL:        "http://localhost:8085", // Plutus服务地址
-		APIKey:         "test_api_key",           // 测试环境API密钥
+		APIKey:         "test_api_key",          // 测试环境API密钥
 		APISecret:      "test_api_secret",       // 测试环境API密钥
 		Timeout:        30 * time.Second,
 		MaxRetries:     3,

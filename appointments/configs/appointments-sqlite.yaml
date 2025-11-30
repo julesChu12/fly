@@ -1,8 +1,8 @@
 # Appointments Service Configuration (SQLite for testing)
 
 server:
-  http_port: 8083
-  grpc_port: 9083
+  http_port: 18083
+  grpc_port: 15083
 
 database:
   driver: sqlite

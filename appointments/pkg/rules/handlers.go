@@ -45,11 +45,11 @@ func (h *ApproveActionHandler) Execute(ctx context.Context, action RuleAction, p
 	}
 
 	result := map[string]interface{}{
-		"approved":   true,
-		"message":    message,
-		"approver":   approver,
+		"approved":    true,
+		"message":     message,
+		"approver":    approver,
 		"approved_at": time.Now(),
-		"action":     "approve",
+		"action":      "approve",
 	}
 
 	return result, nil
@@ -91,12 +91,12 @@ func (h *RejectActionHandler) Execute(ctx context.Context, action RuleAction, pa
 	}
 
 	result := map[string]interface{}{
-		"approved":     false,
-		"rejected":     true,
-		"reason":       reason,
-		"code":         code,
-		"rejected_at":  time.Now(),
-		"action":       "reject",
+		"approved":    false,
+		"rejected":    true,
+		"reason":      reason,
+		"code":        code,
+		"rejected_at": time.Now(),
+		"action":      "reject",
 	}
 
 	return result, nil
@@ -152,10 +152,10 @@ func (h *ReviewActionHandler) Execute(ctx context.Context, action RuleAction, pa
 
 	result := map[string]interface{}{
 		"requires_review": true,
-		"level":          level,
-		"reviewers":      reviewers,
-		"created_at":     time.Now(),
-		"action":         "review",
+		"level":           level,
+		"reviewers":       reviewers,
+		"created_at":      time.Now(),
+		"action":          "review",
 	}
 
 	if deadline != nil {
@@ -209,11 +209,11 @@ func (h *ModifyActionHandler) Execute(ctx context.Context, action RuleAction, pa
 	}
 
 	result := map[string]interface{}{
-		"modified":       true,
-		"modifications":  modifications,
-		"original_data":  data,
-		"modified_at":    time.Now(),
-		"action":         "modify",
+		"modified":      true,
+		"modifications": modifications,
+		"original_data": data,
+		"modified_at":   time.Now(),
+		"action":        "modify",
 	}
 
 	return result, nil
@@ -277,15 +277,15 @@ func (h *NotifyActionHandler) Execute(ctx context.Context, action RuleAction, pa
 
 	// 创建通知对象
 	notification := map[string]interface{}{
-		"id":          fmt.Sprintf("notify_%d", time.Now().Unix()),
-		"title":       title,
-		"message":     message,
-		"channels":    channels,
-		"recipients":  recipients,
-		"data":        data,
-		"created_at":  time.Now(),
-		"priority":    "normal",
-		"action":      "notify",
+		"id":         fmt.Sprintf("notify_%d", time.Now().Unix()),
+		"title":      title,
+		"message":    message,
+		"channels":   channels,
+		"recipients": recipients,
+		"data":       data,
+		"created_at": time.Now(),
+		"priority":   "normal",
+		"action":     "notify",
 	}
 
 	// 设置优先级

@@ -13,19 +13,19 @@ import (
 
 // IdempotentService 带幂等性保证的服务
 type IdempotentService struct {
-	baseService       AppointmentService
+	baseService        AppointmentService
 	idempotencyManager idempotency.IdempotencyManager
-	logger            *logger.Logger
-	config            *IdempotencyServiceConfig
+	logger             *logger.Logger
+	config             *IdempotencyServiceConfig
 }
 
 // IdempotencyServiceConfig 幂等性服务配置
 type IdempotencyServiceConfig struct {
-	DefaultTTL      time.Duration `yaml:"default_ttl"`
-	EnableCache     bool          `yaml:"enable_cache"`
-	EnableRetry     bool          `yaml:"enable_retry"`
-	MaxRetryCount   int           `yaml:"max_retry_count"`
-	RetryDelay      time.Duration `yaml:"retry_delay"`
+	DefaultTTL    time.Duration `yaml:"default_ttl"`
+	EnableCache   bool          `yaml:"enable_cache"`
+	EnableRetry   bool          `yaml:"enable_retry"`
+	MaxRetryCount int           `yaml:"max_retry_count"`
+	RetryDelay    time.Duration `yaml:"retry_delay"`
 }
 
 // DefaultIdempotencyServiceConfig 默认配置
@@ -53,8 +53,8 @@ func NewIdempotentService(
 	return &IdempotentService{
 		baseService:        baseService,
 		idempotencyManager: idempotencyManager,
-		logger:            logger,
-		config:            config,
+		logger:             logger,
+		config:             config,
 	}
 }
 

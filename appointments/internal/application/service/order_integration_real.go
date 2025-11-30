@@ -5,24 +5,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
+	"github.com/google/uuid"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/appointments/internal/domain/dto"
 	"github.com/julesChu12/fly/appointments/internal/infrastructure/client"
-	"github.com/julesChu12/fly/mora/pkg/logger"
 	"github.com/julesChu12/fly/appointments/pkg/errors"
-	"github.com/google/uuid"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 )
 
 // OrderIntegrationConfig 订单集成配置
 type OrderIntegrationConfig struct {
-	EnableAutoPayment    bool          `yaml:"enable_auto_payment"`     // 是否启用自动支付
-	PaymentTimeout       time.Duration `yaml:"payment_timeout"`         // 支付超时时间
-	OrderTimeout         time.Duration `yaml:"order_timeout"`           // 订单超时时间
-	MaxRetries           int           `yaml:"max_retries"`             // 最大重试次数
-	RetryDelay           time.Duration `yaml:"retry_delay"`             // 重试延迟
-	EnableNotifications  bool          `yaml:"enable_notifications"`   // 是否启用通知
-	CleanupInterval      time.Duration `yaml:"cleanup_interval"`        // 清理间隔
-	RetentionPeriod      time.Duration `yaml:"retention_period"`        // 保留期限
+	EnableAutoPayment   bool          `yaml:"enable_auto_payment"`  // 是否启用自动支付
+	PaymentTimeout      time.Duration `yaml:"payment_timeout"`      // 支付超时时间
+	OrderTimeout        time.Duration `yaml:"order_timeout"`        // 订单超时时间
+	MaxRetries          int           `yaml:"max_retries"`          // 最大重试次数
+	RetryDelay          time.Duration `yaml:"retry_delay"`          // 重试延迟
+	EnableNotifications bool          `yaml:"enable_notifications"` // 是否启用通知
+	CleanupInterval     time.Duration `yaml:"cleanup_interval"`     // 清理间隔
+	RetentionPeriod     time.Duration `yaml:"retention_period"`     // 保留期限
 }
 
 // DefaultOrderIntegrationConfig 默认配置
@@ -43,8 +43,8 @@ func DefaultOrderIntegrationConfig() *OrderIntegrationConfig {
 // 使用真实的Kratos和Plutus服务
 type OrderIntegrationServiceReal struct {
 	appointmentService AppointmentService
-	kratosClient       *client.KratosClient  // Kratos订单服务客户端
-	plutusClient       *client.PlutusClient  // Plutus支付服务客户端（下一个任务实现）
+	kratosClient       *client.KratosClient // Kratos订单服务客户端
+	plutusClient       *client.PlutusClient // Plutus支付服务客户端（下一个任务实现）
 	eventService       *EventService
 	logger             *logger.Logger
 	config             *OrderIntegrationConfig
@@ -139,9 +139,9 @@ func (s *OrderIntegrationServiceReal) CreateAppointmentWithOrder(
 	s.logger.Info("带订单的预约创建成功",
 		map[string]interface{}{
 			"appointment_id": appointment.ID,
-			"order_id":        order.ID,
-			"payment_id":      payment.ID,
-			"amount":          order.Amount,
+			"order_id":       order.ID,
+			"payment_id":     payment.ID,
+			"amount":         order.Amount,
 		})
 
 	return response, nil
@@ -188,7 +188,7 @@ func (s *OrderIntegrationServiceReal) checkStaffAvailability(ctx context.Context
 }
 
 // createAppointmentRecord 创建预约记录
-func (s *OrderIntegrationServiceReal) createAppointmentRecord(ctx context.Context, req *dto.CreateAppointmentRequest) (*entity.Appointment, error) {
+func (s *OrderIntegrationServiceReal) createAppointmentRecord(ctx context.Context, req *dto.CreateAppointmentRequest) (*appointment.Appointment, error) {
 	// 验证UUID格式
 	if _, err := uuid.Parse(req.CustomerID); err != nil {
 		return nil, errors.ValidationError("customer_id", req.CustomerID, "无效的UUID格式")
@@ -212,7 +212,7 @@ func (s *OrderIntegrationServiceReal) createAppointmentRecord(ctx context.Contex
 }
 
 // createOrderRecord 创建订单记录（使用真实Kratos服务）
-func (s *OrderIntegrationServiceReal) createOrderRecord(ctx context.Context, appointment *entity.Appointment) (*client.Order, error) {
+func (s *OrderIntegrationServiceReal) createOrderRecord(ctx context.Context, appointment *appointment.Appointment) (*client.Order, error) {
 	s.logger.Debug("开始创建订单记录",
 		map[string]interface{}{
 			"appointment_id": appointment.ID.String(),
@@ -231,7 +231,7 @@ func (s *OrderIntegrationServiceReal) createOrderRecord(ctx context.Context, app
 		s.logger.Error("调用Kratos服务创建订单失败",
 			map[string]interface{}{
 				"appointment_id": appointment.ID.String(),
-				"error": err,
+				"error":          err,
 			})
 		return nil, fmt.Errorf("创建订单失败: %w", err)
 	}
@@ -326,7 +326,7 @@ func (s *OrderIntegrationServiceReal) rollbackAppointmentCreation(ctx context.Co
 		s.logger.Error("删除预约记录失败",
 			map[string]interface{}{
 				"appointment_id": appointmentID,
-				"error": err,
+				"error":          err,
 			})
 		return err
 	}
@@ -343,7 +343,7 @@ func (s *OrderIntegrationServiceReal) rollbackOrderAndAppointment(ctx context.Co
 		s.logger.Error("取消订单失败",
 			map[string]interface{}{
 				"order_id": orderID,
-				"error": err,
+				"error":    err,
 			})
 		// 继续删除预约，即使订单取消失败
 	}
@@ -357,7 +357,7 @@ func (s *OrderIntegrationServiceReal) rollbackOrderAndAppointment(ctx context.Co
 }
 
 // publishAppointmentCreatedEvent 发布预约创建事件
-func (s *OrderIntegrationServiceReal) publishAppointmentCreatedEvent(ctx context.Context, appointment *entity.Appointment, order *client.Order, payment interface{}) error {
+func (s *OrderIntegrationServiceReal) publishAppointmentCreatedEvent(ctx context.Context, appointment *appointment.Appointment, order *client.Order, payment interface{}) error {
 	if s.eventService == nil {
 		return nil
 	}
@@ -375,18 +375,18 @@ func (s *OrderIntegrationServiceReal) publishAppointmentCreatedEvent(ctx context
 }
 
 // buildAppointmentResponse 构建预约响应
-func (s *OrderIntegrationServiceReal) buildAppointmentResponse(appointment *entity.Appointment, order *client.Order, payment *client.Payment) *dto.AppointmentResponse {
+func (s *OrderIntegrationServiceReal) buildAppointmentResponse(appointment *appointment.Appointment, order *client.Order, payment *client.Payment) *dto.AppointmentResponse {
 	response := &dto.AppointmentResponse{
-		ID:              appointment.ID.String(),
-		CustomerID:      appointment.CustomerID.String(),
-		StaffID:         appointment.StaffID.String(),
-		ServiceID:       appointment.ServiceID.String(),
-		StartTime:       appointment.StartTime,
-		EndTime:         appointment.EndTime,
-		Status:          appointment.Status,
-		Notes:           appointment.Notes,
-		CreatedAt:       appointment.CreatedAt,
-		UpdatedAt:       appointment.UpdatedAt,
+		ID:         appointment.ID.String(),
+		CustomerID: appointment.CustomerID.String(),
+		StaffID:    appointment.StaffID.String(),
+		ServiceID:  appointment.ServiceID.String(),
+		StartTime:  appointment.StartTime,
+		EndTime:    appointment.EndTime,
+		Status:     appointment.Status,
+		Notes:      appointment.Notes,
+		CreatedAt:  appointment.CreatedAt,
+		UpdatedAt:  appointment.UpdatedAt,
 	}
 
 	// 添加订单信息到响应
@@ -415,12 +415,12 @@ func (s *OrderIntegrationServiceReal) buildAppointmentResponse(appointment *enti
 // calculateServicePrice 计算服务价格（与原实现相同）
 func (s *OrderIntegrationServiceReal) calculateServicePrice(serviceID string) float64 {
 	priceMap := map[string]float64{
-		"cardiology-consultation": 300.00,
-		"general-consultation":   150.00,
-		"specialist-consultation": 500.00,
-		"health-checkup":         800.00,
-		"vaccination":            200.00,
-		"dental-consultation":     400.00,
+		"cardiology-consultation":  300.00,
+		"general-consultation":     150.00,
+		"specialist-consultation":  500.00,
+		"health-checkup":           800.00,
+		"vaccination":              200.00,
+		"dental-consultation":      400.00,
 		"pediatric-consultation":   350.00,
 		"orthopedics-consultation": 450.00,
 	}
@@ -469,8 +469,8 @@ func (s *OrderIntegrationServiceReal) UpdateOrderStatus(ctx context.Context, ord
 
 	s.logger.Info("订单状态更新成功",
 		map[string]interface{}{
-			"order_id":      orderID,
-			"status":        status,
+			"order_id":       orderID,
+			"status":         status,
 			"payment_status": paymentStatus,
 		})
 

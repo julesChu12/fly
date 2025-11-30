@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/julesChu12/fly/appointments/docs"
 	"github.com/julesChu12/fly/appointments/internal/application/service"
-	"github.com/julesChu12/fly/appointments/internal/domain/repository"
-	"github.com/julesChu12/fly/appointments/internal/infrastructure/database"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
+	"github.com/julesChu12/fly/appointments/internal/infrastructure/persistence/repository"
 	grpcInterface "github.com/julesChu12/fly/appointments/internal/interface/grpc"
 	httpInterface "github.com/julesChu12/fly/appointments/internal/interface/http"
 	"github.com/julesChu12/fly/appointments/internal/interface/http/middleware"
@@ -106,7 +107,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	l.Info("Database connected successfully")
 
 	// Initialize Repository layer
-	appointmentRepo := database.NewAppointmentRepository(dbClient.DB())
+	appointmentRepo := repository.NewAppointmentRepository(dbClient.DB())
 
 	// Initialize Service layer
 	appointmentService := service.NewAppointmentService(appointmentRepo)
@@ -245,7 +246,7 @@ func loadConfig() (*Config, error) {
 func startServers(
 	cfg *Config,
 	appointmentService service.AppointmentService,
-	appointmentRepo repository.AppointmentRepository,
+	appointmentRepo appointment.Repository,
 	l *logger.Logger,
 ) (*http.Server, *grpcInterface.Server) {
 	// Start HTTP server
@@ -284,6 +285,7 @@ func startServers(
 	appointmentHandler.RegisterRoutes(api)
 
 	// Swagger documentation
+	docs.SwaggerInfo.BasePath = "/api" // Initialize docs package
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Create HTTP server

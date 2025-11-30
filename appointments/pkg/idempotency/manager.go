@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/redis/go-redis/v9"
 )
 
 // IdempotencyManager 幂等性管理器接口
@@ -33,29 +33,29 @@ type IdempotencyManager interface {
 
 // IdempotencyStats 幂等性统计信息
 type IdempotencyStats struct {
-	TotalKeys     int64   `json:"total_keys"`
-	ActiveKeys    int64   `json:"active_keys"`
-	HitCount      int64   `json:"hit_count"`
-	MissCount     int64   `json:"miss_count"`
-	HitRate       float64 `json:"hit_rate"`
-	AverageTTL    int64   `json:"average_ttl"`
+	TotalKeys  int64   `json:"total_keys"`
+	ActiveKeys int64   `json:"active_keys"`
+	HitCount   int64   `json:"hit_count"`
+	MissCount  int64   `json:"miss_count"`
+	HitRate    float64 `json:"hit_rate"`
+	AverageTTL int64   `json:"average_ttl"`
 }
 
 // RedisIdempotencyManager Redis实现的幂等性管理器
 type RedisIdempotencyManager struct {
-	redis   *redis.Client
-	prefix  string
-	logger  *logger.Logger
-	config  *IdempotencyConfig
+	redis  *redis.Client
+	prefix string
+	logger *logger.Logger
+	config *IdempotencyConfig
 }
 
 // IdempotencyConfig 幂等性配置
 type IdempotencyConfig struct {
-	Prefix       string        `yaml:"prefix"`        // 键前缀
-	DefaultTTL   time.Duration `yaml:"default_ttl"`   // 默认TTL
-	MaxTTL       time.Duration `yaml:"max_ttl"`       // 最大TTL
+	Prefix          string        `yaml:"prefix"`           // 键前缀
+	DefaultTTL      time.Duration `yaml:"default_ttl"`      // 默认TTL
+	MaxTTL          time.Duration `yaml:"max_ttl"`          // 最大TTL
 	CleanupInterval time.Duration `yaml:"cleanup_interval"` // 清理间隔
-	EnableStats  bool          `yaml:"enable_stats"`  // 是否启用统计
+	EnableStats     bool          `yaml:"enable_stats"`     // 是否启用统计
 }
 
 // DefaultIdempotencyConfig 默认幂等性配置
@@ -199,8 +199,8 @@ func (m *RedisIdempotencyManager) SaveResult(ctx context.Context, key string, re
 
 	m.logger.Debug("幂等性结果保存成功",
 		map[string]interface{}{
-			"key":  key,
-			"ttl":  ttl,
+			"key": key,
+			"ttl": ttl,
 		})
 
 	return nil
@@ -247,16 +247,16 @@ func (m *RedisIdempotencyManager) DeletePattern(ctx context.Context, pattern str
 	if err != nil {
 		m.logger.Error("批量删除幂等性键失败",
 			map[string]interface{}{
-				"pattern":  pattern,
+				"pattern":   pattern,
 				"key_count": len(keys),
-				"error":    err,
+				"error":     err,
 			})
 		return fmt.Errorf("批量删除幂等性键失败: %w", err)
 	}
 
 	m.logger.Debug("批量删除幂等性键成功",
 		map[string]interface{}{
-			"pattern":  pattern,
+			"pattern":   pattern,
 			"key_count": len(keys),
 		})
 
@@ -295,9 +295,9 @@ func (m *RedisIdempotencyManager) GetStats(ctx context.Context) (*IdempotencySta
 	stats := &IdempotencyStats{
 		TotalKeys:  totalKeys,
 		ActiveKeys: int64(len(activeKeys)),
-		HitCount:  hitCount,
-		MissCount: missCount,
-		HitRate:   hitRate,
+		HitCount:   hitCount,
+		MissCount:  missCount,
+		HitRate:    hitRate,
 		AverageTTL: m.config.DefaultTTL.Milliseconds(),
 	}
 

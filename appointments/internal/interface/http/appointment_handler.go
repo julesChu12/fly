@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/julesChu12/fly/appointments/internal/application/service"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/appointments/internal/domain/dto"
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
 )
 
 // AppointmentHandler 预约HTTP处理器
@@ -27,17 +27,17 @@ func NewAppointmentHandler(appointmentService service.AppointmentService) *Appoi
 func (h *AppointmentHandler) RegisterRoutes(router *gin.RouterGroup) {
 	appointments := router.Group("/appointments")
 	{
-		appointments.GET("", h.ListAppointments)           // 获取预约列表
-		appointments.POST("", h.CreateAppointment)         // 创建预约
-		appointments.GET("/:id", h.GetAppointment)         // 获取预约详情
-		appointments.PUT("/:id", h.UpdateAppointment)      // 更新预约
-		appointments.DELETE("/:id", h.DeleteAppointment)   // 删除预约
-		appointments.PUT("/:id/status", h.UpdateStatus)    // 更新预约状态
+		appointments.GET("", h.ListAppointments)         // 获取预约列表
+		appointments.POST("", h.CreateAppointment)       // 创建预约
+		appointments.GET("/:id", h.GetAppointment)       // 获取预约详情
+		appointments.PUT("/:id", h.UpdateAppointment)    // 更新预约
+		appointments.DELETE("/:id", h.DeleteAppointment) // 删除预约
+		appointments.PUT("/:id/status", h.UpdateStatus)  // 更新预约状态
 
 		// 日历和可用时间相关
-		appointments.GET("/calendar", h.GetCalendarView)    // 获取日历视图
+		appointments.GET("/calendar", h.GetCalendarView)       // 获取日历视图
 		appointments.GET("/availability", h.CheckAvailability) // 检查可用时间
-		appointments.POST("/conflict-check", h.CheckConflict) // 检查时间冲突
+		appointments.POST("/conflict-check", h.CheckConflict)  // 检查时间冲突
 
 		// 客户和员工相关
 		appointments.GET("/customer/:customerId", h.GetAppointmentsByCustomer)
@@ -87,7 +87,7 @@ func (h *AppointmentHandler) ListAppointments(c *gin.Context) {
 		filter.ServiceID = &serviceID
 	}
 	if status := c.Query("status"); status != "" {
-		statusEntity := entity.AppointmentStatus(status)
+		statusEntity := appointment.AppointmentStatus(status)
 		filter.Status = &statusEntity
 	}
 	if startDateStr := c.Query("start_date"); startDateStr != "" {
@@ -472,7 +472,7 @@ func (h *AppointmentHandler) CheckAvailability(c *gin.Context) {
 	}
 
 	req := &dto.AvailabilityRequest{
-		StaffID:      staffID,
+		StaffID:         staffID,
 		Date:            date,
 		ServiceDuration: time.Duration(duration) * time.Minute,
 	}

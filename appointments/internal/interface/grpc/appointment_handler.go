@@ -6,8 +6,8 @@ import (
 
 	appointmentsv1 "github.com/julesChu12/fly/appointments/api/proto/appointments/v1"
 	"github.com/julesChu12/fly/appointments/internal/application/service"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/appointments/internal/domain/dto"
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -36,13 +36,13 @@ func (s *AppointmentServer) CreateAppointment(ctx context.Context, req *appointm
 	}
 
 	createReq := &dto.CreateAppointmentRequest{
-		CustomerID:   req.CustomerId,
-		StaffID:      req.StaffId,
-		ServiceID:    req.ServiceId,
-		StartTime:    req.StartTime.AsTime(),
-		EndTime:      req.EndTime.AsTime(),
-		Notes:        notes,
-		Reminder:     req.Reminder,
+		CustomerID: req.CustomerId,
+		StaffID:    req.StaffId,
+		ServiceID:  req.ServiceId,
+		StartTime:  req.StartTime.AsTime(),
+		EndTime:    req.EndTime.AsTime(),
+		Notes:      notes,
+		Reminder:   req.Reminder,
 		ReminderTime: func() *time.Time {
 			if req.ReminderTime != nil {
 				t := req.ReminderTime.AsTime()
@@ -217,8 +217,8 @@ func (s *AppointmentServer) ConfirmAppointment(ctx context.Context, req *appoint
 	}
 
 	updateReq := &dto.UpdateStatusRequest{
-		Status:           string(entity.AppointmentStatusConfirmed),
-		CompletionNotes:  notes,
+		Status:          string(appointment.AppointmentStatusConfirmed),
+		CompletionNotes: notes,
 	}
 
 	appointment, err := s.appointmentService.UpdateAppointmentStatus(req.Id, updateReq)
@@ -256,7 +256,7 @@ func (s *AppointmentServer) CompleteAppointment(ctx context.Context, req *appoin
 	}
 
 	updateReq := &dto.UpdateStatusRequest{
-		Status:          string(entity.AppointmentStatusCompleted),
+		Status:          string(appointment.AppointmentStatusCompleted),
 		CompletionNotes: notes,
 	}
 
@@ -294,10 +294,10 @@ func (s *AppointmentServer) CheckAvailability(ctx context.Context, req *appointm
 	}
 
 	return &appointmentsv1.CheckAvailabilityResponse{
-		StaffId:            response.StaffID,
-		Date:               timestamppb.New(response.Date),
-		Slots:              slots,
-		HasAvailability:    len(slots) > 0,
+		StaffId:             response.StaffID,
+		Date:                timestamppb.New(response.Date),
+		Slots:               slots,
+		HasAvailability:     len(slots) > 0,
 		AvailableSlotsCount: int32(len(slots)),
 	}, nil
 }
@@ -426,7 +426,7 @@ func (s *AppointmentServer) GetAppointmentsByEmployee(ctx context.Context, req *
 // GetEmployeeSchedule gets employee schedule
 func (s *AppointmentServer) GetEmployeeSchedule(ctx context.Context, req *appointmentsv1.GetEmployeeScheduleRequest) (*appointmentsv1.GetEmployeeScheduleResponse, error) {
 	filter := &dto.AppointmentFilter{
-		StaffID:  &req.StaffId,
+		StaffID:   &req.StaffId,
 		StartDate: func() *time.Time { t := req.StartDate.AsTime(); return &t }(),
 		EndDate:   func() *time.Time { t := req.EndDate.AsTime(); return &t }(),
 	}
@@ -493,13 +493,13 @@ func (s *AppointmentServer) BatchCreateAppointments(ctx context.Context, req *ap
 		}
 
 		createReqs[i] = &dto.CreateAppointmentRequest{
-			CustomerID:   apt.CustomerId,
-			StaffID:      apt.StaffId,
-			ServiceID:    apt.ServiceId,
-			StartTime:    apt.StartTime.AsTime(),
-			EndTime:      apt.EndTime.AsTime(),
-			Notes:        notes,
-			Reminder:     apt.Reminder,
+			CustomerID: apt.CustomerId,
+			StaffID:    apt.StaffId,
+			ServiceID:  apt.ServiceId,
+			StartTime:  apt.StartTime.AsTime(),
+			EndTime:    apt.EndTime.AsTime(),
+			Notes:      notes,
+			Reminder:   apt.Reminder,
 			ReminderTime: func() *time.Time {
 				if apt.ReminderTime != nil {
 					t := apt.ReminderTime.AsTime()
@@ -532,16 +532,16 @@ func (s *AppointmentServer) BatchCreateAppointments(ctx context.Context, req *ap
 
 	return &appointmentsv1.BatchCreateAppointmentsResponse{
 		SuccessfulAppointments: successfulAppointments,
-		Errors:                  batchErrors,
-		TotalProcessed:          int32(len(req.Appointments)),
-		SuccessfulCount:         int32(len(successfulAppointments)),
-		FailedCount:             int32(len(batchErrors)),
+		Errors:                 batchErrors,
+		TotalProcessed:         int32(len(req.Appointments)),
+		SuccessfulCount:        int32(len(successfulAppointments)),
+		FailedCount:            int32(len(batchErrors)),
 	}, nil
 }
 
 // Helper functions for converting between protobuf and internal types
 
-func toProtoAppointment(apt *entity.Appointment) *appointmentsv1.Appointment {
+func toProtoAppointment(apt *appointment.Appointment) *appointmentsv1.Appointment {
 	var notes *wrapperspb.StringValue
 	if apt.Notes != nil {
 		notes = wrapperspb.String(*apt.Notes)
@@ -568,40 +568,40 @@ func toProtoAppointment(apt *entity.Appointment) *appointmentsv1.Appointment {
 	}
 }
 
-func convertStatusToProto(status entity.AppointmentStatus) appointmentsv1.AppointmentStatus {
+func convertStatusToProto(status appointment.AppointmentStatus) appointmentsv1.AppointmentStatus {
 	switch status {
-	case entity.AppointmentStatusPending:
+	case appointment.AppointmentStatusPending:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_PENDING
-	case entity.AppointmentStatusConfirmed:
+	case appointment.AppointmentStatusConfirmed:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_CONFIRMED
-	case entity.AppointmentStatusInProgress:
+	case appointment.AppointmentStatusInProgress:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_IN_PROGRESS
-	case entity.AppointmentStatusCompleted:
+	case appointment.AppointmentStatusCompleted:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_COMPLETED
-	case entity.AppointmentStatusCancelled:
+	case appointment.AppointmentStatusCancelled:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_CANCELLED
-	case entity.AppointmentStatusNoShow:
+	case appointment.AppointmentStatusNoShow:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_NO_SHOW
 	default:
 		return appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_UNSPECIFIED
 	}
 }
 
-func convertStatusFromProto(status appointmentsv1.AppointmentStatus) entity.AppointmentStatus {
+func convertStatusFromProto(status appointmentsv1.AppointmentStatus) appointment.AppointmentStatus {
 	switch status {
 	case appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_PENDING:
-		return entity.AppointmentStatusPending
+		return appointment.AppointmentStatusPending
 	case appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_CONFIRMED:
-		return entity.AppointmentStatusConfirmed
+		return appointment.AppointmentStatusConfirmed
 	case appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_IN_PROGRESS:
-		return entity.AppointmentStatusInProgress
+		return appointment.AppointmentStatusInProgress
 	case appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_COMPLETED:
-		return entity.AppointmentStatusCompleted
+		return appointment.AppointmentStatusCompleted
 	case appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_CANCELLED:
-		return entity.AppointmentStatusCancelled
+		return appointment.AppointmentStatusCancelled
 	case appointmentsv1.AppointmentStatus_APPOINTMENT_STATUS_NO_SHOW:
-		return entity.AppointmentStatusNoShow
+		return appointment.AppointmentStatusNoShow
 	default:
-		return entity.AppointmentStatusPending
+		return appointment.AppointmentStatusPending
 	}
 }

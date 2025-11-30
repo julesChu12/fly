@@ -6,52 +6,85 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
-	"github.com/julesChu12/fly/appointments/internal/domain/repository"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/appointments/internal/domain/dto"
 )
 
-// AppointmentService 预约服务接口
+// AppointmentService 预约应用服务接口
 type AppointmentService interface {
 	// 基础CRUD操作
-	CreateAppointment(req *dto.CreateAppointmentRequest) (*entity.Appointment, error)
-	GetAppointmentByID(id string) (*entity.Appointment, error)
-	UpdateAppointment(id string, req *dto.UpdateAppointmentRequest) (*entity.Appointment, error)
+	CreateAppointment(req *dto.CreateAppointmentRequest) (*appointment.Appointment, error)
+	GetAppointmentByID(id string) (*appointment.Appointment, error)
+	UpdateAppointment(id string, req *dto.UpdateAppointmentRequest) (*appointment.Appointment, error)
 	DeleteAppointment(id string) error
 
 	// 查询操作
-	ListAppointments(filter *dto.AppointmentFilter) ([]*entity.Appointment, int64, error)
-	GetAppointmentsByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
-	GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error)
+	ListAppointments(filter *dto.AppointmentFilter) ([]*appointment.Appointment, int64, error)
+	GetAppointmentsByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*appointment.Appointment, error)
+	GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*appointment.Appointment, error)
 
 	// 业务操作
-	UpdateAppointmentStatus(id string, req *dto.UpdateStatusRequest) (*entity.Appointment, error)
-	CancelAppointment(id string, reason *string) (*entity.Appointment, error)
+	UpdateAppointmentStatus(id string, req *dto.UpdateStatusRequest) (*appointment.Appointment, error)
+	CancelAppointment(id string, reason *string) (*appointment.Appointment, error)
 	CheckAvailability(req *dto.AvailabilityRequest) (*dto.AvailabilityResponse, error)
 	CheckConflict(req *dto.ConflictCheckRequest) (*dto.ConflictInfo, error)
 
 	// 日历相关
 	GetCalendarView(req *dto.CalendarViewRequest) ([]*dto.CalendarEvent, error)
-	GetUpcomingAppointments(employeeID string, limit int) ([]*entity.Appointment, error)
+	GetUpcomingAppointments(employeeID string, limit int) ([]*appointment.Appointment, error)
 
 	// 提醒相关
-	GetPendingReminders(beforeTime time.Time) ([]*entity.Appointment, error)
+	GetPendingReminders(beforeTime time.Time) ([]*appointment.Appointment, error)
 }
 
 // appointmentService 预约服务实现
 type appointmentService struct {
-	appointmentRepo repository.AppointmentRepository
+	appointmentRepo appointment.Repository
+	domainService   *appointment.Service
 }
 
 // NewAppointmentService 创建预约服务实例
-func NewAppointmentService(appointmentRepo repository.AppointmentRepository) AppointmentService {
+func NewAppointmentService(appointmentRepo appointment.Repository) AppointmentService {
 	return &appointmentService{
 		appointmentRepo: appointmentRepo,
+		domainService:   appointment.NewService(appointmentRepo),
 	}
 }
 
+// convertFilter 转换 DTO Filter 到 Domain Filter
+func (s *appointmentService) convertFilter(dtoFilter *dto.AppointmentFilter) *appointment.Filter {
+	if dtoFilter == nil {
+		return nil
+	}
+
+	// 调用 SetDefaults 确保有默认值
+	dtoFilter.SetDefaults()
+
+	return &appointment.Filter{
+		CustomerID:  dtoFilter.CustomerID,
+		StaffID:     dtoFilter.StaffID,
+		ServiceID:   dtoFilter.ServiceID,
+		Status:      convertStatus(dtoFilter.Status),
+		StartDate:   dtoFilter.StartDate,
+		EndDate:     dtoFilter.EndDate,
+		Date:        dtoFilter.Date,
+		MinDuration: dtoFilter.MinDuration,
+		MaxDuration: dtoFilter.MaxDuration,
+		Reminder:    dtoFilter.Reminder,
+		Page:        dtoFilter.Page,
+		Limit:       dtoFilter.Limit,
+		Sort:        dtoFilter.Sort,
+		Order:       dtoFilter.Order,
+	}
+}
+
+// convertStatus 转换状态类型
+func convertStatus(status *appointment.AppointmentStatus) *appointment.AppointmentStatus {
+	return status
+}
+
 // CreateAppointment 创建预约
-func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest) (*entity.Appointment, error) {
+func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest) (*appointment.Appointment, error) {
 	// 验证���间
 	if req.EndTime.Before(req.StartTime) {
 		return nil, errors.New("结束时间必须晚于开始时间")
@@ -59,9 +92,9 @@ func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest
 
 	// 检查冲突
 	conflictReq := &dto.ConflictCheckRequest{
-		StaffID: req.StaffID,
-		StartTime:  req.StartTime,
-		EndTime:    req.EndTime,
+		StaffID:   req.StaffID,
+		StartTime: req.StartTime,
+		EndTime:   req.EndTime,
 	}
 	conflictInfo, err := s.CheckConflict(conflictReq)
 	if err != nil {
@@ -79,15 +112,15 @@ func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest
 	}
 
 	// 创建预约实体
-	appointment := &entity.Appointment{
+	appointment := &appointment.Appointment{
 		ID:           uuid.New(),
 		CustomerID:   uuid.MustParse(req.CustomerID),
-		StaffID:   uuid.MustParse(req.StaffID),
+		StaffID:      uuid.MustParse(req.StaffID),
 		ServiceID:    uuid.MustParse(req.ServiceID),
 		StartTime:    req.StartTime,
 		EndTime:      req.EndTime,
 		Notes:        req.Notes,
-		Status:       entity.AppointmentStatusPending,
+		Status:       appointment.AppointmentStatusPending,
 		Reminder:     req.Reminder,
 		ReminderTime: reminderTime,
 	}
@@ -101,7 +134,7 @@ func (s *appointmentService) CreateAppointment(req *dto.CreateAppointmentRequest
 }
 
 // GetAppointmentByID 根据ID获取预约
-func (s *appointmentService) GetAppointmentByID(id string) (*entity.Appointment, error) {
+func (s *appointmentService) GetAppointmentByID(id string) (*appointment.Appointment, error) {
 	if id == "" {
 		return nil, errors.New("预约ID不能为空")
 	}
@@ -115,60 +148,60 @@ func (s *appointmentService) GetAppointmentByID(id string) (*entity.Appointment,
 }
 
 // UpdateAppointment 更新预约
-func (s *appointmentService) UpdateAppointment(id string, req *dto.UpdateAppointmentRequest) (*entity.Appointment, error) {
+func (s *appointmentService) UpdateAppointment(id string, req *dto.UpdateAppointmentRequest) (*appointment.Appointment, error) {
 	if id == "" {
 		return nil, errors.New("预约ID不能为空")
 	}
 
 	// 获取现有预约
-	appointment, err := s.appointmentRepo.GetByID(id)
+	apt, err := s.appointmentRepo.GetByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("获取预约失败: %w", err)
 	}
 
 	// 检查预约状态是否允许修改
-	if appointment.Status == entity.AppointmentStatusCompleted || appointment.Status == entity.AppointmentStatusCancelled {
+	if apt.Status == appointment.AppointmentStatusCompleted || apt.Status == appointment.AppointmentStatusCancelled {
 		return nil, errors.New("已完成或已取消的预约不能修改")
 	}
 
 	// 更新字段
 	if req.CustomerID != nil {
-		appointment.CustomerID = uuid.MustParse(*req.CustomerID)
+		apt.CustomerID = uuid.MustParse(*req.CustomerID)
 	}
 	if req.StaffID != nil {
-		appointment.StaffID = uuid.MustParse(*req.StaffID)
+		apt.StaffID = uuid.MustParse(*req.StaffID)
 	}
 	if req.ServiceID != nil {
-		appointment.ServiceID = uuid.MustParse(*req.ServiceID)
+		apt.ServiceID = uuid.MustParse(*req.ServiceID)
 	}
 	if req.StartTime != nil {
-		appointment.StartTime = *req.StartTime
+		apt.StartTime = *req.StartTime
 	}
 	if req.EndTime != nil {
-		appointment.EndTime = *req.EndTime
+		apt.EndTime = *req.EndTime
 	}
 	if req.Notes != nil {
-		appointment.Notes = req.Notes
+		apt.Notes = req.Notes
 	}
 	if req.Reminder != nil {
-		appointment.Reminder = *req.Reminder
+		apt.Reminder = *req.Reminder
 	}
 	if req.ReminderTime != nil {
-		appointment.ReminderTime = req.ReminderTime
+		apt.ReminderTime = req.ReminderTime
 	}
 
 	// 验证时间
-	if appointment.EndTime.Before(appointment.StartTime) {
+	if apt.EndTime.Before(apt.StartTime) {
 		return nil, errors.New("结束时间必须晚于开始时间")
 	}
 
 	// 检查冲突（排除当前预约）
 	excludeID := &id
 	conflictReq := &dto.ConflictCheckRequest{
-		StaffID: appointment.StaffID.String(),
-		StartTime:  appointment.StartTime,
-		EndTime:    appointment.EndTime,
-		ExcludeID:  excludeID,
+		StaffID:   apt.StaffID.String(),
+		StartTime: apt.StartTime,
+		EndTime:   apt.EndTime,
+		ExcludeID: excludeID,
 	}
 	conflictInfo, err := s.CheckConflict(conflictReq)
 	if err != nil {
@@ -179,11 +212,11 @@ func (s *appointmentService) UpdateAppointment(id string, req *dto.UpdateAppoint
 	}
 
 	// 保存更新
-	if err := s.appointmentRepo.Update(appointment); err != nil {
+	if err := s.appointmentRepo.Update(apt); err != nil {
 		return nil, fmt.Errorf("更新预约失败: %w", err)
 	}
 
-	return appointment, nil
+	return apt, nil
 }
 
 // DeleteAppointment 删除预约
@@ -201,18 +234,20 @@ func (s *appointmentService) DeleteAppointment(id string) error {
 }
 
 // ListAppointments 获取预约列表
-func (s *appointmentService) ListAppointments(filter *dto.AppointmentFilter) ([]*entity.Appointment, int64, error) {
+func (s *appointmentService) ListAppointments(filter *dto.AppointmentFilter) ([]*appointment.Appointment, int64, error) {
 	if filter == nil {
 		filter = &dto.AppointmentFilter{}
 	}
 	filter.SetDefaults()
 
-	appointments, err := s.appointmentRepo.List(filter)
+	domainFilter := s.convertFilter(filter)
+
+	appointments, err := s.appointmentRepo.List(domainFilter)
 	if err != nil {
 		return nil, 0, fmt.Errorf("获取预约列表失败: %w", err)
 	}
 
-	total, err := s.appointmentRepo.Count(filter)
+	total, err := s.appointmentRepo.Count(domainFilter)
 	if err != nil {
 		return nil, 0, fmt.Errorf("获取预约总数失败: %w", err)
 	}
@@ -221,7 +256,7 @@ func (s *appointmentService) ListAppointments(filter *dto.AppointmentFilter) ([]
 }
 
 // GetAppointmentsByCustomerID 根据客户ID获取预约
-func (s *appointmentService) GetAppointmentsByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (s *appointmentService) GetAppointmentsByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*appointment.Appointment, error) {
 	if customerID == "" {
 		return nil, errors.New("客户ID不能为空")
 	}
@@ -232,7 +267,9 @@ func (s *appointmentService) GetAppointmentsByCustomerID(customerID string, filt
 	filter.CustomerID = &customerID
 	filter.SetDefaults()
 
-	appointments, err := s.appointmentRepo.GetByCustomerID(customerID, filter)
+	domainFilter := s.convertFilter(filter)
+
+	appointments, err := s.appointmentRepo.GetByCustomerID(customerID, domainFilter)
 	if err != nil {
 		return nil, fmt.Errorf("获取客户预约失败: %w", err)
 	}
@@ -241,7 +278,7 @@ func (s *appointmentService) GetAppointmentsByCustomerID(customerID string, filt
 }
 
 // GetAppointmentsByStaffID 根据员工ID获取预约
-func (s *appointmentService) GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (s *appointmentService) GetAppointmentsByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*appointment.Appointment, error) {
 	if employeeID == "" {
 		return nil, errors.New("员工ID不能为空")
 	}
@@ -252,7 +289,9 @@ func (s *appointmentService) GetAppointmentsByStaffID(employeeID string, filter 
 	filter.StaffID = &employeeID
 	filter.SetDefaults()
 
-	appointments, err := s.appointmentRepo.GetByStaffID(employeeID, filter)
+	domainFilter := s.convertFilter(filter)
+
+	appointments, err := s.appointmentRepo.GetByStaffID(employeeID, domainFilter)
 	if err != nil {
 		return nil, fmt.Errorf("获取员工预约失败: %w", err)
 	}
@@ -261,48 +300,48 @@ func (s *appointmentService) GetAppointmentsByStaffID(employeeID string, filter 
 }
 
 // UpdateAppointmentStatus 更新预约状态
-func (s *appointmentService) UpdateAppointmentStatus(id string, req *dto.UpdateStatusRequest) (*entity.Appointment, error) {
+func (s *appointmentService) UpdateAppointmentStatus(id string, req *dto.UpdateStatusRequest) (*appointment.Appointment, error) {
 	if id == "" {
 		return nil, errors.New("预约ID不能为空")
 	}
 
 	// 获取现有预约
-	appointment, err := s.appointmentRepo.GetByID(id)
+	apt, err := s.appointmentRepo.GetByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("获取预约失败: %w", err)
 	}
 
 	// 解析新状态
-	newStatus := entity.AppointmentStatus(req.Status)
-	if !appointment.IsValidStatus(newStatus) {
+	newStatus := appointment.AppointmentStatus(req.Status)
+	if !apt.IsValidStatus(newStatus) {
 		return nil, errors.New("无效的预约状态")
 	}
 
 	// 检查状态转换是否合法
-	if !appointment.CanTransitionTo(newStatus) {
-		return nil, fmt.Errorf("不能从 %s 状态转换为 %s 状态", appointment.Status, newStatus)
+	if !apt.CanTransitionTo(newStatus) {
+		return nil, fmt.Errorf("不能从 %s 状态转换为 %s 状态", apt.Status, newStatus)
 	}
 
 	// 更新状态
-	appointment.Status = newStatus
+	apt.Status = newStatus
 
 	// 如果是完成状态，添加完成备注
-	if newStatus == entity.AppointmentStatusCompleted && req.CompletionNotes != nil {
-		appointment.Notes = req.CompletionNotes
+	if newStatus == appointment.AppointmentStatusCompleted && req.CompletionNotes != nil {
+		apt.Notes = req.CompletionNotes
 	}
 
 	// 保存更新
-	if err := s.appointmentRepo.Update(appointment); err != nil {
+	if err := s.appointmentRepo.Update(apt); err != nil {
 		return nil, fmt.Errorf("更新预约状态失败: %w", err)
 	}
 
-	return appointment, nil
+	return apt, nil
 }
 
 // CancelAppointment 取消预约
-func (s *appointmentService) CancelAppointment(id string, reason *string) (*entity.Appointment, error) {
+func (s *appointmentService) CancelAppointment(id string, reason *string) (*appointment.Appointment, error) {
 	req := &dto.UpdateStatusRequest{
-		Status: string(entity.AppointmentStatusCancelled),
+		Status: string(appointment.AppointmentStatusCancelled),
 	}
 	if reason != nil {
 		req.CompletionNotes = reason
@@ -318,14 +357,15 @@ func (s *appointmentService) CheckAvailability(req *dto.AvailabilityRequest) (*d
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
 	filter := &dto.AppointmentFilter{
-		StaffID: &req.StaffID,
-		StartDate:  &startOfDay,
-		EndDate:    &endOfDay,
-		Sort:       "start_time",
-		Order:      "asc",
+		StaffID:   &req.StaffID,
+		StartDate: &startOfDay,
+		EndDate:   &endOfDay,
+		Sort:      "start_time",
+		Order:     "asc",
 	}
 
-	appointments, err := s.appointmentRepo.GetByStaffID(req.StaffID, filter)
+	domainFilter := s.convertFilter(filter)
+	appointments, err := s.appointmentRepo.GetByStaffID(req.StaffID, domainFilter)
 	if err != nil {
 		return nil, fmt.Errorf("获取预约信息失败: %w", err)
 	}
@@ -345,11 +385,11 @@ func (s *appointmentService) CheckAvailability(req *dto.AvailabilityRequest) (*d
 		// 检查该时间段是否被占用
 		available := true
 		for _, apt := range appointments {
-			if apt.Status == entity.AppointmentStatusCancelled {
+			if apt.Status == appointment.AppointmentStatusCancelled {
 				continue
 			}
 			// 检查时间重叠
-			if (current.Before(apt.EndTime) && slotEnd.After(apt.StartTime)) {
+			if current.Before(apt.EndTime) && slotEnd.After(apt.StartTime) {
 				available = false
 				break
 			}
@@ -366,8 +406,8 @@ func (s *appointmentService) CheckAvailability(req *dto.AvailabilityRequest) (*d
 
 	return &dto.AvailabilityResponse{
 		StaffID: req.StaffID,
-		Date:       req.Date,
-		Slots:      slots,
+		Date:    req.Date,
+		Slots:   slots,
 	}, nil
 }
 
@@ -405,7 +445,8 @@ func (s *appointmentService) GetCalendarView(req *dto.CalendarViewRequest) ([]*d
 		filter.StaffID = req.StaffID
 	}
 
-	appointments, err := s.appointmentRepo.GetByDateRange(req.StartDate, req.EndDate, filter)
+	domainFilter := s.convertFilter(filter)
+	appointments, err := s.appointmentRepo.GetByDateRange(req.StartDate, req.EndDate, domainFilter)
 	if err != nil {
 		return nil, fmt.Errorf("获取预约数据失败: %w", err)
 	}
@@ -427,25 +468,26 @@ func (s *appointmentService) GetCalendarView(req *dto.CalendarViewRequest) ([]*d
 }
 
 // GetUpcomingAppointments 获取即将到来的预约
-func (s *appointmentService) GetUpcomingAppointments(employeeID string, limit int) ([]*entity.Appointment, error) {
+func (s *appointmentService) GetUpcomingAppointments(employeeID string, limit int) ([]*appointment.Appointment, error) {
 	if limit <= 0 {
 		limit = 10
 	}
 
 	// 获取从现在开始的预约
 	now := time.Now()
-	status := entity.AppointmentStatusConfirmed
+	status := appointment.AppointmentStatusConfirmed
 	filter := &dto.AppointmentFilter{
-		StaffID: &employeeID,
-		StartDate:  &now,
-		Status:     &status,
-		Page:       1,
-		Limit:      limit,
-		Sort:       "start_time",
-		Order:      "asc",
+		StaffID:   &employeeID,
+		StartDate: &now,
+		Status:    &status,
+		Page:      1,
+		Limit:     limit,
+		Sort:      "start_time",
+		Order:     "asc",
 	}
 
-	appointments, err := s.appointmentRepo.List(filter)
+	domainFilter := s.convertFilter(filter)
+	appointments, err := s.appointmentRepo.List(domainFilter)
 	if err != nil {
 		return nil, fmt.Errorf("获取即将到来的预约失败: %w", err)
 	}
@@ -454,7 +496,7 @@ func (s *appointmentService) GetUpcomingAppointments(employeeID string, limit in
 }
 
 // GetPendingReminders 获取待处理的提醒
-func (s *appointmentService) GetPendingReminders(beforeTime time.Time) ([]*entity.Appointment, error) {
+func (s *appointmentService) GetPendingReminders(beforeTime time.Time) ([]*appointment.Appointment, error) {
 	appointments, err := s.appointmentRepo.GetPendingReminders(beforeTime)
 	if err != nil {
 		return nil, fmt.Errorf("获取待处理提醒失败: %w", err)

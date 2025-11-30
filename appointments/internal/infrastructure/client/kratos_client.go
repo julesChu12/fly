@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/mora/pkg/logger"
 )
 
@@ -34,53 +34,53 @@ type KratosClientConfig struct {
 type OrderStatus string
 
 const (
-	OrderStatusPending   OrderStatus = "pending"    // 待支付
-	OrderStatusPaid      OrderStatus = "paid"       // 已支付
-	OrderStatusCompleted OrderStatus = "completed"  // 已完成
-	OrderStatusCancelled OrderStatus = "cancelled"  // 已取消
-	OrderStatusExpired   OrderStatus = "expired"    // 已过期
+	OrderStatusPending   OrderStatus = "pending"   // 待支付
+	OrderStatusPaid      OrderStatus = "paid"      // 已支付
+	OrderStatusCompleted OrderStatus = "completed" // 已完成
+	OrderStatusCancelled OrderStatus = "cancelled" // 已取消
+	OrderStatusExpired   OrderStatus = "expired"   // 已过期
 )
 
 // PaymentStatus 支付状态枚举
 type PaymentStatus string
 
 const (
-	PaymentStatusPending        PaymentStatus = "pending"         // 待支付
-	PaymentStatusProcessing     PaymentStatus = "processing"      // 处理中
-	PaymentStatusPaid           PaymentStatus = "paid"            // 已支付
-	PaymentStatusFailed         PaymentStatus = "failed"          // 支付失败
-	PaymentStatusRefunded       PaymentStatus = "refunded"        // 已退款
+	PaymentStatusPending         PaymentStatus = "pending"          // 待支付
+	PaymentStatusProcessing      PaymentStatus = "processing"       // 处理中
+	PaymentStatusPaid            PaymentStatus = "paid"             // 已支付
+	PaymentStatusFailed          PaymentStatus = "failed"           // 支付失败
+	PaymentStatusRefunded        PaymentStatus = "refunded"         // 已退款
 	PaymentStatusPartialRefunded PaymentStatus = "partial_refunded" // 部分退款
 )
 
 // Order 订单结构
 type Order struct {
-	ID              string       `json:"id"`
-	OrderNumber     string       `json:"order_number"`
-	CustomerID      string       `json:"customer_id"`
-	AppointmentID   string       `json:"appointment_id"`
-	StaffID         string       `json:"staff_id"`
-	ServiceID       string       `json:"service_id"`
-	Amount          float64      `json:"amount"`
-	Currency        string       `json:"currency"`
-	Status          OrderStatus  `json:"status"`
+	ID              string        `json:"id"`
+	OrderNumber     string        `json:"order_number"`
+	CustomerID      string        `json:"customer_id"`
+	AppointmentID   string        `json:"appointment_id"`
+	StaffID         string        `json:"staff_id"`
+	ServiceID       string        `json:"service_id"`
+	Amount          float64       `json:"amount"`
+	Currency        string        `json:"currency"`
+	Status          OrderStatus   `json:"status"`
 	PaymentStatus   PaymentStatus `json:"payment_status"`
-	Description     string       `json:"description"`
-	OrderTime       time.Time    `json:"order_time"`
-	PaymentDeadline time.Time    `json:"payment_deadline"`
-	CreatedAt       time.Time    `json:"created_at"`
-	UpdatedAt       time.Time    `json:"updated_at"`
+	Description     string        `json:"description"`
+	OrderTime       time.Time     `json:"order_time"`
+	PaymentDeadline time.Time     `json:"payment_deadline"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 }
 
 // CreateOrderRequest 创建订单请求
 type CreateOrderRequest struct {
-	CustomerID    string  `json:"customer_id" validate:"required"`
-	AppointmentID string  `json:"appointment_id" validate:"required"`
-	StaffID       string  `json:"staff_id" validate:"required"`
-	ServiceID     string  `json:"service_id" validate:"required"`
-	Amount        float64 `json:"amount" validate:"required,gt=0"`
-	Currency      string  `json:"currency"`
-	Description   string  `json:"description"`
+	CustomerID    string    `json:"customer_id" validate:"required"`
+	AppointmentID string    `json:"appointment_id" validate:"required"`
+	StaffID       string    `json:"staff_id" validate:"required"`
+	ServiceID     string    `json:"service_id" validate:"required"`
+	Amount        float64   `json:"amount" validate:"required,gt=0"`
+	Currency      string    `json:"currency"`
+	Description   string    `json:"description"`
 	OrderTime     time.Time `json:"order_time"`
 }
 
@@ -93,8 +93,8 @@ type UpdateOrderStatusRequest struct {
 
 // OrderResponse 订单响应
 type OrderResponse struct {
-	Success bool         `json:"success"`
-	Data    *Order       `json:"data"`
+	Success bool           `json:"success"`
+	Data    *Order         `json:"data"`
 	Error   *ErrorResponse `json:"error"`
 }
 
@@ -149,7 +149,7 @@ func (c *KratosClient) CreateOrder(ctx context.Context, req *CreateOrderRequest)
 		if attempt > 0 {
 			c.logger.Debug("重试创建订单",
 				map[string]interface{}{
-					"attempt": attempt + 1,
+					"attempt":  attempt + 1,
 					"order_id": req.AppointmentID,
 				})
 			time.Sleep(c.config.RetryDelay)
@@ -159,9 +159,9 @@ func (c *KratosClient) CreateOrder(ctx context.Context, req *CreateOrderRequest)
 		if err == nil {
 			c.logger.Info("订单创建成功",
 				map[string]interface{}{
-					"order_id": order.ID,
+					"order_id":     order.ID,
 					"order_number": order.OrderNumber,
-					"amount": order.Amount,
+					"amount":       order.Amount,
 				})
 			return order, nil
 		}
@@ -360,8 +360,8 @@ func isTimeoutError(err error) bool {
 // contains 字符串包含检查（简单实现，生产环境可使用strings.Contains）
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && s[:len(substr)] == substr ||
-		   (len(s) > len(substr) && s[len(s)-len(substr):] == substr) ||
-		   (len(s) > len(substr) && findSubstring(s, substr))
+		(len(s) > len(substr) && s[len(s)-len(substr):] == substr) ||
+		(len(s) > len(substr) && findSubstring(s, substr))
 }
 
 // findSubstring 查找子字符串
@@ -375,7 +375,7 @@ func findSubstring(s, substr string) bool {
 }
 
 // 从预约请求创建订单请求的辅助函数
-func CreateOrderRequestFromAppointment(appointment *entity.Appointment, amount float64) *CreateOrderRequest {
+func CreateOrderRequestFromAppointment(appointment *appointment.Appointment, amount float64) *CreateOrderRequest {
 	return &CreateOrderRequest{
 		CustomerID:    appointment.CustomerID.String(),
 		AppointmentID: appointment.ID.String(),
@@ -383,7 +383,7 @@ func CreateOrderRequestFromAppointment(appointment *entity.Appointment, amount f
 		ServiceID:     appointment.ServiceID.String(),
 		Amount:        amount,
 		Currency:      "CNY",
-		Description:   fmt.Sprintf("预约服务 - 员工:%s, 时间:%s",
+		Description: fmt.Sprintf("预约服务 - 员工:%s, 时间:%s",
 			appointment.StaffID.String(),
 			appointment.StartTime.Format("2006-01-02 15:04")),
 		OrderTime: time.Now(),

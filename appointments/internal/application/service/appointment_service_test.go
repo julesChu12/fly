@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/appointments/internal/domain/dto"
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -16,20 +16,20 @@ type MockAppointmentRepository struct {
 	mock.Mock
 }
 
-func (m *MockAppointmentRepository) Create(appointment *entity.Appointment) error {
+func (m *MockAppointmentRepository) Create(appointment *appointment.Appointment) error {
 	args := m.Called(appointment)
 	return args.Error(0)
 }
 
-func (m *MockAppointmentRepository) GetByID(id string) (*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetByID(id string) (*appointment.Appointment, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*entity.Appointment), args.Error(1)
+	return args.Get(0).(*appointment.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) Update(appointment *entity.Appointment) error {
+func (m *MockAppointmentRepository) Update(appointment *appointment.Appointment) error {
 	args := m.Called(appointment)
 	return args.Error(0)
 }
@@ -44,49 +44,49 @@ func (m *MockAppointmentRepository) SoftDelete(id string) error {
 	return args.Error(0)
 }
 
-func (m *MockAppointmentRepository) List(filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) List(filter *appointment.Filter) ([]*appointment.Appointment, error) {
 	args := m.Called(filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) Count(filter *dto.AppointmentFilter) (int64, error) {
+func (m *MockAppointmentRepository) Count(filter *appointment.Filter) (int64, error) {
 	args := m.Called(filter)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) GetByCustomerID(customerID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetByCustomerID(customerID string, filter *appointment.Filter) ([]*appointment.Appointment, error) {
 	args := m.Called(customerID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) GetByStaffID(employeeID string, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetByStaffID(employeeID string, filter *appointment.Filter) ([]*appointment.Appointment, error) {
 	args := m.Called(employeeID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) GetByDateRange(startDate, endDate time.Time, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetByDateRange(startDate, endDate time.Time, filter *appointment.Filter) ([]*appointment.Appointment, error) {
 	args := m.Called(startDate, endDate, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) CheckConflict(employeeID string, startTime, endTime time.Time, excludeID *string) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) CheckConflict(employeeID string, startTime, endTime time.Time, excludeID *string) ([]*appointment.Appointment, error) {
 	args := m.Called(employeeID, startTime, endTime, excludeID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
 func (m *MockAppointmentRepository) GetAvailableSlots(employeeID string, date time.Time, serviceDuration time.Duration) ([]*time.Time, error) {
@@ -97,25 +97,25 @@ func (m *MockAppointmentRepository) GetAvailableSlots(employeeID string, date ti
 	return args.Get(0).([]*time.Time), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) GetByStatus(status entity.AppointmentStatus, filter *dto.AppointmentFilter) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetByStatus(status appointment.AppointmentStatus, filter *appointment.Filter) ([]*appointment.Appointment, error) {
 	args := m.Called(status, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
-func (m *MockAppointmentRepository) UpdateStatus(id string, status entity.AppointmentStatus) error {
+func (m *MockAppointmentRepository) UpdateStatus(id string, status appointment.AppointmentStatus) error {
 	args := m.Called(id, status)
 	return args.Error(0)
 }
 
-func (m *MockAppointmentRepository) GetPendingReminders(beforeTime time.Time) ([]*entity.Appointment, error) {
+func (m *MockAppointmentRepository) GetPendingReminders(beforeTime time.Time) ([]*appointment.Appointment, error) {
 	args := m.Called(beforeTime)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entity.Appointment), args.Error(1)
+	return args.Get(0).([]*appointment.Appointment), args.Error(1)
 }
 
 func TestAppointmentService_CreateAppointment(t *testing.T) {
@@ -125,7 +125,7 @@ func TestAppointmentService_CreateAppointment(t *testing.T) {
 	now := time.Now()
 	req := &dto.CreateAppointmentRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440001",
-		StaffID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID:    "550e8400-e29b-41d4-a716-446655440002",
 		ServiceID:  "550e8400-e29b-41d4-a716-446655440003",
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
@@ -133,16 +133,16 @@ func TestAppointmentService_CreateAppointment(t *testing.T) {
 	}
 
 	// Test successful creation
-	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{}, nil)
-	mockRepo.On("Create", mock.AnythingOfType("*entity.Appointment")).Return(nil)
+	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*appointment.Appointment{}, nil)
+	mockRepo.On("Create", mock.AnythingOfType("*appointment.Appointment")).Return(nil)
 
-	appointment, err := service.CreateAppointment(req)
+	createdAppointment, err := service.CreateAppointment(req)
 	assert.NoError(t, err)
-	assert.NotNil(t, appointment)
-	assert.Equal(t, uuid.MustParse(req.CustomerID), appointment.CustomerID)
-	assert.Equal(t, uuid.MustParse(req.StaffID), appointment.StaffID)
-	assert.Equal(t, uuid.MustParse(req.ServiceID), appointment.ServiceID)
-	assert.Equal(t, entity.AppointmentStatusPending, appointment.Status)
+	assert.NotNil(t, createdAppointment)
+	assert.Equal(t, uuid.MustParse(req.CustomerID), createdAppointment.CustomerID)
+	assert.Equal(t, uuid.MustParse(req.StaffID), createdAppointment.StaffID)
+	assert.Equal(t, uuid.MustParse(req.ServiceID), createdAppointment.ServiceID)
+	assert.Equal(t, appointment.AppointmentStatusPending, createdAppointment.Status)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -154,26 +154,26 @@ func TestAppointmentService_CreateAppointment_Conflict(t *testing.T) {
 	now := time.Now()
 	req := &dto.CreateAppointmentRequest{
 		CustomerID: "550e8400-e29b-41d4-a716-446655440001",
-		StaffID: "550e8400-e29b-41d4-a716-446655440002",
+		StaffID:    "550e8400-e29b-41d4-a716-446655440002",
 		ServiceID:  "550e8400-e29b-41d4-a716-446655440003",
 		StartTime:  now,
 		EndTime:    now.Add(time.Hour),
 	}
 
 	// Test conflict detection
-	existingAppointment := &entity.Appointment{
+	existingAppointment := &appointment.Appointment{
 		ID:        uuid.New(),
-		StaffID: uuid.MustParse(req.StaffID),
+		StaffID:   uuid.MustParse(req.StaffID),
 		StartTime: now,
 		EndTime:   now.Add(time.Hour),
-		Status:    entity.AppointmentStatusConfirmed,
+		Status:    appointment.AppointmentStatusConfirmed,
 	}
 
-	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{existingAppointment}, nil)
+	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*appointment.Appointment{existingAppointment}, nil)
 
-	appointment, err := service.CreateAppointment(req)
+	conflictedAppointment, err := service.CreateAppointment(req)
 	assert.Error(t, err)
-	assert.Nil(t, appointment)
+	assert.Nil(t, conflictedAppointment)
 	assert.Contains(t, err.Error(), "时间冲突")
 
 	mockRepo.AssertExpectations(t)
@@ -184,29 +184,29 @@ func TestAppointmentService_GetAppointmentByID(t *testing.T) {
 	service := NewAppointmentService(mockRepo)
 
 	appointmentID := uuid.New().String()
-	expectedAppointment := &entity.Appointment{
+	expectedAppointment := &appointment.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-		Status:     entity.AppointmentStatusConfirmed,
+		StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		Status:     appointment.AppointmentStatusConfirmed,
 	}
 
 	// Test successful retrieval
 	mockRepo.On("GetByID", appointmentID).Return(expectedAppointment, nil)
 
-	appointment, err := service.GetAppointmentByID(appointmentID)
+	foundAppointment, err := service.GetAppointmentByID(appointmentID)
 	assert.NoError(t, err)
-	assert.NotNil(t, appointment)
-	assert.Equal(t, expectedAppointment.ID, appointment.ID)
+	assert.NotNil(t, foundAppointment)
+	assert.Equal(t, expectedAppointment.ID, foundAppointment.ID)
 
 	mockRepo.AssertExpectations(t)
 
 	// Test not found
-	mockRepo.On("GetByID", "non-existent-id").Return((*entity.Appointment)(nil), assert.AnError)
+	mockRepo.On("GetByID", "non-existent-id").Return((*appointment.Appointment)(nil), assert.AnError)
 
-	appointment, err = service.GetAppointmentByID("non-existent-id")
+	notFoundAppointment, err := service.GetAppointmentByID("non-existent-id")
 	assert.Error(t, err)
-	assert.Nil(t, appointment)
+	assert.Nil(t, notFoundAppointment)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -216,11 +216,11 @@ func TestAppointmentService_UpdateAppointment(t *testing.T) {
 	service := NewAppointmentService(mockRepo)
 
 	appointmentID := uuid.New().String()
-	existingAppointment := &entity.Appointment{
+	existingAppointment := &appointment.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-		Status:     entity.AppointmentStatusPending,
+		StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		Status:     appointment.AppointmentStatusPending,
 	}
 
 	req := &dto.UpdateAppointmentRequest{
@@ -229,22 +229,22 @@ func TestAppointmentService_UpdateAppointment(t *testing.T) {
 
 	// Test successful update
 	mockRepo.On("GetByID", appointmentID).Return(existingAppointment, nil)
-	mockRepo.On("CheckConflict", existingAppointment.StaffID.String(), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), mock.AnythingOfType("*string")).Return([]*entity.Appointment{}, nil)
-	mockRepo.On("Update", mock.AnythingOfType("*entity.Appointment")).Return(nil)
+	mockRepo.On("CheckConflict", existingAppointment.StaffID.String(), mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), mock.AnythingOfType("*string")).Return([]*appointment.Appointment{}, nil)
+	mockRepo.On("Update", mock.AnythingOfType("*appointment.Appointment")).Return(nil)
 
-	appointment, err := service.UpdateAppointment(appointmentID, req)
+	updatedAppointment, err := service.UpdateAppointment(appointmentID, req)
 	assert.NoError(t, err)
-	assert.NotNil(t, appointment)
-	assert.Equal(t, "Updated notes", *appointment.Notes)
+	assert.NotNil(t, updatedAppointment)
+	assert.Equal(t, "Updated notes", *updatedAppointment.Notes)
 
 	mockRepo.AssertExpectations(t)
 
 	// Test appointment not found
-	mockRepo.On("GetByID", "non-existent-id").Return((*entity.Appointment)(nil), assert.AnError)
+	mockRepo.On("GetByID", "non-existent-id").Return((*appointment.Appointment)(nil), assert.AnError)
 
-	appointment, err = service.UpdateAppointment("non-existent-id", req)
+	notFoundUpdatedAppointment, err := service.UpdateAppointment("non-existent-id", req)
 	assert.Error(t, err)
-	assert.Nil(t, appointment)
+	assert.Nil(t, notFoundUpdatedAppointment)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -273,24 +273,24 @@ func TestAppointmentService_ListAppointments(t *testing.T) {
 		Limit: 10,
 	}
 
-	expectedAppointments := []*entity.Appointment{
+	expectedAppointments := []*appointment.Appointment{
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-			Status:     entity.AppointmentStatusConfirmed,
+			StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			Status:     appointment.AppointmentStatusConfirmed,
 		},
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440003"),
-			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
-			Status:     entity.AppointmentStatusPending,
+			StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440004"),
+			Status:     appointment.AppointmentStatusPending,
 		},
 	}
 
 	// Test successful list
-	mockRepo.On("List", mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
-	mockRepo.On("Count", mock.AnythingOfType("*dto.AppointmentFilter")).Return(int64(2), nil)
+	mockRepo.On("List", mock.AnythingOfType("*appointment.Filter")).Return(expectedAppointments, nil)
+	mockRepo.On("Count", mock.AnythingOfType("*appointment.Filter")).Return(int64(2), nil)
 
 	appointments, total, err := service.ListAppointments(filter)
 	assert.NoError(t, err)
@@ -305,11 +305,11 @@ func TestAppointmentService_UpdateAppointmentStatus(t *testing.T) {
 	service := NewAppointmentService(mockRepo)
 
 	appointmentID := uuid.New().String()
-	existingAppointment := &entity.Appointment{
+	existingAppointment := &appointment.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-		Status:     entity.AppointmentStatusPending,
+		StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		Status:     appointment.AppointmentStatusPending,
 	}
 
 	req := &dto.UpdateStatusRequest{
@@ -318,12 +318,12 @@ func TestAppointmentService_UpdateAppointmentStatus(t *testing.T) {
 
 	// Test successful status update
 	mockRepo.On("GetByID", appointmentID).Return(existingAppointment, nil)
-	mockRepo.On("Update", mock.AnythingOfType("*entity.Appointment")).Return(nil)
+	mockRepo.On("Update", mock.AnythingOfType("*appointment.Appointment")).Return(nil)
 
-	appointment, err := service.UpdateAppointmentStatus(appointmentID, req)
+	statusUpdatedAppointment, err := service.UpdateAppointmentStatus(appointmentID, req)
 	assert.NoError(t, err)
-	assert.NotNil(t, appointment)
-	assert.Equal(t, entity.AppointmentStatusConfirmed, appointment.Status)
+	assert.NotNil(t, statusUpdatedAppointment)
+	assert.Equal(t, appointment.AppointmentStatusConfirmed, statusUpdatedAppointment.Status)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -333,23 +333,23 @@ func TestAppointmentService_CancelAppointment(t *testing.T) {
 	service := NewAppointmentService(mockRepo)
 
 	appointmentID := uuid.New().String()
-	existingAppointment := &entity.Appointment{
+	existingAppointment := &appointment.Appointment{
 		ID:         uuid.MustParse(appointmentID),
 		CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-		StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-		Status:     entity.AppointmentStatusPending,
+		StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+		Status:     appointment.AppointmentStatusPending,
 	}
 
 	reason := stringPtr("Customer requested cancellation")
 
 	// Test successful cancellation
 	mockRepo.On("GetByID", appointmentID).Return(existingAppointment, nil)
-	mockRepo.On("Update", mock.AnythingOfType("*entity.Appointment")).Return(nil)
+	mockRepo.On("Update", mock.AnythingOfType("*appointment.Appointment")).Return(nil)
 
-	appointment, err := service.CancelAppointment(appointmentID, reason)
+	cancelledAppointment, err := service.CancelAppointment(appointmentID, reason)
 	assert.NoError(t, err)
-	assert.NotNil(t, appointment)
-	assert.Equal(t, entity.AppointmentStatusCancelled, appointment.Status)
+	assert.NotNil(t, cancelledAppointment)
+	assert.Equal(t, appointment.AppointmentStatusCancelled, cancelledAppointment.Status)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -363,18 +363,18 @@ func TestAppointmentService_GetCalendarView(t *testing.T) {
 		EndDate:   time.Now().Add(7 * 24 * time.Hour).Truncate(24 * time.Hour),
 	}
 
-	expectedAppointments := []*entity.Appointment{
+	expectedAppointments := []*appointment.Appointment{
 		{
 			ID:        uuid.New(),
-			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			StaffID:   uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
 			StartTime: req.StartDate.Add(9 * time.Hour),
 			EndTime:   req.StartDate.Add(10 * time.Hour),
-			Status:    entity.AppointmentStatusConfirmed,
+			Status:    appointment.AppointmentStatusConfirmed,
 		},
 	}
 
 	// Test successful calendar view
-	mockRepo.On("GetByDateRange", req.StartDate, req.EndDate, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("GetByDateRange", req.StartDate, req.EndDate, mock.AnythingOfType("*appointment.Filter")).Return(expectedAppointments, nil)
 
 	events, err := service.GetCalendarView(req)
 	assert.NoError(t, err)
@@ -390,16 +390,16 @@ func TestAppointmentService_CheckAvailability(t *testing.T) {
 
 	date := time.Now().Truncate(24 * time.Hour)
 	req := &dto.AvailabilityRequest{
-		StaffID:      "550e8400-e29b-41d4-a716-446655440002",
+		StaffID:         "550e8400-e29b-41d4-a716-446655440002",
 		Date:            date,
 		ServiceDuration: 30 * time.Minute,
 	}
 
-	expectedAppointments := []*entity.Appointment{}
+	expectedAppointments := []*appointment.Appointment{}
 
 	// Test availability check
 	employeeID := "550e8400-e29b-41d4-a716-446655440002"
-	mockRepo.On("GetByStaffID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("GetByStaffID", employeeID, mock.AnythingOfType("*appointment.Filter")).Return(expectedAppointments, nil)
 
 	response, err := service.CheckAvailability(req)
 	assert.NoError(t, err)
@@ -415,21 +415,21 @@ func TestAppointmentService_CheckConflict(t *testing.T) {
 	service := NewAppointmentService(mockRepo)
 
 	req := &dto.ConflictCheckRequest{
-		StaffID: "550e8400-e29b-41d4-a716-446655440002",
-		StartTime:  time.Now(),
-		EndTime:    time.Now().Add(time.Hour),
+		StaffID:   "550e8400-e29b-41d4-a716-446655440002",
+		StartTime: time.Now(),
+		EndTime:   time.Now().Add(time.Hour),
 	}
 
-	existingAppointment := &entity.Appointment{
+	existingAppointment := &appointment.Appointment{
 		ID:        uuid.New(),
-		StaffID: uuid.MustParse(req.StaffID),
+		StaffID:   uuid.MustParse(req.StaffID),
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,
-		Status:    entity.AppointmentStatusConfirmed,
+		Status:    appointment.AppointmentStatusConfirmed,
 	}
 
 	// Test conflict detection
-	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{existingAppointment}, nil)
+	mockRepo.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*appointment.Appointment{existingAppointment}, nil)
 
 	response, err := service.CheckConflict(req)
 	assert.NoError(t, err)
@@ -443,7 +443,7 @@ func TestAppointmentService_CheckConflict(t *testing.T) {
 	mockRepo2 := &MockAppointmentRepository{}
 	service2 := NewAppointmentService(mockRepo2)
 
-	mockRepo2.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*entity.Appointment{}, nil)
+	mockRepo2.On("CheckConflict", req.StaffID, req.StartTime, req.EndTime, (*string)(nil)).Return([]*appointment.Appointment{}, nil)
 
 	response, err = service2.CheckConflict(req)
 	assert.NoError(t, err)
@@ -463,17 +463,17 @@ func TestAppointmentService_GetAppointmentsByCustomerID(t *testing.T) {
 		Limit: 10,
 	}
 
-	expectedAppointments := []*entity.Appointment{
+	expectedAppointments := []*appointment.Appointment{
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse(customerID),
-			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-			Status:     entity.AppointmentStatusConfirmed,
+			StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			Status:     appointment.AppointmentStatusConfirmed,
 		},
 	}
 
 	// Test successful retrieval by customer ID
-	mockRepo.On("GetByCustomerID", customerID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("GetByCustomerID", customerID, mock.AnythingOfType("*appointment.Filter")).Return(expectedAppointments, nil)
 
 	appointments, err := service.GetAppointmentsByCustomerID(customerID, filter)
 	assert.NoError(t, err)
@@ -493,17 +493,17 @@ func TestAppointmentService_GetAppointmentsByStaffID(t *testing.T) {
 		Limit: 10,
 	}
 
-	expectedAppointments := []*entity.Appointment{
+	expectedAppointments := []*appointment.Appointment{
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			StaffID: uuid.MustParse(employeeID),
-			Status:     entity.AppointmentStatusConfirmed,
+			StaffID:    uuid.MustParse(employeeID),
+			Status:     appointment.AppointmentStatusConfirmed,
 		},
 	}
 
 	// Test successful retrieval by employee ID
-	mockRepo.On("GetByStaffID", employeeID, mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("GetByStaffID", employeeID, mock.AnythingOfType("*appointment.Filter")).Return(expectedAppointments, nil)
 
 	appointments, err := service.GetAppointmentsByStaffID(employeeID, filter)
 	assert.NoError(t, err)
@@ -520,17 +520,17 @@ func TestAppointmentService_GetUpcomingAppointments(t *testing.T) {
 	employeeID := "550e8400-e29b-41d4-a716-446655440002"
 	limit := 10
 
-	expectedAppointments := []*entity.Appointment{
+	expectedAppointments := []*appointment.Appointment{
 		{
-			ID:         uuid.New(),
-			StaffID: uuid.MustParse(employeeID),
-			Status:     entity.AppointmentStatusConfirmed,
-			StartTime:  time.Now().Add(time.Hour),
+			ID:        uuid.New(),
+			StaffID:   uuid.MustParse(employeeID),
+			Status:    appointment.AppointmentStatusConfirmed,
+			StartTime: time.Now().Add(time.Hour),
 		},
 	}
 
 	// Test successful retrieval of upcoming appointments
-	mockRepo.On("List", mock.AnythingOfType("*dto.AppointmentFilter")).Return(expectedAppointments, nil)
+	mockRepo.On("List", mock.AnythingOfType("*appointment.Filter")).Return(expectedAppointments, nil)
 
 	appointments, err := service.GetUpcomingAppointments(employeeID, limit)
 	assert.NoError(t, err)
@@ -546,12 +546,12 @@ func TestAppointmentService_GetPendingReminders(t *testing.T) {
 
 	beforeTime := time.Now()
 
-	expectedAppointments := []*entity.Appointment{
+	expectedAppointments := []*appointment.Appointment{
 		{
 			ID:         uuid.New(),
 			CustomerID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440001"),
-			StaffID: uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
-			Status:     entity.AppointmentStatusConfirmed,
+			StaffID:    uuid.MustParse("550e8400-e29b-41d4-a716-446655440002"),
+			Status:     appointment.AppointmentStatusConfirmed,
 		},
 	}
 

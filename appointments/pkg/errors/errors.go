@@ -23,14 +23,14 @@ const (
 	CodeRateLimited      ErrorCode = "RATE_LIMITED"
 
 	// 业务错误码
-	CodeBusinessError       ErrorCode = "BUSINESS_ERROR"
+	CodeBusinessError        ErrorCode = "BUSINESS_ERROR"
 	CodeValidationError      ErrorCode = "VALIDATION_ERROR"
-	CodeConflictError       ErrorCode = "CONFLICT_ERROR"
+	CodeConflictError        ErrorCode = "CONFLICT_ERROR"
 	CodeExternalServiceError ErrorCode = "EXTERNAL_SERVICE_ERROR"
 
 	// 系统错误码
-	CodeDatabaseError     ErrorCode = "DATABASE_ERROR"
-	CodeNetworkError      ErrorCode = "NETWORK_ERROR"
+	CodeDatabaseError       ErrorCode = "DATABASE_ERROR"
+	CodeNetworkError        ErrorCode = "NETWORK_ERROR"
 	CodeAuthenticationError ErrorCode = "AUTHENTICATION_ERROR"
 	CodeAuthorizationError  ErrorCode = "AUTHORIZATION_ERROR"
 )
@@ -69,8 +69,8 @@ type RetryPolicy struct {
 type BackoffType string
 
 const (
-	BackoffFixed     BackoffType = "fixed"
-	BackoffLinear    BackoffType = "linear"
+	BackoffFixed       BackoffType = "fixed"
+	BackoffLinear      BackoffType = "linear"
 	BackoffExponential BackoffType = "exponential"
 )
 

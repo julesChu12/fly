@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/julesChu12/fly/appointments/internal/domain/entity"
-	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/julesChu12/fly/appointments/internal/domain/appointment"
 	"github.com/julesChu12/fly/appointments/pkg/events"
+	"github.com/julesChu12/fly/mora/pkg/logger"
 )
 
 // EventService 事件服务
 type EventService struct {
 	eventBus events.EventBus
-	logger    *logger.Logger
+	logger   *logger.Logger
 }
 
 // NewEventService 创建事件服务
 func NewEventService(eventBus events.EventBus, log *logger.Logger) *EventService {
 	return &EventService{
 		eventBus: eventBus,
-		logger:    log,
+		logger:   log,
 	}
 }
 
@@ -36,7 +36,7 @@ func (s *EventService) InitializeEventHandlers(ctx context.Context) error {
 }
 
 // PublishAppointmentCreated 发布预约创建事件
-func (s *EventService) PublishAppointmentCreated(ctx context.Context, appointment *entity.Appointment, orderInfo interface{}) error {
+func (s *EventService) PublishAppointmentCreated(ctx context.Context, appointment *appointment.Appointment, orderInfo interface{}) error {
 	eventData := map[string]interface{}{
 		"appointment_id": appointment.ID.String(),
 		"customer_id":    appointment.CustomerID.String(),
@@ -61,7 +61,7 @@ func (s *EventService) PublishAppointmentCreated(ctx context.Context, appointmen
 }
 
 // PublishAppointmentConfirmed 发布预约确认事件
-func (s *EventService) PublishAppointmentConfirmed(ctx context.Context, appointment *entity.Appointment, paymentInfo interface{}) error {
+func (s *EventService) PublishAppointmentConfirmed(ctx context.Context, appointment *appointment.Appointment, paymentInfo interface{}) error {
 	eventData := map[string]interface{}{
 		"appointment_id": appointment.ID.String(),
 		"customer_id":    appointment.CustomerID.String(),
@@ -85,7 +85,7 @@ func (s *EventService) PublishAppointmentConfirmed(ctx context.Context, appointm
 }
 
 // PublishAppointmentCancelled 发布预约取消事件
-func (s *EventService) PublishAppointmentCancelled(ctx context.Context, appointment *entity.Appointment, reason string, refundInfo interface{}) error {
+func (s *EventService) PublishAppointmentCancelled(ctx context.Context, appointment *appointment.Appointment, reason string, refundInfo interface{}) error {
 	eventData := map[string]interface{}{
 		"appointment_id": appointment.ID.String(),
 		"customer_id":    appointment.CustomerID.String(),
@@ -108,15 +108,15 @@ func (s *EventService) PublishAppointmentCancelled(ctx context.Context, appointm
 }
 
 // PublishAppointmentCompleted 发布预约完成事件
-func (s *EventService) PublishAppointmentCompleted(ctx context.Context, appointment *entity.Appointment, completionNotes *string) error {
+func (s *EventService) PublishAppointmentCompleted(ctx context.Context, appointment *appointment.Appointment, completionNotes *string) error {
 	eventData := map[string]interface{}{
 		"appointment_id":   appointment.ID.String(),
-		"customer_id":     appointment.CustomerID.String(),
-		"staff_id":        appointment.StaffID.String(),
-		"service_id":      appointment.ServiceID.String(),
-		"start_time":      appointment.StartTime,
-		"end_time":        appointment.EndTime,
-		"status":          string(appointment.Status),
+		"customer_id":      appointment.CustomerID.String(),
+		"staff_id":         appointment.StaffID.String(),
+		"service_id":       appointment.ServiceID.String(),
+		"start_time":       appointment.StartTime,
+		"end_time":         appointment.EndTime,
+		"status":           string(appointment.Status),
 		"completion_notes": completionNotes,
 		"duration_minutes": appointment.Duration().Minutes(),
 	}
@@ -133,7 +133,7 @@ func (s *EventService) PublishAppointmentCompleted(ctx context.Context, appointm
 }
 
 // PublishAppointmentReminder 发布预约提醒事件
-func (s *EventService) PublishAppointmentReminder(ctx context.Context, appointment *entity.Appointment, reminderType string) error {
+func (s *EventService) PublishAppointmentReminder(ctx context.Context, appointment *appointment.Appointment, reminderType string) error {
 	eventData := map[string]interface{}{
 		"appointment_id": appointment.ID.String(),
 		"customer_id":    appointment.CustomerID.String(),
@@ -262,7 +262,7 @@ func (s *EventService) handleOrderExpired(ctx context.Context, event *events.Eve
 }
 
 // ScheduleAppointmentReminder 安排预约提醒
-func (s *EventService) ScheduleAppointmentReminder(ctx context.Context, appointment *entity.Appointment) {
+func (s *EventService) ScheduleAppointmentReminder(ctx context.Context, appointment *appointment.Appointment) {
 	// 计算提醒时间（预约前24小时）
 	if appointment.Reminder && appointment.ReminderTime != nil {
 		// 在实际应用中，这里应该使用调度器安排提醒
@@ -283,20 +283,20 @@ func (s *EventService) ScheduleAppointmentReminder(ctx context.Context, appointm
 // PublishSystemEvent 发布系统事件
 func (s *EventService) PublishSystemEvent(ctx context.Context, eventType events.EventType, message string, data map[string]interface{}) error {
 	eventData := map[string]interface{}{
-		"message":     message,
-		"service":     "appointments",
-		"timestamp":   time.Now(),
-		"details":     data,
+		"message":   message,
+		"service":   "appointments",
+		"timestamp": time.Now(),
+		"details":   data,
 	}
 
 	event := &events.Event{
-		Type:     eventType,
-		Source:   "appointments-service",
-		Data:     eventData,
+		Type:   eventType,
+		Source: "appointments-service",
+		Data:   eventData,
 		Metadata: map[string]string{
-			"service":   "appointments",
-			"version":   "1.0.0",
-			"severity":  "info",
+			"service":  "appointments",
+			"version":  "1.0.0",
+			"severity": "info",
 		},
 	}
 

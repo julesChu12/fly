@@ -1,16 +1,16 @@
 # Appointments Service Configuration
 
 server:
-  http_port: 8083
-  grpc_port: 9083
+  http_port: 18083
+  grpc_port: 15083
 
 database:
   driver: mysql
-  host: localhost
+  host: mysql
   port: "3306"
-  username: root
+  username: fly_user
   password: rootpassword
-  database: appointments
+  database: appointments_dev
   charset: utf8mb4
   max_open_conns: 10
   max_idle_conns: 5

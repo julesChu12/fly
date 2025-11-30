@@ -17,17 +17,17 @@ import (
 // Server represents the gRPC server
 type Server struct {
 	appointmentService service.AppointmentService
-	grpcServer        *grpc.Server
-	port              string
-	logger            *logger.Logger
+	grpcServer         *grpc.Server
+	port               string
+	logger             *logger.Logger
 }
 
 // NewServer creates a new gRPC server instance
 func NewServer(appointmentService service.AppointmentService, port string, logger *logger.Logger) *Server {
 	return &Server{
 		appointmentService: appointmentService,
-		port:              port,
-		logger:            logger,
+		port:               port,
+		logger:             logger,
 	}
 }
 

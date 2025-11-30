@@ -31,55 +31,55 @@ type PaymentMethod string
 
 const (
 	PaymentMethodWeChatPay PaymentMethod = "wechat_pay"
-	PaymentMethodAlipay   PaymentMethod = "alipay"
-	PaymentMethodUnionPay PaymentMethod = "union_pay"
-	PaymentMethodBalance  PaymentMethod = "balance"
+	PaymentMethodAlipay    PaymentMethod = "alipay"
+	PaymentMethodUnionPay  PaymentMethod = "union_pay"
+	PaymentMethodBalance   PaymentMethod = "balance"
 )
 
 // Payment 支付记录结构
 type Payment struct {
-	ID            string         `json:"id"`
-	OrderID       string         `json:"order_id"`
-	AppointmentID string         `json:"appointment_id"`
-	CustomerID    string         `json:"customer_id"`
-	Amount        float64        `json:"amount"`
-	Currency      string         `json:"currency"`
-	Status        PaymentStatus  `json:"status"`
-	PaymentMethod PaymentMethod  `json:"payment_method"`
-	TransactionID string         `json:"transaction_id"`
-	ExternalID     string         `json:"external_id,omitempty"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	CompletedAt   *time.Time     `json:"completed_at,omitempty"`
+	ID            string        `json:"id"`
+	OrderID       string        `json:"order_id"`
+	AppointmentID string        `json:"appointment_id"`
+	CustomerID    string        `json:"customer_id"`
+	Amount        float64       `json:"amount"`
+	Currency      string        `json:"currency"`
+	Status        PaymentStatus `json:"status"`
+	PaymentMethod PaymentMethod `json:"payment_method"`
+	TransactionID string        `json:"transaction_id"`
+	ExternalID    string        `json:"external_id,omitempty"`
+	CreatedAt     time.Time     `json:"created_at"`
+	UpdatedAt     time.Time     `json:"updated_at"`
+	CompletedAt   *time.Time    `json:"completed_at,omitempty"`
 }
 
 // CreatePaymentRequest 创建支付请求
 type CreatePaymentRequest struct {
-	OrderID       string         `json:"order_id" validate:"required"`
-	AppointmentID string         `json:"appointment_id" validate:"required"`
-	CustomerID    string         `json:"customer_id" validate:"required"`
-	Amount        float64        `json:"amount" validate:"required,gt=0"`
-	Currency      string         `json:"currency"`
-	PaymentMethod PaymentMethod  `json:"payment_method" validate:"required"`
-	Description   string         `json:"description"`
-	NotifyURL     string         `json:"notify_url,omitempty"`
-	ReturnURL     string         `json:"return_url,omitempty"`
-	ExpireTime    *time.Time     `json:"expire_time,omitempty"`
+	OrderID       string        `json:"order_id" validate:"required"`
+	AppointmentID string        `json:"appointment_id" validate:"required"`
+	CustomerID    string        `json:"customer_id" validate:"required"`
+	Amount        float64       `json:"amount" validate:"required,gt=0"`
+	Currency      string        `json:"currency"`
+	PaymentMethod PaymentMethod `json:"payment_method" validate:"required"`
+	Description   string        `json:"description"`
+	NotifyURL     string        `json:"notify_url,omitempty"`
+	ReturnURL     string        `json:"return_url,omitempty"`
+	ExpireTime    *time.Time    `json:"expire_time,omitempty"`
 }
 
 // RefundRequest 退款请求
 type RefundRequest struct {
-	PaymentID    string  `json:"payment_id" validate:"required"`
-	Amount       float64 `json:"amount" validate:"required,gt=0"`
-	Reason       string  `json:"reason"`
-	RefundID     string  `json:"refund_id,omitempty"`
-	ExternalID   string  `json:"external_id,omitempty"`
+	PaymentID  string  `json:"payment_id" validate:"required"`
+	Amount     float64 `json:"amount" validate:"required,gt=0"`
+	Reason     string  `json:"reason"`
+	RefundID   string  `json:"refund_id,omitempty"`
+	ExternalID string  `json:"external_id,omitempty"`
 }
 
 // PaymentResponse 支付响应
 type PaymentResponse struct {
-	Success bool         `json:"success"`
-	Data    *Payment     `json:"data"`
+	Success bool           `json:"success"`
+	Data    *Payment       `json:"data"`
 	Error   *ErrorResponse `json:"error"`
 }
 
@@ -101,8 +101,8 @@ func NewPlutusClient(config *PlutusClientConfig, logger *logger.Logger) *PlutusC
 	}
 
 	return &PlutusClient{
-		baseURL: config.BaseURL,
-		apiKey:  config.APIKey,
+		baseURL:   config.BaseURL,
+		apiKey:    config.APIKey,
 		apiSecret: config.APISecret,
 		httpClient: &http.Client{
 			Timeout: config.Timeout,
@@ -129,7 +129,7 @@ func (c *PlutusClient) CreatePayment(ctx context.Context, req *CreatePaymentRequ
 		if attempt > 0 {
 			c.logger.Debug("重试创建支付记录",
 				map[string]interface{}{
-					"attempt": attempt + 1,
+					"attempt":  attempt + 1,
 					"order_id": req.OrderID,
 				})
 			time.Sleep(c.config.RetryDelay)
@@ -139,10 +139,10 @@ func (c *PlutusClient) CreatePayment(ctx context.Context, req *CreatePaymentRequ
 		if err == nil {
 			c.logger.Info("支付记录创建成功",
 				map[string]interface{}{
-					"payment_id":    payment.ID,
-					"order_id":      payment.OrderID,
+					"payment_id":     payment.ID,
+					"order_id":       payment.OrderID,
 					"transaction_id": payment.TransactionID,
-					"amount":        payment.Amount,
+					"amount":         payment.Amount,
 				})
 			return payment, nil
 		}

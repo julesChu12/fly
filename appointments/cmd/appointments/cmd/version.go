@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	AppName    = "Appointments Service"
-	Version    = "1.0.0"
-	GitCommit  = "unknown"
-	BuildTime  = "unknown"
-	GoVersion  = "go1.25.1"
-	Compiler   = "gc"
-	Platform   = "unknown"
+	AppName   = "Appointments Service"
+	Version   = "1.0.0"
+	GitCommit = "unknown"
+	BuildTime = "unknown"
+	GoVersion = "go1.25.1"
+	Compiler  = "gc"
+	Platform  = "unknown"
 )
 
 var versionCmd = &cobra.Command{

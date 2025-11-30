@@ -10,23 +10,23 @@ import (
 type ChannelType string
 
 const (
-	ChannelEmail    ChannelType = "email"    // 邮件
-	ChannelSMS      ChannelType = "sms"      // 短信
-	ChannelPush     ChannelType = "push"     // 推送通知
-	ChannelWeChat   ChannelType = "wechat"   // 微信
-	ChannelWebhook  ChannelType = "webhook"  // Webhook
-	ChannelInApp    ChannelType = "in_app"   // 应用内通知
-	ChannelSystem   ChannelType = "system"   // 系统通知
+	ChannelEmail   ChannelType = "email"   // 邮件
+	ChannelSMS     ChannelType = "sms"     // 短信
+	ChannelPush    ChannelType = "push"    // 推送通知
+	ChannelWeChat  ChannelType = "wechat"  // 微信
+	ChannelWebhook ChannelType = "webhook" // Webhook
+	ChannelInApp   ChannelType = "in_app"  // 应用内通知
+	ChannelSystem  ChannelType = "system"  // 系统通知
 )
 
 // Priority 通知优先级
 type Priority string
 
 const (
-	PriorityLow      Priority = "low"      // 低优先级
-	PriorityNormal   Priority = "normal"   // 普通优先级
-	PriorityHigh     Priority = "high"     // 高优先级
-	PriorityUrgent   Priority = "urgent"   // 紧急
+	PriorityLow    Priority = "low"    // 低优先级
+	PriorityNormal Priority = "normal" // 普通优先级
+	PriorityHigh   Priority = "high"   // 高优先级
+	PriorityUrgent Priority = "urgent" // 紧急
 )
 
 // Status 通知状态
@@ -45,10 +45,10 @@ const (
 type MessageType string
 
 const (
-	MessageTypeText      MessageType = "text"      // 文本消息
-	MessageTypeHTML      MessageType = "html"      // HTML消息
-	MessageTypeMarkdown  MessageType = "markdown"  // Markdown消息
-	MessageTypeTemplate  MessageType = "template"  // 模板消息
+	MessageTypeText       MessageType = "text"       // 文本消息
+	MessageTypeHTML       MessageType = "html"       // HTML消息
+	MessageTypeMarkdown   MessageType = "markdown"   // Markdown消息
+	MessageTypeTemplate   MessageType = "template"   // 模板消息
 	MessageTypeAttachment MessageType = "attachment" // 附件消息
 )
 
@@ -81,55 +81,55 @@ type Notification struct {
 
 // Recipient 接收人
 type Recipient struct {
-	ID       string            `json:"id"`        // 接收人ID
-	Type     string            `json:"type"`      // 接收人类型 (user, admin, system)
-	Name     string            `json:"name"`      // 姓名
-	Email    string            `json:"email"`     // 邮箱
-	Phone    string            `json:"phone"`     // 手机号
-	WeChatID string            `json:"wechat_id"` // 微信ID
-	DeviceID string            `json:"device_id"` // 设备ID
-	Channels []ChannelType     `json:"channels"`  // 偏好的通知渠道
-	Settings map[string]interface{} `json:"settings"` // 个人设置
+	ID       string                 `json:"id"`        // 接收人ID
+	Type     string                 `json:"type"`      // 接收人类型 (user, admin, system)
+	Name     string                 `json:"name"`      // 姓名
+	Email    string                 `json:"email"`     // 邮箱
+	Phone    string                 `json:"phone"`     // 手机号
+	WeChatID string                 `json:"wechat_id"` // 微信ID
+	DeviceID string                 `json:"device_id"` // 设备ID
+	Channels []ChannelType          `json:"channels"`  // 偏好的通知渠道
+	Settings map[string]interface{} `json:"settings"`  // 个人设置
 }
 
 // Attachment 附件
 type Attachment struct {
-	ID       string            `json:"id"`       // 附件ID
-	Name     string            `json:"name"`     // 文件名
-	Type     string            `json:"type"`     // 文件类型 (image, document, video, audio)
-	URL      string            `json:"url"`      // 文件URL
-	Size     int64             `json:"size"`     // 文件大小
-	MimeType string            `json:"mime_type"` // MIME类型
-	Metadata map[string]interface{} `json:"metadata"` // 附件元数据
+	ID       string                 `json:"id"`        // 附件ID
+	Name     string                 `json:"name"`      // 文件名
+	Type     string                 `json:"type"`      // 文件类型 (image, document, video, audio)
+	URL      string                 `json:"url"`       // 文件URL
+	Size     int64                  `json:"size"`      // 文件大小
+	MimeType string                 `json:"mime_type"` // MIME类型
+	Metadata map[string]interface{} `json:"metadata"`  // 附件元数据
 }
 
 // DeliveryResult 发送结果
 type DeliveryResult struct {
-	NotificationID string            `json:"notification_id"` // 通知ID
-	Channel       ChannelType        `json:"channel"`         // 渠道
-	RecipientID   string             `json:"recipient_id"`     // 接收人ID
-	Status        Status             `json:"status"`           // 状态
-	Message       string             `json:"message"`          // 结果消息
-	Error         error              `json:"error"`            // 错误信息
-	SentAt        time.Time          `json:"sent_at"`          // 发送时间
-	DeliveryTime  time.Duration      `json:"delivery_time"`    // 投递时间
-	Metadata      map[string]interface{} `json:"metadata"`      // 附加信息
+	NotificationID string                 `json:"notification_id"` // 通知ID
+	Channel        ChannelType            `json:"channel"`         // 渠道
+	RecipientID    string                 `json:"recipient_id"`    // 接收人ID
+	Status         Status                 `json:"status"`          // 状态
+	Message        string                 `json:"message"`         // 结果消息
+	Error          error                  `json:"error"`           // 错误信息
+	SentAt         time.Time              `json:"sent_at"`         // 发送时间
+	DeliveryTime   time.Duration          `json:"delivery_time"`   // 投递时间
+	Metadata       map[string]interface{} `json:"metadata"`        // 附加信息
 }
 
 // NotificationEngineConfig 通知引擎配置
 type NotificationEngineConfig struct {
-	MaxConcurrency      int           `yaml:"max_concurrency"`       // 最大并发数
-	DefaultTimeout      time.Duration `yaml:"default_timeout"`       // 默认超时时间
-	MaxRetries          int           `yaml:"max_retries"`           // 最大重试次数
-	RetryDelay          time.Duration `yaml:"retry_delay"`           // 重试延迟
-	EnableMetrics       bool          `yaml:"enable_metrics"`        // 启用指标
-	EnableTracing       bool          `yaml:"enable_tracing"`        // 启用跟踪
-	BatchSize           int           `yaml:"batch_size"`            // 批处理大小
-	BatchTimeout        time.Duration `yaml:"batch_timeout"`         // 批处理超时
-	QueueSize           int           `yaml:"queue_size"`            // 队列大小
-	EnablePersistence   bool          `yaml:"enable_persistence"`    // 启用持久化
-	CleanupInterval     time.Duration `yaml:"cleanup_interval"`      // 清理间隔
-	RetentionPeriod     time.Duration `yaml:"retention_period"`      // 保留期限
+	MaxConcurrency    int           `yaml:"max_concurrency"`    // 最大并发数
+	DefaultTimeout    time.Duration `yaml:"default_timeout"`    // 默认超时时间
+	MaxRetries        int           `yaml:"max_retries"`        // 最大重试次数
+	RetryDelay        time.Duration `yaml:"retry_delay"`        // 重试延迟
+	EnableMetrics     bool          `yaml:"enable_metrics"`     // 启用指标
+	EnableTracing     bool          `yaml:"enable_tracing"`     // 启用跟踪
+	BatchSize         int           `yaml:"batch_size"`         // 批处理大小
+	BatchTimeout      time.Duration `yaml:"batch_timeout"`      // 批处理超时
+	QueueSize         int           `yaml:"queue_size"`         // 队列大小
+	EnablePersistence bool          `yaml:"enable_persistence"` // 启用持久化
+	CleanupInterval   time.Duration `yaml:"cleanup_interval"`   // 清理间隔
+	RetentionPeriod   time.Duration `yaml:"retention_period"`   // 保留期限
 
 	// 渠道配置
 	ChannelConfigs map[ChannelType]*ChannelConfig `yaml:"channel_configs"`
@@ -140,25 +140,25 @@ type NotificationEngineConfig struct {
 
 // ChannelConfig 渠道配置
 type ChannelConfig struct {
-	Enabled         bool                   `yaml:"enabled"`          // 是否启用
-	RateLimit       int                    `yaml:"rate_limit"`       // 速率限制
-	BurstSize       int                    `yaml:"burst_size"`       // 突发大小
-	Timeout         time.Duration          `yaml:"timeout"`          // 超时时间
-	MaxRetries      int                    `yaml:"max_retries"`      // 最大重试次数
-	RetryDelay      time.Duration          `yaml:"retry_delay"`      // 重试延迟
-	Config          map[string]interface{} `yaml:"config"`           // 渠道特定配置
-	WebhookURL      string                 `yaml:"webhook_url"`      // Webhook URL
-	APIKey          string                 `yaml:"api_key"`          // API密钥
-	SecretKey       string                 `yaml:"secret_key"`       // 密钥
-	TemplateEngine  string                 `yaml:"template_engine"`  // 模板引擎
+	Enabled        bool                   `yaml:"enabled"`         // 是否启用
+	RateLimit      int                    `yaml:"rate_limit"`      // 速率限制
+	BurstSize      int                    `yaml:"burst_size"`      // 突发大小
+	Timeout        time.Duration          `yaml:"timeout"`         // 超时时间
+	MaxRetries     int                    `yaml:"max_retries"`     // 最大重试次数
+	RetryDelay     time.Duration          `yaml:"retry_delay"`     // 重试延迟
+	Config         map[string]interface{} `yaml:"config"`          // 渠道特定配置
+	WebhookURL     string                 `yaml:"webhook_url"`     // Webhook URL
+	APIKey         string                 `yaml:"api_key"`         // API密钥
+	SecretKey      string                 `yaml:"secret_key"`      // 密钥
+	TemplateEngine string                 `yaml:"template_engine"` // 模板引擎
 }
 
 // TemplateConfig 模板配置
 type TemplateConfig struct {
-	Engine      string            `yaml:"engine"`       // 模板引擎
-	Directory   string            `yaml:"directory"`    // 模板目录
-	Suffix      string            `yaml:"suffix"`       // 模板文件后缀
-	Functions   map[string]string `yaml:"functions"`    // 自定义函数
+	Engine      string                 `yaml:"engine"`       // 模板引擎
+	Directory   string                 `yaml:"directory"`    // 模板目录
+	Suffix      string                 `yaml:"suffix"`       // 模板文件后缀
+	Functions   map[string]string      `yaml:"functions"`    // 自定义函数
 	DefaultData map[string]interface{} `yaml:"default_data"` // 默认数据
 }
 
@@ -259,42 +259,42 @@ type ChannelHandler interface {
 
 // NotificationFilter 通知过滤器
 type NotificationFilter struct {
-	Status      Status        `json:"status,omitempty"`
-	Channel     ChannelType   `json:"channel,omitempty"`
-	Priority    Priority      `json:"priority,omitempty"`
-	RecipientID string        `json:"recipient_id,omitempty"`
-	StartTime   *time.Time    `json:"start_time,omitempty"`
-	EndTime     *time.Time    `json:"end_time,omitempty"`
-	Limit       int           `json:"limit,omitempty"`
-	Offset      int           `json:"offset,omitempty"`
+	Status      Status      `json:"status,omitempty"`
+	Channel     ChannelType `json:"channel,omitempty"`
+	Priority    Priority    `json:"priority,omitempty"`
+	RecipientID string      `json:"recipient_id,omitempty"`
+	StartTime   *time.Time  `json:"start_time,omitempty"`
+	EndTime     *time.Time  `json:"end_time,omitempty"`
+	Limit       int         `json:"limit,omitempty"`
+	Offset      int         `json:"offset,omitempty"`
 }
 
 // NotificationStats 通知统计信息
 type NotificationStats struct {
-	TotalNotifications    int64                     `json:"total_notifications"`    // 总通知数
-	PendingNotifications  int64                     `json:"pending_notifications"`  // 待发送通知
-	SentNotifications     int64                     `json:"sent_notifications"`     // 已发送通知
-	FailedNotifications   int64                     `json:"failed_notifications"`   // 失败通知
-	AverageDeliveryTime   float64                   `json:"average_delivery_time_ms"` // 平均投递时间
-	ChannelStats          map[ChannelType]*ChannelStats `json:"channel_stats"`          // 渠道统计
-	PriorityDistribution  map[Priority]int64        `json:"priority_distribution"`   // 优先级分布
-	TypeDistribution      map[MessageType]int64     `json:"type_distribution"`       // 类型分布
-	HourlyStats          []int64                   `json:"hourly_stats"`            // 24小时统计
-	DailyStats           []int64                   `json:"daily_stats"`             // 7天统计
-	LastCleanupTime      time.Time                 `json:"last_cleanup_time"`       // 最后清理时间
+	TotalNotifications   int64                         `json:"total_notifications"`      // 总通知数
+	PendingNotifications int64                         `json:"pending_notifications"`    // 待发送通知
+	SentNotifications    int64                         `json:"sent_notifications"`       // 已发送通知
+	FailedNotifications  int64                         `json:"failed_notifications"`     // 失败通知
+	AverageDeliveryTime  float64                       `json:"average_delivery_time_ms"` // 平均投递时间
+	ChannelStats         map[ChannelType]*ChannelStats `json:"channel_stats"`            // 渠道统计
+	PriorityDistribution map[Priority]int64            `json:"priority_distribution"`    // 优先级分布
+	TypeDistribution     map[MessageType]int64         `json:"type_distribution"`        // 类型分布
+	HourlyStats          []int64                       `json:"hourly_stats"`             // 24小时统计
+	DailyStats           []int64                       `json:"daily_stats"`              // 7天统计
+	LastCleanupTime      time.Time                     `json:"last_cleanup_time"`        // 最后清理时间
 }
 
 // ChannelStats 渠道统计信息
 type ChannelStats struct {
-	Channel            ChannelType `json:"channel"`             // 渠道类型
-	TotalSent          int64       `json:"total_sent"`          // 总发送数
-	SuccessfulSends    int64       `json:"successful_sends"`    // 成功发送数
-	FailedSends        int64       `json:"failed_sends"`        // 失败发送数
-	AverageDeliveryTime float64   `json:"average_delivery_time_ms"` // 平均投递时间
-	LastSendTime       time.Time   `json:"last_send_time"`       // 最后发送时间
-	IsEnabled          bool        `json:"is_enabled"`          // 是否启用
-	RateLimit          int         `json:"rate_limit"`          // 速率限制
-	QueueSize          int         `json:"queue_size"`          // 队列大小
+	Channel             ChannelType `json:"channel"`                  // 渠道类型
+	TotalSent           int64       `json:"total_sent"`               // 总发送数
+	SuccessfulSends     int64       `json:"successful_sends"`         // 成功发送数
+	FailedSends         int64       `json:"failed_sends"`             // 失败发送数
+	AverageDeliveryTime float64     `json:"average_delivery_time_ms"` // 平均投递时间
+	LastSendTime        time.Time   `json:"last_send_time"`           // 最后发送时间
+	IsEnabled           bool        `json:"is_enabled"`               // 是否启用
+	RateLimit           int         `json:"rate_limit"`               // 速率限制
+	QueueSize           int         `json:"queue_size"`               // 队列大小
 }
 
 // TemplateEngine 模板引擎接口
