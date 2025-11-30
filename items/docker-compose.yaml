@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # Items Service
+  items:
+    build:
+      context: ..
+      dockerfile: items/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    image: ${DOCKER_IMAGE_NAME:-items-service}:${DOCKER_TAG:-dev}
+    container_name: items-${APP_ENV:-dev}
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_NAME: ${APP_NAME:-items-service}
+      SERVER_HOST: ${SERVER_HOST:-0.0.0.0}
+      SERVER_PORT: ${SERVER_PORT:-8086}
+      GRPC_PORT: ${GRPC_PORT:-50056}
+      CONFIG_PATH: /app/configs/items.yaml
+      GIN_MODE: ${GIN_MODE:-debug}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USERNAME:-fly_user}
+      DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      DB_DATABASE: ${DB_DATABASE:-items_dev}
+      REDIS_ADDRESS: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB:-1}
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./logs:/app/logs
+    ports:
+      - "${SERVER_PORT:-8086}:${SERVER_PORT:-8086}"
+      - "${GRPC_PORT:-50056}:${GRPC_PORT:-50056}"
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:18086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: fly-mysql-${APP_ENV:-dev}
+    command: |
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --skip-character-set-client-handshake
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_DATABASE:-items_dev}
+      MYSQL_USER: ${DB_USERNAME:-fly_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-rootpassword}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/mysql:/docker-entrypoint-initdb.d:ro
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: fly-redis-${APP_ENV:-dev}
+    command: |
+      sh -c 'if [ -n "${REDIS_PASSWORD}" ]; then
+        redis-server --requirepass ${REDIS_PASSWORD};
+      else
+        redis-server;
+      fi'
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fly-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  fly-network:
+    driver: bridge
+    name: fly-${APP_ENV:-dev}-network
+
+volumes:
+  mysql_data:
+    name: mysql-${APP_ENV:-dev}_data
+  redis_data:
+    name: redis-${APP_ENV:-dev}_data

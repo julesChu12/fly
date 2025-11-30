@@ -72,14 +72,20 @@ items/
    make dev
    ```
 
-3. **配置数据库**
+3. **配置环境**
    ```bash
-   # 编辑 configs/items.yaml
-   vim configs/items.yaml
+   # 设置环境配置文件
+   make env-setup
+   # 编辑 configs/.env.dev 或 configs/.env.prod
+   vim configs/.env.dev
    ```
 
 4. **运行服务**
    ```bash
+   # Docker 方式（推荐）
+   make docker-dev
+
+   # 或本地运行
    make run
    ```
 
@@ -87,6 +93,75 @@ items/
 - HTTP API: http://localhost:8086
 - gRPC: localhost:50056
 - Swagger文档: http://localhost:8086/swagger/index.html
+
+## 🔌 端口隔离策略
+
+为了避免多服务环境中的端口冲突，我们采用环境特定的端口映射策略。
+
+### 📊 端口分配方案
+
+#### 开发环境 (.env.dev)
+| 服务 | 容器端口 | 主机端口 | 用途 |
+|------|----------|----------|------|
+| **Items HTTP** | 8086 | **18086** | API 服务 |
+| **Items gRPC** | 50056 | **15056** | gRPC 服务 |
+| **MySQL** | 3306 | **13306** | 数据库 |
+| **Redis** | 6379 | **16379** | 缓存 |
+
+#### 生产环境 (.env.prod)
+| 服务 | 容器端口 | 主机端口 | 用途 |
+|------|----------|----------|------|
+| **Items HTTP** | 8086 | **8086** | API 服务 |
+| **Items gRPC** | 50056 | **50056** | gRPC 服务 |
+| **MySQL** | 3306 | **3306** | 数据库 |
+| **Redis** | 6379 | **6379** | 缓存 |
+
+### 🛡️ 隔离机制
+
+1. **环境前缀规则**
+   - **开发环境**: 使用 1xxxx 端口段
+   - **测试环境**: 使用 2xxxx 端口段
+   - **生产环境**: 使用标准端口
+
+2. **容器内部端口保持不变**
+   - 所有服务在容器内部仍使用标准端口
+   - 只有映射到主机的端口发生变化
+
+3. **网络隔离**
+   - 每个环境使用独立的 Docker 网络
+   - 网络命名: `fly-{env}-network`
+
+### 🔧 端口访问示例
+
+#### 开发环境访问
+```bash
+# HTTP API
+curl http://localhost:18086/health
+
+# gRPC 服务
+grpcurl -plaintext localhost:15056
+
+# 数据库连接
+mysql -h localhost -P 13306 -u fly_user -p
+
+# Redis 连接
+redis-cli -h localhost -p 16379
+```
+
+#### 生产环境访问
+```bash
+# HTTP API
+curl http://localhost:8086/health
+
+# gRPC 服务
+grpcurl -plaintext localhost:50056
+
+# 数据库连接
+mysql -h localhost -P 3306 -u fly_user -p
+
+# Redis 连接
+redis-cli -h localhost -p 6379
+```
 
 ## API 文档
 
@@ -172,42 +247,102 @@ make migrate
 
 ## 配置说明
 
-主要配置项位于 `configs/items.yaml`：
+### 环境变量配置
 
-```yaml
-server:
-  port: "8086"          # HTTP 服务端口
-  read_timeout: 30      # 读超时时间（秒）
-  write_timeout: 30     # 写超时时间（秒）
+项目使用环境变量进行配置管理，支持开发、生产等多环境：
 
-database:
-  host: "localhost"     # 数据库主机
-  port: 3306           # 数据库端口
-  database: "items_db"  # 数据库名
-  username: "root"      # 用户名
-  password: ""          # 密码
+#### 配置文件结构
+```
+configs/
+├── .env.example    # 配置模板
+├── .env.dev        # 开发环境配置
+└── .env.prod       # 生产环境配置
+```
 
-redis:
-  address: "localhost:6379"  # Redis 地址
-  db: 0                    # Redis 数据库编号
+#### 主要配置项
+
+```bash
+# 应用配置
+APP_ENV=development
+SERVER_HOST=0.0.0.0
+SERVER_PORT=18086          # HTTP 服务端口
+GRPC_PORT=15056            # gRPC 服务端口
+
+# 数据库配置
+DB_HOST=localhost
+DB_PORT=13306              # MySQL 端口
+DB_USERNAME=fly_user
+DB_PASSWORD=rootpassword
+DB_DATABASE=items_dev
+
+# Redis 配置
+REDIS_ADDRESS=localhost:16379
+REDIS_PASSWORD=redispassword
+REDIS_DB=1
+
+# 日志配置
+LOG_LEVEL=debug
+LOG_FORMAT=json
+```
+
+### 配置管理命令
+
+```bash
+# 设置环境文件
+make env-setup
+
+# 加载开发环境
+make env-dev
+
+# 加载生产环境
+make env-prod
 ```
 
 ## 部署
 
-### Docker 部署
-```bash
-# 构建镜像
-make docker-build
+### Docker 环境部署
 
-# 运行容器
-make docker-run
+#### 开发环境
+```bash
+# 启动开发环境（包含数据库和缓存）
+make docker-dev
+
+# 查看服务状态
+docker ps
+
+# 查看日志
+make logs
+
+# 停止服务
+make docker-dev-down
 ```
 
-### 生产部署
-1. 设置环境变量
-2. 配置数据库连接
-3. 设置 Redis 连接
-4. 启动服务
+#### 生产环境
+```bash
+# 启动生产环境
+make docker-prod
+
+# 启动完整生产环境（包含监控和服务发现）
+make docker-prod-full
+
+# 停止生产环境
+make docker-prod-down
+```
+
+### 安全部署
+```bash
+# 安全部署（带备份）
+make deploy-prod-safe
+
+# 回滚到上一版本
+make rollback
+```
+
+### 环境管理
+1. **环境隔离**: 开发、生产环境使用独立端口
+2. **配置管理**: 通过 `.env` 文件管理环境变量
+3. **网络隔离**: 每个环境使用独立的 Docker 网络
+4. **健康检查**: 自动监控服务状态
 
 ## 监控和日志
 

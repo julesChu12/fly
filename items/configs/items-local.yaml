@@ -11,7 +11,7 @@ app:
 
 database:
   driver: "mysql"
-  host: "mysql"
+  host: "localhost"
   port: 3306
   username: "fly_user"
   password: "rootpassword"

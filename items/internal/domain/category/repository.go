@@ -41,19 +41,3 @@ type Filter struct {
 	Search   *string         `json:"search,omitempty"`    // 搜索关键词
 }
 
-// CategoryTree 分类树节点
-type CategoryTree struct {
-	ID          uuid.UUID      `json:"id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	ParentID    *uuid.UUID     `json:"parent_id,omitempty"`
-	Icon        *string        `json:"icon,omitempty"`
-	SortOrder   int            `json:"sort_order"`
-	Status      CategoryStatus `json:"status"`
-	ItemCount   int            `json:"item_count"`
-	Level       int            `json:"level"`
-	Path        string         `json:"path"`
-	Children    []*CategoryTree `json:"children,omitempty"`
-	CreatedAt   string         `json:"created_at"`
-	UpdatedAt   string         `json:"updated_at"`
-}

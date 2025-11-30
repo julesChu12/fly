@@ -1,30 +1,22 @@
+// Package main provides the entry point for Items Product Management Service
+// Items 服务的主入口，提供商品管理、库存管理、分类管理等功能
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"go.uber.org/zap"
-
-	"github.com/julesChu12/fly/items/internal/infrastructure/http/router"
-	"github.com/julesChu12/fly/mora/pkg/config"
-	"github.com/julesChu12/fly/mora/pkg/logger"
+	"github.com/julesChu12/fly/items/cmd/items/cmd"
 )
 
-// @title Items Service API
+// @title Items Product Management Service API
 // @version 1.0
-// @description 统一商品管理服务 API
+// @description 统一商品管理服务API文档，提供商品管理、库存管理、分类管理等功能
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
+// @contact.url http://www.fly.com/support
+// @contact.email support@fly.com
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
@@ -36,60 +28,22 @@ import (
 // @in header
 // @name Authorization
 // @description Bearer token for authentication
+
+// @tag.name 商品
+// @tag.description 商品相关接口（增删改查、搜索等）
+
+// @tag.name 库存
+// @tag.description 库存管理相关接口
+
+// @tag.name 分类
+// @tag.description 商品分类相关接口
+
+// @tag.name 健康检查
+// @tag.description 服务健康检查接口
+
 func main() {
-	// Initialize configuration
-	cfgLoader := config.New().WithYAML("configs/items.yaml")
-	cfg, err := cfgLoader.Load()
-	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+	if err := cmd.Execute(); err != nil {
+		log.Println(err)
+		os.Exit(1)
 	}
-
-	// Initialize logger
-	zapLogger := logger.NewDefault()
-	defer zapLogger.Sync()
-
-	zapLogger.Info("Starting Items Service")
-
-	// Setup Gin router
-	ginRouter := router.SetupRouter(cfg)
-
-	// Get server port
-	port := cfg.GetString("server.port")
-	if port == "" {
-		port = "8086"
-	}
-
-	// Create HTTP server
-	server := &http.Server{
-		Addr:         ":" + port,
-		Handler:      ginRouter,
-		ReadTimeout:  time.Duration(cfg.GetInt("server.read_timeout")) * time.Second,
-		WriteTimeout: time.Duration(cfg.GetInt("server.write_timeout")) * time.Second,
-		IdleTimeout:  time.Duration(cfg.GetInt("server.idle_timeout")) * time.Second,
-	}
-
-	// Start server in a goroutine
-	go func() {
-		zapLogger.Info("Starting HTTP server", "port", port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			zapLogger.Fatal("Failed to start server", zap.Error(err))
-		}
-	}()
-
-	// Wait for interrupt signal to gracefully shutdown the server
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	zapLogger.Info("Shutting down server...")
-
-	// The context is used to inform the server it has 5 seconds to finish
-	// the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
-		zapLogger.Fatal("Server forced to shutdown", zap.Error(err))
-	}
-
-	zapLogger.Info("Server exited")
-	fmt.Println("Items Service stopped gracefully")
 }

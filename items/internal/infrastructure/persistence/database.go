@@ -53,13 +53,14 @@ func NewDatabase(cfg *viper.Viper) (*DB, error) {
 
 // buildDSN 构建数据库连接字符串
 func buildDSN(cfg *viper.Viper) string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%t&loc=%s",
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&collation=%s&parseTime=%t&loc=%s",
 		cfg.GetString("database.username"),
 		cfg.GetString("database.password"),
 		cfg.GetString("database.host"),
 		cfg.GetInt("database.port"),
 		cfg.GetString("database.database"),
 		cfg.GetString("database.charset"),
+		cfg.GetString("database.collation"),
 		cfg.GetBool("database.parse_time"),
 		cfg.GetString("database.loc"),
 	)
@@ -69,8 +70,8 @@ func buildDSN(cfg *viper.Viper) string {
 func (db *DB) AutoMigrate() error {
 	log.Println("Running database migrations...")
 
-	// 迁移模型
-	if err := db.AutoMigrate(
+	// 迁移模型 - 使用嵌入的 gorm.DB 的 AutoMigrate 方法
+	if err := db.DB.AutoMigrate(
 		&model.Category{},
 		&model.Item{},
 	); err != nil {

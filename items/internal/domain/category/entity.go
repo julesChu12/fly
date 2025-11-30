@@ -16,7 +16,8 @@ const (
 
 // Category 商品分类实体
 type Category struct {
-	ID          uuid.UUID      `json:"id" gorm:"column:id;primaryKey;type:char(36)"`
+	AutoID      uint64         `json:"auto_id" gorm:"column:auto_id;primaryKey;autoIncrement"`     // 自增主键
+	ID          uuid.UUID      `json:"uuid" gorm:"column:id;uniqueIndex;type:char(36)"`                // 业务UUID
 	Name        string         `json:"name" gorm:"column:name;not null;size:255;index"`
 	Description string         `json:"description" gorm:"column:description;type:text"`
 	ParentID    *uuid.UUID     `json:"parent_id,omitempty" gorm:"column:parent_id;type:char(36);index"`
@@ -163,6 +164,8 @@ type CategoryTree struct {
 	SortOrder   int            `json:"sort_order"`
 	Status      CategoryStatus `json:"status"`
 	ItemCount   int            `json:"item_count"`
+	Level       int            `json:"level"`
+	Path        string         `json:"path"`
 	Children    []*CategoryTree `json:"children,omitempty"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`

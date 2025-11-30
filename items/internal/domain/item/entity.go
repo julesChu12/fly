@@ -4,7 +4,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+// ID 商品ID类型
+type ID = uuid.UUID
 
 // ItemType 商品类型
 type ItemType string
@@ -26,7 +30,8 @@ const (
 
 // Item 商品实体
 type Item struct {
-	ID          uuid.UUID  `json:"id" gorm:"column:id;primaryKey;type:char(36)"`
+	AutoID      uint64     `json:"auto_id" gorm:"column:auto_id;primaryKey;autoIncrement"`     // 自增主键
+	ID          uuid.UUID  `json:"uuid" gorm:"column:id;uniqueIndex;type:char(36)"`                // 业务UUID
 	Name        string     `json:"name" gorm:"column:name;not null;size:255"`
 	Description string     `json:"description" gorm:"column:description;type:text"`
 	Type        ItemType  `json:"type" gorm:"column:type;not null;size:20;index"`
@@ -58,6 +63,14 @@ type Item struct {
 // TableName 设置表名
 func (Item) TableName() string {
 	return "items"
+}
+
+// BeforeCreate GORM钩子 - 在创建前生成UUID
+func (i *Item) BeforeCreate(tx *gorm.DB) error {
+	if i.ID == uuid.Nil {
+		i.ID = uuid.New()
+	}
+	return nil
 }
 
 // IsService 判断是否为服务类型
