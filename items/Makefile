@@ -88,7 +88,7 @@ build:
 	@if [ -f $(ENV_DIR)/.env.$(APP_ENV) ]; then \
 		source $(ENV_DIR)/.env.$(APP_ENV); \
 	fi && \
-	go build $(LDFLAGS) -o bin/$(APP_NAME) ./cmd/$(APP_NAME)
+	go build $(LDFLAGS) -o bin/$(APP_NAME) ./cmd/items/cmd
 	@echo "✅ Build complete: bin/$(APP_NAME)"
 
 # Run tests
@@ -150,7 +150,7 @@ grpc:
 	@if [ -f $(ENV_DIR)/.env.$(APP_ENV) ]; then \
 		source $(ENV_DIR)/.env.$(APP_ENV); \
 	fi && \
-	go run cmd/$(APP_NAME)/main.go -mode grpc
+	go run cmd/items/main.go -mode grpc
 
 # Clean up dependencies
 tidy:
@@ -287,7 +287,7 @@ init-db:
 	@if [ -f $(ENV_DIR)/.env.$(APP_ENV) ]; then \
 		source $(ENV_DIR)/.env.$(APP_ENV); \
 	fi && \
-	go run cmd/$(APP_NAME)/main.go -init-db
+	go run cmd/items/main.go -init-db
 
 # Run database migrations
 migrate:
@@ -295,7 +295,7 @@ migrate:
 	@if [ -f $(ENV_DIR)/.env.$(APP_ENV) ]; then \
 		source $(ENV_DIR)/.env.$(APP_ENV); \
 	fi && \
-	go run cmd/$(APP_NAME)/main.go -migrate
+	go run cmd/items/main.go -migrate
 
 # ========================================
 # Monitoring & Health Checks

@@ -166,6 +166,12 @@ type Config struct {
 	Database struct {
 		Driver          string `mapstructure:"driver"`
 		DSN             string `mapstructure:"dsn"`
+		Host            string `mapstructure:"host"`
+		Port            string `mapstructure:"port"`
+		Username        string `mapstructure:"username"`
+		Password        string `mapstructure:"password"`
+		Database        string `mapstructure:"database"`
+		Charset         string `mapstructure:"charset"`
 		MaxOpenConns    int    `mapstructure:"max_open_conns"`
 		MaxIdleConns    int    `mapstructure:"max_idle_conns"`
 		ConnMaxLifetime int    `mapstructure:"conn_max_lifetime"`

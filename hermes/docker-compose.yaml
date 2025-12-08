@@ -1,14 +1,56 @@
+version: '3.8'
+
 services:
+  hermes:
+    build:
+      context: ..
+      dockerfile: hermes/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+    container_name: hermes-${APP_ENV:-dev}
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - HERMES_SERVER_HTTP_PORT=${SERVER_HTTP_PORT:-8080}
+      - HERMES_SERVER_GRPC_PORT=${SERVER_GRPC_PORT:-9080}
+      - HERMES_DATABASE_HOST=${DB_HOST:-mysql}
+      - HERMES_DATABASE_USERNAME=${DB_USERNAME:-hermes}
+      - HERMES_DATABASE_PASSWORD=${DB_PASSWORD:-hermespassword}
+      - HERMES_DATABASE_DATABASE=${DB_NAME:-hermes}
+      - HERMES_DATABASE_CHARSET=utf8mb4
+      - HERMES_REDIS_URL=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - HERMES_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - HERMES_OBSERVABILITY_ENDPOINT=${OBSERVABILITY_ENDPOINT:-http://jaeger:4317}
+      - HERMES_OBSERVABILITY_SERVICE_NAME=${OBSERVABILITY_SERVICE_NAME:-hermes}
+    volumes:
+      - go-modules:/go/pkg/mod
+      - ./configs:/root/configs:ro
+    ports:
+      - "${SERVER_HTTP_PORT:-8080}:${SERVER_HTTP_PORT:-8080}"
+      - "${SERVER_GRPC_PORT:-9080}:${SERVER_GRPC_PORT:-9080}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${SERVER_HTTP_PORT:-8080}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fly-network
+    restart: unless-stopped
+
   mysql:
     image: mysql:8.0
-    container_name: hermes-mysql
+    container_name: hermes-mysql-${APP_ENV:-dev}
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: hermes
-      MYSQL_USER: hermes
-      MYSQL_PASSWORD: hermespassword
-    expose:
-      - "3306"
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-hermes}
+      MYSQL_USER: ${DB_USERNAME:-hermes}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-hermespassword}
+    ports:
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./configs/migrations:/docker-entrypoint-initdb.d:ro
@@ -17,16 +59,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
     networks:
       - fly-network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: hermes-redis
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
-    expose:
-      - "6379"
+    container_name: hermes-redis-${APP_ENV:-dev}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -34,81 +75,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
     networks:
       - fly-network
-
-  jaeger:
-    image: jaegertracing/all-in-one:1.53
-    container_name: hermes-jaeger
-    ports:
-      - "16686:16686"
-      - "4317:4317"
-      - "4318:4318"
     restart: unless-stopped
-    networks:
-      - fly-network
-
-  hermes-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: hermes-service-dev
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-      - "9080:9080"
-      - "9090:9090"
-    environment:
-      DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
-      PORT: "8080"
-      GRPC_PORT: "9080"
-      REDIS_URL: redis:6379
-      OBSERVABILITY_ENDPOINT: http://jaeger:4317
-      OBSERVABILITY_SERVICE_NAME: hermes
-    volumes:
-      - .:/app
-      - go-modules:/go/pkg/mod
-      - ./configs:/root/configs:ro
-    restart: unless-stopped
-    networks:
-      - fly-network
-
-  # hermes-prod:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.prod
-  #   container_name: hermes-service-prod
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   ports:
-  #     - "18080:8080"
-  #     - "19080:9080"
-  #   environment:
-  #     DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
-  #     PORT: "8080"
-  #     GRPC_PORT: "9080"
-  #     REDIS_URL: redis:6379
-  #     OBSERVABILITY_ENDPOINT: http://jaeger:4317
-  #     OBSERVABILITY_SERVICE_NAME: hermes
-  #   volumes:
-  #     - ./configs:/root/configs:ro
-  #   restart: unless-stopped
-  #   networks:
-  #     - fly-network
+    command: |
+      sh -c 'if [ -n "${REDIS_PASSWORD}" ]; then
+        redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD};
+      else
+        redis-server --save 60 1 --loglevel warning;
+      fi'
 
 volumes:
   mysql_data:
+    name: hermes-mysql_data-${APP_ENV:-dev}
   redis_data:
+    name: hermes-redis_data-${APP_ENV:-dev}
   go-modules:
+    name: hermes-go-modules
 
 networks:
   fly-network:
     driver: bridge
+    name: fly-hermes-${APP_ENV:-dev}-network

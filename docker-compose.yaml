@@ -1,37 +1,39 @@
+networks:
+  fly-network:
+    driver: bridge
+    name: fly-network
+
 services:
   mysql:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: fly-mysql
-    restart: always
-    ports:
-      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: custos
-      MYSQL_USER: custos
-      MYSQL_PASSWORD: custospassword
-      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: ${COMMON_DB_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "${COMMON_DB_PORT:-3306}:3306"
     volumes:
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql/data:/var/lib/mysql
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
-      timeout: 20s
-      retries: 10
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
-      start_period: 30s
+      timeout: 5s
+      retries: 5
     networks:
       - fly-network
+    restart: unless-stopped
 
   redis:
-    image: redis:6-alpine
+    image: redis:7-alpine
     container_name: fly-redis
-    restart: always
     ports:
-      - "6379:6379"
-    volumes:
-      - ./custos/redis/data:/data
-      - ./custos/redis/redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+      - "${COMMON_REDIS_PORT:-6379}:6379"
+    command: |
+      sh -c 'if [ -n "${COMMON_REDIS_PASSWORD}" ]; then
+        redis-server --requirepass ${COMMON_REDIS_PASSWORD};
+      else
+        redis-server;
+      fi'
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -39,225 +41,286 @@ services:
       retries: 5
     networks:
       - fly-network
-
-  custos:
-    build:
-      context: .
-      dockerfile: custos/Dockerfile.prod
-    container_name: custos-app
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    ports:
-      - "8081:8081"
-      - "9001:9001"
-    volumes:
-      - ./custos/configs:/app/configs
-    environment:
-      CONFIG_PATH: /app/configs/custos.yaml
-      SERVER_HTTP_PORT: "8081"
-      SERVER_GRPC_PORT: "9001"
-      DATABASE_DSN: custos:custospassword@tcp(mysql:3306)/custos?charset=utf8mb4&parseTime=True&loc=Local
-      REDIS_ADDR: redis:6379
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/api/v1/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - fly-network
 
-  clotho:
-    build:
-      context: .
-      dockerfile: clotho/Dockerfile.prod
-    container_name: clotho-app
-    depends_on:
-      custos:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./clotho/configs:/app/configs
-    environment:
-      CONFIG_PATH: /app/configs/clotho.yaml
-      SERVER_PORT: "8080"
-      SERVER_HOST: "0.0.0.0"
-      JWT_SECRET: "production-secret-key-change-this"
-      LOG_LEVEL: "info"
-      LOG_FORMAT: "json"
-      # 服务发现配置 (与代码读取一致的 *_GRPC_ADDRESS 键名)
-      CUSTOS_GRPC_ADDRESS: "custos:9001"
-      HERMES_GRPC_ADDRESS: "hermes:9080"
-      KRATOS_GRPC_ADDRESS: "kratos:9092"
-      PLUTUS_GRPC_ADDRESS: "plutus:9085"
-    networks:
-      - fly-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
   jaeger:
     image: jaegertracing/all-in-one:1.53
     container_name: fly-jaeger
-    restart: always
     ports:
-      - "16686:16686"  # Jaeger UI
-      - "4317:4317"    # OTLP gRPC
-      - "4318:4318"    # OTLP HTTP
+      - "${COMMON_JAEGER_PORT_UI:-16686}:16686"
+      - "${COMMON_JAEGER_PORT_OTLP:-4317}:4317"
+      - "${COMMON_JAEGER_PORT_OTLP_HTTP:-4322}:4318"
     networks:
       - fly-network
+    restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus:v2.50.0
-    container_name: fly-prometheus
-    restart: always
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - fly-network
-  hermes:
+  items:
     build:
       context: .
-      dockerfile: hermes/Dockerfile.prod
-    container_name: hermes-app
+      dockerfile: items/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: items
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_started
     ports:
-      - "8082:8080"
-      - "9080:9080"
-    volumes:
-      - ./hermes/configs:/app/configs
+      - "${ITEMS_SERVER_PORT:-8086}:8086"
+      - "${ITEMS_GRPC_PORT:-50056}:50056"
     environment:
-      DATABASE_URL: hermes:hermespassword@tcp(mysql:3306)/hermes?charset=utf8mb4&parseTime=True&loc=Local
-      PORT: "8080"
-      GRPC_PORT: "9080"
-      REDIS_URL: redis:6379
-      OBSERVABILITY_ENDPOINT: http://jaeger:4317
-      OBSERVABILITY_SERVICE_NAME: hermes
+      - APP_ENV=${APP_ENV:-development}
+      - DB_HOST=${COMMON_DB_HOST}
+      - DB_PORT=${COMMON_DB_PORT}
+      - DB_USERNAME=${ITEMS_DB_USERNAME}
+      - DB_PASSWORD=${ITEMS_DB_PASSWORD}
+      - DB_NAME=${ITEMS_DB_NAME}
+      - REDIS_ADDRESS=${COMMON_REDIS_HOST}:${COMMON_REDIS_PORT}
+      - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
     networks:
       - fly-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  kratos:
-    build:
-      context: .
-      dockerfile: kratos/Dockerfile.prod
-    container_name: kratos-app
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    ports:
-      - "8084:8082"
-      - "9092:9092"
-    volumes:
-      - ./kratos/configs:/app/configs
-    environment:
-      SERVER_HTTP_PORT: "8082"
-      SERVER_GRPC_PORT: "9092"
-      DATABASE_DSN: kratos:kratospassword@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local
-      REDIS_ADDR: redis:6379
-      CUSTOS_GRPC_ADDRESS: custos:9001
-      OBSERVABILITY_ENDPOINT: http://jaeger:4317
-      OBSERVABILITY_SERVICE_NAME: kratos
-    networks:
-      - fly-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  plutus:
-    build:
-      context: .
-      dockerfile: plutus/Dockerfile.prod
-    container_name: plutus-app
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    ports:
-      - "8085:8085"
-      - "9085:9085"
-    volumes:
-      - ./plutus/configs:/app/configs
-    environment:
-      SERVER_HTTP_PORT: "8085"
-      SERVER_GRPC_PORT: "9085"
-      DATABASE_DSN: plutus:plutuspassword@tcp(mysql:3306)/plutus?charset=utf8mb4&parseTime=True&loc=Local
-      REDIS_ADDR: redis:6379
-      OBSERVABILITY_ENDPOINT: http://jaeger:4317
-      OBSERVABILITY_SERVICE_NAME: plutus
-    networks:
-      - fly-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8085/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   appointments:
     build:
       context: .
-      dockerfile: appointments/Dockerfile.prod
-    container_name: appointments-app
+      dockerfile: appointments/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: appointments
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_started
     ports:
-      - "18083:18083"
-      - "15083:15083"
-    volumes:
-      - ./appointments/configs:/app/configs
+      - "${APPOINTMENTS_SERVER_HTTP_PORT:-8083}:8083"
+      - "${APPOINTMENTS_SERVER_GRPC_PORT:-9083}:9083"
     environment:
-      SERVER_HTTP_PORT: "18083"
-      SERVER_GRPC_PORT: "15083"
-      DATABASE_DSN: appointments:appointmentspassword@tcp(mysql:3306)/appointments?charset=utf8mb4&parseTime=True&loc=Local
-      REDIS_ADDR: redis:6379
-      CUSTOS_GRPC_ADDRESS: custos:9001
-      KRATOS_GRPC_ADDRESS: kratos:9092
-      PLUTUS_GRPC_ADDRESS: plutus:9085
-      STAFF_GRPC_ADDRESS: staff:9090
-      OBSERVABILITY_ENDPOINT: http://jaeger:4317
-      OBSERVABILITY_SERVICE_NAME: appointments
+      - APP_ENV=${APP_ENV:-development}
+      - DB_HOST=${COMMON_DB_HOST}
+      - DB_PORT=${COMMON_DB_PORT}
+      - DB_USERNAME=${APPOINTMENTS_DB_USERNAME}
+      - DB_PASSWORD=${APPOINTMENTS_DB_PASSWORD}
+      - DB_NAME=${APPOINTMENTS_DB_NAME}
+      - REDIS_HOST=${COMMON_REDIS_HOST}
+      - REDIS_PORT=${COMMON_REDIS_PORT}
+      - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
     networks:
       - fly-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:18083/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-networks:
-  fly-network:
-    driver: bridge
+  clotho:
+    build:
+      context: .
+      dockerfile: clotho/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: clotho
+    depends_on:
+      custos:
+        condition: service_started
+      plutus:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "${CLOTHO_SERVER_PORT:-8087}:8087"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - DB_HOST=${COMMON_DB_HOST}
+      - DB_PORT=${COMMON_DB_PORT}
+      - DB_USERNAME=${CLOTHO_DB_USERNAME}
+      - DB_PASSWORD=${CLOTHO_DB_PASSWORD}
+      - DB_NAME=${CLOTHO_DB_NAME}
+      - REDIS_ADDRESS=${COMMON_REDIS_HOST}:${COMMON_REDIS_PORT}
+      - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+      - CUSTOS_GRPC_ADDRESS=custos:${CUSTOS_APP_PORT_GRPC}
+      - PLUTUS_GRPC_ADDRESS=plutus:${PLUTUS_SERVER_GRPC_PORT}
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  custos:
+    build:
+      context: .
+      dockerfile: custos/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: custos
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "${CUSTOS_APP_PORT_HTTP:-8082}:8082"
+      - "${CUSTOS_APP_PORT_GRPC:-9001}:9001"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - DB_HOST=${COMMON_DB_HOST}
+      - DB_PORT=${COMMON_DB_PORT}
+      - DB_USER=${CUSTOS_DB_USER}
+      - DB_PASSWORD=${CUSTOS_DB_PASSWORD}
+      - DB_DATABASE=${CUSTOS_DB_DATABASE}
+      - REDIS_HOST=${COMMON_REDIS_HOST}
+      - REDIS_PORT=${COMMON_REDIS_PORT}
+      - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+      - JWT_SECRET=${CUSTOS_JWT_SECRET}
+      - OAUTH_STATE_KEY=${CUSTOS_OAUTH_STATE_KEY}
+    command: ["air"]
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  hermes:
+    build:
+      context: .
+      dockerfile: hermes/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: hermes
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
+    ports:
+      - "${HERMES_SERVER_HTTP_PORT:-8081}:8081"
+      - "${HERMES_SERVER_GRPC_PORT:-9081}:9081"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - HERMES_SERVER_HTTP_PORT=${HERMES_SERVER_HTTP_PORT}
+      - HERMES_SERVER_GRPC_PORT=${HERMES_SERVER_GRPC_PORT}
+      - HERMES_DATABASE_HOST=${COMMON_DB_HOST}
+      - HERMES_DATABASE_PORT=${COMMON_DB_PORT}
+      - HERMES_DATABASE_USERNAME=${HERMES_DB_USERNAME}
+      - HERMES_DATABASE_PASSWORD=${HERMES_DB_PASSWORD}
+      - HERMES_DATABASE_DATABASE=${HERMES_DB_NAME}
+      - HERMES_REDIS_URL=${COMMON_REDIS_HOST}:${COMMON_REDIS_PORT}
+      - HERMES_REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+      - HERMES_OBSERVABILITY_ENDPOINT=http://jaeger:${COMMON_JAEGER_PORT_OTLP}
+      - HERMES_OBSERVABILITY_SERVICE_NAME=hermes
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  kratos:
+    build:
+      context: .
+      dockerfile: kratos/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: kratos
+    depends_on:
+      custos:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
+    ports:
+      - "${KRATOS_SERVER_HTTP_PORT:-8088}:8088"
+      - "${KRATOS_SERVER_GRPC_PORT:-9092}:9092"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - KRATOS_SERVER_HTTP_PORT=${KRATOS_SERVER_HTTP_PORT}
+      - KRATOS_SERVER_GRPC_PORT=${KRATOS_SERVER_GRPC_PORT}
+      - KRATOS_DATABASE_DSN=${KRATOS_DB_USERNAME}:${KRATOS_DB_PASSWORD}@tcp(${COMMON_DB_HOST}:${COMMON_DB_PORT})/${KRATOS_DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local
+      - KRATOS_REDIS_ADDR=${COMMON_REDIS_HOST}:${COMMON_REDIS_PORT}
+      - KRATOS_REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+      - KRATOS_OBSERVABILITY_ENDPOINT=http://jaeger:${COMMON_JAEGER_PORT_OTLP}
+      - KRATOS_OBSERVABILITY_SERVICE_NAME=kratos
+      - KRATOS_CUSTOS_GRPC_ADDRESS=custos:${CUSTOS_APP_PORT_GRPC}
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  plutus:
+    build:
+      context: .
+      dockerfile: plutus/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: plutus
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
+    ports:
+      - "${PLUTUS_SERVER_HTTP_PORT:-8085}:8085"
+      - "${PLUTUS_SERVER_GRPC_PORT:-9085}:9085"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - PLUTUS_SERVER_HTTP_PORT=${PLUTUS_SERVER_HTTP_PORT}
+      - PLUTUS_SERVER_GRPC_PORT=${PLUTUS_SERVER_GRPC_PORT}
+      - PLUTUS_DATABASE_DSN=${PLUTUS_DB_USERNAME}:${PLUTUS_DB_PASSWORD}@tcp(${COMMON_DB_HOST}:${COMMON_DB_PORT})/${PLUTUS_DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local
+      - PLUTUS_REDIS_ADDR=${COMMON_REDIS_HOST}:${COMMON_REDIS_PORT}
+      - PLUTUS_REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+      - PLUTUS_OBSERVABILITY_ENDPOINT=http://jaeger:${COMMON_JAEGER_PORT_OTLP}
+      - PLUTUS_OBSERVABILITY_SERVICE_NAME=plutus
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  staff:
+    build:
+      context: .
+      dockerfile: staff/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+      args:
+        GO_VERSION: ${GO_VERSION:-1.25.1}
+        BUILD_OS: ${BUILD_OS:-linux}
+        BUILD_ARCH: ${BUILD_ARCH:-amd64}
+    container_name: staff
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${STAFF_SERVER_HTTP_PORT:-8089}:8089"
+      - "${STAFF_SERVER_GRPC_PORT:-9086}:9086"
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - STAFF_SERVER_HTTP_PORT=${STAFF_SERVER_HTTP_PORT}
+      - STAFF_SERVER_GRPC_PORT=${STAFF_SERVER_GRPC_PORT}
+      - STAFF_DATABASE_HOST=${COMMON_DB_HOST}
+      - STAFF_DATABASE_PORT=${COMMON_DB_PORT}
+      - STAFF_DATABASE_USER=${STAFF_DB_USERNAME}
+      - STAFF_DATABASE_PASSWORD=${STAFF_DB_PASSWORD}
+      - STAFF_DATABASE_NAME=${STAFF_DB_NAME}
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  

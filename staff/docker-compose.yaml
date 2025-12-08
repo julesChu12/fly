@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  staff:
+    build:
+      context: ..
+      dockerfile: staff/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+    container_name: staff-${APP_ENV:-dev}
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - SERVER_HTTP_PORT=${SERVER_HTTP_PORT:-8084}
+      - SERVER_GRPC_PORT=${SERVER_GRPC_PORT:-9084}
+      - STAFF_DATABASE_HOST=${DB_HOST:-mysql}
+      - STAFF_DATABASE_PORT=3306
+      - STAFF_DATABASE_USER=${DB_USERNAME:-root}
+      - STAFF_DATABASE_PASSWORD=${DB_PASSWORD:-password}
+      - STAFF_DATABASE_NAME=${DB_NAME:-staff}
+      - STAFF_DATABASE_CHARSET=${DB_CHARSET:-utf8mb4}
+    ports:
+      - "${SERVER_HTTP_PORT:-8084}:${SERVER_HTTP_PORT:-8084}"
+      - "${SERVER_GRPC_PORT:-9084}:${SERVER_GRPC_PORT:-9084}"
+    volumes:
+      - ./configs:/app/configs:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: staff-mysql-${APP_ENV:-dev}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-password}
+      MYSQL_DATABASE: ${DB_NAME:-staff}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fly-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    name: staff-mysql_data-${APP_ENV:-dev}
+
+networks:
+  fly-network:
+    driver: bridge
+    name: fly-staff-${APP_ENV:-dev}-network

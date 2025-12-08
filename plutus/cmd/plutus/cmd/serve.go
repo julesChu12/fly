@@ -65,15 +65,8 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	// Initialize logger using mora logger
 	loggerCfg := logger.Config{
-		Level:        config.Logger.Level,
-		Format:       config.Logger.Format,
-		OutputPath:   config.Logger.OutputPath,
-		MaxSize:      config.Logger.MaxSize,
-		MaxBackups:   config.Logger.MaxBackups,
-		MaxAge:       config.Logger.MaxAge,
-		Compress:     config.Logger.Compress,
-		EnableStdout: config.Logger.EnableStdout,
-		EnableFile:   config.Logger.EnableFile,
+		Level:  config.Logger.Level,
+		Format: config.Logger.Format,
 	}
 
 	l, err := logger.New(loggerCfg)

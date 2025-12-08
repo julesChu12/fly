@@ -1,53 +1,108 @@
-# Build stage
-FROM golang:1.25-alpine AS builder
+# Multi-stage, multi-environment Dockerfile for Plutus Service
+# Usage:
+#   Development: docker build --target dev -t plutus:dev .
+#   Production:  docker build --target prod -t plutus:latest .
 
-# Install build dependencies
-RUN apk add --no-cache git make
+# ========================================
+# Base Stage - Common dependencies
+# ========================================
+FROM golang:1.25.1-alpine AS base
 
-# Set working directory
-WORKDIR /build
+ARG GO_VERSION=1.25.1
+ARG BUILD_OS=linux
+ARG BUILD_ARCH=amd64
 
-# Copy go.mod for plutus and local mora module; later set replace and download deps
-COPY plutus/go.mod plutus/go.sum ./
-COPY mora ./mora
-COPY plutus/. .
-RUN go mod edit -replace github.com/julesChu12/fly/mora=./mora && go mod download
+WORKDIR /app
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o plutus ./cmd/plutus                                                                              
-
-# Final stage
-FROM alpine:latest
-
-# Install ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates tzdata
-
-# Set timezone
-ENV TZ=Asia/Shanghai
+# Install base packages
+RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev
 
 # Create non-root user
-RUN addgroup -g 1000 plutus && \
-    adduser -D -u 1000 -G plutus plutus
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
 
-# Set working directory
+# Copy go mod files and local dependencies
+COPY plutus/go.mod plutus/go.sum ./
+COPY mora /mora
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod edit -replace github.com/julesChu12/fly/mora=/mora && \
+    go mod download
+
+# ========================================
+# Development Stage
+# ========================================
+FROM base AS dev
+
+# Install development tools
+RUN apk add --no-cache curl make
+
+# Copy source code
+COPY plutus/ ./
+
+# Build with debug info
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go build -gcflags="all=-N -l" -o plutus ./cmd/plutus
+
+# Switch to non-root user
+USER appuser
+
+# Default configuration
+ENV SERVER_HTTP_PORT=8084
+ENV SERVER_GRPC_PORT=9084
+
+# Expose ports
+EXPOSE 8084 9084
+
+# Default command for development
+CMD ["./plutus", "serve"]
+
+# ========================================
+# Builder Stage - Production Build
+# ========================================
+FROM base AS builder
+
+# Copy source code
+COPY plutus/ ./
+
+# Build optimized binary
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=${BUILD_OS} GOARCH=${BUILD_ARCH} go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -a -installsuffix cgo \
+    -o plutus ./cmd/plutus
+
+# ========================================
+# Production Stage
+# ========================================
+FROM base AS prod
+
+# Install runtime dependencies
+RUN apk --no-cache add ca-certificates tzdata curl wget
+
 WORKDIR /app
 
 # Copy binary from builder
-COPY --from=builder /build/plutus .
+COPY --from=builder /app/plutus .
+COPY --from=builder /app/configs ./configs
 
-# Copy config files
-COPY --from=builder /build/configs ./configs
-
-# Change ownership
-RUN chown -R plutus:plutus /app
+# Set ownership
+RUN chown -R appuser:appgroup /app
 
 # Switch to non-root user
-USER plutus
+USER appuser
+
+# Default configuration
+ENV SERVER_HTTP_PORT=8084
+ENV SERVER_GRPC_PORT=9084
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:8084/health || exit 1
 
 # Expose ports
-# 8082: HTTP API
-# 9082: gRPC
-EXPOSE 8082 9082
+EXPOSE 8084 9084
 
-# Run the application
+# Default command
 CMD ["./plutus", "serve"]

@@ -3,10 +3,10 @@ app:
   env: "development"
 
 database:
-  host: "localhost"
+  host: "mysql"
   port: "3306"
-  user: "root"
-  password: "rootpassword"
+  user: "custos"
+  password: "custospassword"
   database: "custos"
   charset: "utf8mb4"
 
@@ -16,7 +16,7 @@ jwt:
   refreshTokenTTL: "168h"
 
 redis:
-  host: "localhost"
+  host: "redis"
   port: "6379"
   db: 0
 

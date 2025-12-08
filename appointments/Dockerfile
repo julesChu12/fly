@@ -21,6 +21,7 @@ RUN addgroup -g 1001 -S appgroup && \
 COPY appointments/go.mod appointments/go.sum ./
 COPY mora /mora
 RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod edit -replace github.com/julesChu12/fly/mora=/mora && \
     go mod download
 
 # ========================================
@@ -40,11 +41,14 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go build -gcflags="all=-N -l" -o appointments ./cmd/appointments
 
+# Set proper permissions before switching user
+RUN chown -R appuser:appgroup /app
+
 # Switch to non-root user
 USER appuser
 
 # Expose ports
-EXPOSE 8083 9083
+EXPOSE 8086 9086
 
 # Default command for development
 CMD ["./appointments", "serve"]
@@ -61,7 +65,7 @@ COPY appointments/configs /app/configs
 # Build optimized binary
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags='-w -s -extldflags "-static"' \
     -a -installsuffix cgo \
     -o appointments ./cmd/appointments
@@ -69,14 +73,10 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # ========================================
 # Production Stage
 # ========================================
-FROM alpine:latest AS prod
+FROM base AS prod
 
 # Install runtime dependencies
 RUN apk --no-cache add ca-certificates tzdata curl wget
-
-# Create non-root user
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
 
 WORKDIR /app
 
@@ -92,10 +92,10 @@ USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:8083/health || exit 1
+    CMD wget --quiet --tries=1 --spider http://localhost:8086/health || exit 1
 
 # Expose ports
-EXPOSE 8083 9083
+EXPOSE 8086 9086
 
 # Default command
 CMD ["/app/appointments", "serve"]

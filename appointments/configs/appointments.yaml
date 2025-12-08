@@ -8,9 +8,9 @@ database:
   driver: mysql
   host: mysql
   port: "3306"
-  username: fly_user
-  password: rootpassword
-  database: appointments_dev
+  username: appointments
+  password: password
+  database: appointments
   charset: utf8mb4
   max_open_conns: 10
   max_idle_conns: 5

@@ -13,7 +13,7 @@ server:
 # 可通过环境变量 DATABASE_URL 覆盖
 database:
   driver: "mysql"
-  host: "localhost"
+  host: "mysql"
   port: "3306"
   username: "hermes"
   password: "hermespassword"
@@ -27,7 +27,7 @@ database:
 # 缓存配置
 cache:
   driver: "redis"
-  address: "localhost:6379"
+  address: "redis:6379"
   password: ""
   db: 0
   pool_size: 10
@@ -87,4 +87,4 @@ rate_limit:
 auth:
   jwt_secret: "your-jwt-secret-key"
   token_expire: 3600s
-  custos_endpoint: "localhost:8081"
+  custos_endpoint: "custos:8081"

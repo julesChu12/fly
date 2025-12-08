@@ -1,12 +1,52 @@
+version: '3.8'
+
 services:
+  kratos:
+    build:
+      context: ..
+      dockerfile: kratos/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+    container_name: kratos-${APP_ENV:-dev}
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - SERVER_HTTP_PORT=${SERVER_HTTP_PORT:-8082}
+      - SERVER_GRPC_PORT=${SERVER_GRPC_PORT:-9092}
+      - KRATOS_DATABASE_DSN=${DB_USERNAME:-root}:${DB_PASSWORD:-password}@tcp(${DB_HOST:-mysql}:3306)/${DB_NAME:-kratos}?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_ADDR=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB:-0}
+      - OBSERVABILITY_ENDPOINT=${OBSERVABILITY_ENDPOINT:-http://jaeger:4317}
+      - OBSERVABILITY_SERVICE_NAME=${OBSERVABILITY_SERVICE_NAME:-kratos}
+    volumes:
+      - go-modules:/go/pkg/mod
+    ports:
+      - "${SERVER_HTTP_PORT:-8082}:${SERVER_HTTP_PORT:-8082}"
+      - "${SERVER_GRPC_PORT:-9092}:${SERVER_GRPC_PORT:-9092}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:${SERVER_HTTP_PORT:-8082}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - fly-network
+    restart: unless-stopped
+
   mysql:
     image: mysql:8.0
-    container_name: kratos-mysql
+    container_name: kratos-mysql-${APP_ENV:-dev}
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: kratos
-    expose:
-      - "3306"
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-password}
+      MYSQL_DATABASE: ${DB_NAME:-kratos}
+    ports:
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./configs/migrations:/docker-entrypoint-initdb.d
@@ -17,12 +57,15 @@ services:
       retries: 5
     networks:
       - fly-network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    container_name: kratos-redis
-    expose:
-      - "6379"
+    container_name: kratos-redis-${APP_ENV:-dev}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -30,10 +73,17 @@ services:
       retries: 5
     networks:
       - fly-network
+    restart: unless-stopped
+    command: |
+      sh -c 'if [ -n "${REDIS_PASSWORD}" ]; then
+        redis-server --requirepass ${REDIS_PASSWORD};
+      else
+        redis-server;
+      fi'
 
   jaeger:
     image: jaegertracing/all-in-one:latest
-    container_name: kratos-jaeger
+    container_name: kratos-jaeger-${APP_ENV:-dev}
     ports:
       - "6831:6831/udp"
       - "16686:16686"
@@ -42,67 +92,17 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
     networks:
       - fly-network
-
-  kratos-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: kratos-service-dev
-    ports:
-      - "8082:8082"
-      - "9092:9092"
-    volumes:
-      - .:/app
-      - go-modules:/go/pkg/mod
-    environment:
-      - SERVER_HTTP_PORT=8082
-      - SERVER_GRPC_PORT=9092
-      - DATABASE_DSN=root:password@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local
-      - REDIS_ADDR=redis:6379
-      - OBSERVABILITY_ENDPOINT=http://jaeger:4317
-      - OBSERVABILITY_SERVICE_NAME=kratos
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - fly-network
-
-  kratos-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-    container_name: kratos-service-prod
-    ports:
-      - "18082:8082"
-      - "19092:9092"
-    environment:
-      - SERVER_HTTP_PORT=8082
-      - SERVER_GRPC_PORT=9092
-      - DATABASE_DSN=root:password@tcp(mysql:3306)/kratos?charset=utf8mb4&parseTime=True&loc=Local
-      - REDIS_ADDR=redis:6379
-      - OBSERVABILITY_ENDPOINT=http://jaeger:4317
-      - OBSERVABILITY_SERVICE_NAME=kratos
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - fly-network
 
 volumes:
   mysql_data:
+    name: kratos-mysql_data-${APP_ENV:-dev}
+  redis_data:
+    name: kratos-redis_data-${APP_ENV:-dev}
   go-modules:
+    name: kratos-go-modules
 
 networks:
   fly-network:
     driver: bridge
+    name: fly-kratos-${APP_ENV:-dev}-network

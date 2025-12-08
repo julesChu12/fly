@@ -11,8 +11,8 @@ rm -rf ./bin
 mkdir -p ./bin
 
 # Build the main service
-echo "Building userd..."
-go build -o ./bin/userd ./cmd/userd
+echo "Building custos..."
+go build -o ./bin/custos ./cmd/main.go
 
 echo "Build completed successfully!"
-echo "Binary location: ./bin/userd"
+echo "Binary location: ./bin/custos"

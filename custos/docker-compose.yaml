@@ -1,57 +1,44 @@
+version: '3.8'
+
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: custos-mysql
-    # 声明内部端口，只在容器网络内访问
-    expose:
-      - "3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: custos
-      MYSQL_USER: custos
-      MYSQL_PASSWORD: custospassword
-      MYSQL_ROOT_HOST: "%"
-    volumes:
-      - ./mysql/data:/var/lib/mysql
-      - ./mysql/my.cnf:/etc/mysql/my.cnf
-    restart: always
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
-      timeout: 20s
-      retries: 10
-      interval: 10s
-      start_period: 30s
-    networks:
-      - fly-network
-
-  redis:
-    image: redis:6-alpine
-    container_name: custos-redis
-    # 声明内部端口，只在容器网络内访问
-    expose:
-      - "6379"
-    volumes:
-      - ./redis/data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-    restart: always
-    networks:
-      - fly-network
-
-
-  custos-dev:
+  custos:
     build:
-      context: ..  # 使用父目录作为上下文,以便访问 mora
-      dockerfile: custos/Dockerfile.dev
+      context: ..
+      dockerfile: custos/Dockerfile
+      target: ${BUILD_TARGET:-dev}
+    container_name: custos-${APP_ENV:-dev}
     ports:
-      - "8081:8081"
+      - "${APP_PORT:-8081}:${APP_PORT:-8081}"
     volumes:
-      - .:/app
-      - ../mora:/mora  # 挂载 mora 以支持热更新
+      - ../mora:/mora
       - go-modules:/go/pkg/mod
+      - ./.air.toml:/app/.air.toml
     environment:
-      - GIN_MODE=debug
-      - GO_ENV=development
+      - APP_ENV=${APP_ENV:-development}
+      - APP_PORT=${APP_PORT:-8081}
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_USER=${DB_USER:-custos}
+      - DB_PASSWORD=${DB_PASSWORD:-custospassword}
+      - DB_DATABASE=${DB_DATABASE:-custos}
+      - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
+      - JWT_ACCESS_TOKEN_TTL=${JWT_ACCESS_TOKEN_TTL:-15m}
+      - JWT_REFRESH_TOKEN_TTL=${JWT_REFRESH_TOKEN_TTL:-168h}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - LOG_OUTPUT_PATH=${LOG_OUTPUT_PATH:-logs/custos.log}
+      - LOG_MAX_SIZE=${LOG_MAX_SIZE:-100}
+      - LOG_MAX_BACKUPS=${LOG_MAX_BACKUPS:-7}
+      - LOG_MAX_AGE=${LOG_MAX_AGE:-30}
+      - LOG_COMPRESS=${LOG_COMPRESS:-true}
+      - LOG_ENABLE_STDOUT=${LOG_ENABLE_STDOUT:-true}
+      - LOG_ENABLE_FILE=${LOG_ENABLE_FILE:-true}
+      - OAUTH_STATE_KEY=${OAUTH_STATE_KEY:-dev-oauth-state-key-change-me}
+      - OAUTH_STATE_TTL=${OAUTH_STATE_TTL:-600}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
     command: ["air"]
     networks:
       - fly-network
@@ -61,25 +48,48 @@ services:
       redis:
         condition: service_started
 
-  # custos-prod:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.prod
-  #   ports:
-  #     - "8881:8881"
-  #   environment:
-  #     - GIN_MODE=release
-  #     - GO_ENV=production
-  #   networks:
-  #     - fly-network
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_started
+  mysql:
+    image: mysql:8.0
+    container_name: custos-mysql-${APP_ENV:-dev}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_DATABASE:-custos}
+      MYSQL_USER: ${DB_USER:-custos}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-custospassword}
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+    networks:
+      - fly-network
+
+  redis:
+    image: redis:6-alpine
+    container_name: custos-redis-${APP_ENV:-dev}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./redis/data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: always
+    networks:
+      - fly-network
+
 volumes:
   go-modules:
+    name: custos-go-modules
 
 networks:
   fly-network:
     driver: bridge
+    name: fly-custos-${APP_ENV:-dev}-network
