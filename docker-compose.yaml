@@ -50,6 +50,12 @@ services:
       - "${COMMON_JAEGER_PORT_UI:-16686}:16686"
       - "${COMMON_JAEGER_PORT_OTLP:-4317}:4317"
       - "${COMMON_JAEGER_PORT_OTLP_HTTP:-4322}:4318"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:14269/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - fly-network
     restart: unless-stopped
@@ -81,6 +87,12 @@ services:
       - DB_NAME=${ITEMS_DB_NAME}
       - REDIS_ADDRESS=${COMMON_REDIS_HOST}:${COMMON_REDIS_PORT}
       - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -113,6 +125,12 @@ services:
       - REDIS_HOST=${COMMON_REDIS_HOST}
       - REDIS_PORT=${COMMON_REDIS_PORT}
       - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -149,6 +167,12 @@ services:
       - REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
       - CUSTOS_GRPC_ADDRESS=custos:${CUSTOS_APP_PORT_GRPC}
       - PLUTUS_GRPC_ADDRESS=plutus:${PLUTUS_SERVER_GRPC_PORT}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8087/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -184,6 +208,12 @@ services:
       - JWT_SECRET=${CUSTOS_JWT_SECRET}
       - OAUTH_STATE_KEY=${CUSTOS_OAUTH_STATE_KEY}
     command: ["air"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -221,6 +251,12 @@ services:
       - HERMES_REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
       - HERMES_OBSERVABILITY_ENDPOINT=http://jaeger:${COMMON_JAEGER_PORT_OTLP}
       - HERMES_OBSERVABILITY_SERVICE_NAME=hermes
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -257,6 +293,12 @@ services:
       - KRATOS_OBSERVABILITY_ENDPOINT=http://jaeger:${COMMON_JAEGER_PORT_OTLP}
       - KRATOS_OBSERVABILITY_SERVICE_NAME=kratos
       - KRATOS_CUSTOS_GRPC_ADDRESS=custos:${CUSTOS_APP_PORT_GRPC}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -290,6 +332,12 @@ services:
       - PLUTUS_REDIS_PASSWORD=${COMMON_REDIS_PASSWORD}
       - PLUTUS_OBSERVABILITY_ENDPOINT=http://jaeger:${COMMON_JAEGER_PORT_OTLP}
       - PLUTUS_OBSERVABILITY_SERVICE_NAME=plutus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
@@ -319,6 +367,12 @@ services:
       - STAFF_DATABASE_USER=${STAFF_DB_USERNAME}
       - STAFF_DATABASE_PASSWORD=${STAFF_DB_PASSWORD}
       - STAFF_DATABASE_NAME=${STAFF_DB_NAME}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8089/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - fly-network
     restart: unless-stopped
